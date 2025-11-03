@@ -1,0 +1,973 @@
+/* ============================== ESTILOS GENERALES DE LA TIENDA ============================== */
+body {
+    background-image: url("img/fondoPagina.png");
+    background-size: cover;
+    /* hace que cubra toda la pantalla */
+    background-repeat: no-repeat;
+    /* evita repeticiones */
+    background-attachment: fixed;
+    /* el fondo se queda quieto al hacer scroll */
+    background-position: center;
+    /* centra la imagen */
+}
+
+/* ====== ENCABEZADO ====== */
+header {
+    background-color: #222;
+    color: white;
+    padding: 20px 0;
+    text-align: center;
+}
+
+header nav ul {
+    list-style: none;
+    margin: 10px 0 0;
+    padding: 0 0 0 30px;
+    display: flex;
+    flex-direction: column;
+    /* uno debajo del otro */
+    align-items: flex-start;
+    /* alinea todo a la izquierda */
+    gap: 8px;
+}
+
+header nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+header nav a:hover {
+    text-decoration: underline;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2.5em;
+}
+
+/* ====== LOGOTIPO ====== */
+.logo {
+    /* ocupa casi todo el ancho */
+    width: 98%;
+    /* altura reducida — puedes ajustar este valor */
+    height: 400px;
+    display: block;
+    margin: 0 auto;
+    object-fit: fill;
+}
+
+.seccion-deportivas {
+    background-color: rgba(74, 69, 230, 0.85);
+    border: 1px solid #ff0404;
+    border-radius: 10px;
+    padding: 100px;
+    margin: 0px 0 0px 0;
+    /* sin margen lateral automático */
+    width: 600px;
+    /* ancho fijo opcional para mantener forma */
+    text-align: left;
+    /* texto dentro alineado a la izquierda */
+}
+
+/* ====== MENÚ PRINCIPAL ====== */
+.menu-principal {
+    background-color: #333;
+    padding: 10px 0;
+}
+
+.menu-principal ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+}
+
+.menu-principal a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.menu-principal a:hover {
+    color: #ffcc00;
+}
+
+/* ====== CONTENIDO PRINCIPAL ====== */
+main,
+.contenedor-pagina {
+    display: block !important;
+    /* o si debe ser flex: justify-content:flex-start; align-items:flex-start; */
+}
+
+main h2 {
+    margin-bottom: 20px;
+}
+
+/* Cada sección de marca */
+.seccion-deportivas {
+    margin-left: 0 !important;
+    margin-right: auto !important;
+    align-self: flex-start !important;
+    text-align: left;
+    /* 💡 separación entre las tarjetas */
+    margin-bottom: 20px;
+    /* deja espacio debajo de cada sección */
+    padding: 20px;
+    /* espacio interno dentro de la tarjeta */
+    background-color: rgba(74, 69, 230, 0.85);
+    border: 1px solid #ff0404;
+    border-radius: 10px;
+}
+
+/* Contenedor del logo + texto */
+.contenedor-marca {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    /* espacio entre logo y texto */
+}
+
+/* Imagen del logo */
+.logo-marca {
+    width: 120px;
+    /* tamaño del logo */
+    height: auto;
+    display: block;
+}
+
+/* Texto al lado derecho */
+.texto-marca {
+    flex: 1;
+}
+
+/* Efecto visual al pasar el ratón */
+.seccion-deportivas:hover {
+    transform: scale(1.02);
+}
+
+/* Oculta/mostrar vistas */
+.oculto {
+    display: none;
+}
+
+/* Cabecera de la vista de marca */
+.cabecera-marca {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px 0 16px;
+}
+
+#btn-volver {
+    padding: 10px 12px;
+    border: none;
+    border-radius: 8px;
+    background: #111;
+    color: #fff;
+    cursor: pointer;
+}
+
+#btn-volver:hover {
+    opacity: .9;
+}
+
+/* Grid fija de 5 columnas (desktop) */
+.rejilla-5 {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    /* 5 columnas */
+    gap: 16px;
+    /* separación entre tarjetas */
+}
+
+/* Tarjeta del producto */
+.tarjeta-zapatilla {
+    background: rgba(74, 69, 230, 0.85);
+    border: 1px solid #ff0404;
+    border-radius: 10px;
+    padding: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+}
+
+/* Hueco para la foto (placeholder por ahora) */
+.img-zapatilla {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    /* ⬅️ Cuadrado perfecto */
+    background: #f0f0f0;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    /* centra la imagen */
+    overflow: hidden;
+    /* evita desbordes */
+}
+
+.img-zapatilla img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    /* sin deformar, encaja dentro del cuadrado */
+}
+
+/* Datos del producto dentro de la tarjeta */
+.tarjeta-zapatilla h4 {
+    margin: 6px 0;
+    font-size: 1rem;
+}
+
+.tarjeta-zapatilla .precio {
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.tarjeta-zapatilla label {
+    display: block;
+    margin-top: 6px;
+    font-size: .9rem;
+}
+
+.tarjeta-zapatilla select {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-top: 4px;
+}
+
+/* Separación extra para el botón del carrito dentro de la tarjeta */
+.tarjeta-zapatilla .btn-add-carrito {
+    margin-top: 12px;
+    /* separa del select de color */
+    padding: 8px 10px;
+    /* opcional: mejora el clic */
+    border-radius: 8px;
+    /* opcional: consistente con tu estilo */
+    width: 100%;
+    /* opcional: que ocupe todo el ancho de la tarjeta */
+}
+
+/* ====== PIE DE PÁGINA ====== */
+footer {
+    background-color: #222;
+    color: white;
+    text-align: center;
+    padding: 20px 10px;
+    margin-top: 40px;
+    font-size: 0.9em;
+}
+
+/* ===== Toast flotante (notificación) ===== */
+#toast-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+}
+
+.toast {
+    background: #047b30;
+    color: white;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+    border: 1px solid #013012;
+    /* <--- añadido */
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+    animation: toast-in 250ms ease-out forwards, toast-out 280ms ease-in 2s forwards;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.toast span.icon {
+    font-size: 1.4rem;
+}
+
+.toast.error {
+    background: #b00020;
+    /* rojo estilo Android Material */
+    border: 1px solid #5a0010;
+}
+
+@keyframes toast-in {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes toast-out {
+    to {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.95);
+    }
+}
+
+/* ===== Modal Carrito (centrado) ===== */
+.modal-oculto {
+    display: none;
+}
+
+#modal-carrito {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    display: none;
+}
+
+#modal-carrito .modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+#modal-carrito .modal-wrap {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(900px, 92vw);
+    max-height: 85vh;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#modal-carrito .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    border-bottom: 1px solid #eee;
+    background: #fafafa;
+}
+
+#modal-carrito .btn-cerrar {
+    border: none;
+    background: transparent;
+    font-size: 26px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px 8px;
+}
+
+#modal-carrito .modal-body {
+    padding: 0;
+    overflow: auto;
+}
+
+/* Lista de productos del carrito */
+.carrito-lista {
+    display: grid;
+    grid-template-columns: 1fr;
+}
+
+/* Fila del carrito */
+.item-carrito {
+    display: grid;
+    grid-template-columns: 80px 1.2fr 0.8fr 0.6fr 120px;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+@media (max-width: 640px) {
+    .item-carrito {
+        grid-template-columns: 64px 1fr;
+        grid-auto-rows: auto;
+    }
+}
+
+/* Miniatura más grande en el carrito */
+.thumb-zapa {
+    width: 110px;
+    height: 110px;
+    background: #f3f3f3;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+/* La imagen ocupa el cuadro sin deformarse */
+.thumb-zapa img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.info-zapa h4 {
+    margin: 0 0 4px 0;
+    font-size: 1rem;
+    line-height: 1.2;
+}
+
+.info-zapa .meta {
+    margin: 2px 0;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.precio-u,
+.importe {
+    min-width: 90px;
+    text-align: right;
+    font-weight: 600;
+}
+
+.precio-u {
+    color: #333;
+}
+
+.importe {
+    text-align: right;
+}
+
+.btn-quitar {
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+}
+
+.btn-quitar:hover {
+    background: #f7f7f7;
+}
+
+/* Pie del modal */
+#modal-carrito .modal-footer {
+    padding: 12px 16px;
+    border-top: 1px solid #eee;
+    background: #fafafa;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.resumen-total {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    font-size: 1.1rem;
+}
+
+.resumen-total strong {
+    font-size: 1.25rem;
+}
+
+.btn-primario,
+.btn-secundario {
+    border-radius: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.btn-primario {
+    background: #111;
+    color: #fff;
+    border: none;
+}
+
+.btn-primario:hover {
+    opacity: .9;
+}
+
+.btn-secundario {
+    background: #fff;
+    border: 1px solid #ddd;
+}
+
+.btn-secundario:hover {
+    background: #f7f7f7;
+}
+
+/* Utilidad para mostrar/ocultar modal */
+.modal-visible {
+    display: block !important;
+}
+
+/* ===== Checkout / Resumen estilos ===== */
+.checkout-container {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 24px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    margin: 18px;
+}
+
+.checkout-left {
+    padding: 8px 12px;
+}
+
+.checkout-right {
+    padding: 8px 12px;
+    border-left: 1px solid #eee;
+}
+
+.checkout-left h2,
+.checkout-right h3 {
+    margin: 0 0 12px;
+}
+
+.fila {
+    display: flex;
+    gap: 12px;
+}
+
+.campo {
+    flex: 1;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.campo label {
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.campo input,
+.campo select,
+.campo textarea {
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.campo textarea {
+    resize: vertical;
+}
+
+.consentimientos {
+    margin: 8px 0 12px;
+    font-size: 0.95rem;
+    color: #444;
+}
+
+.acciones-checkout {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.resumen-lineas {
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    padding: 10px;
+    max-height: 46vh;
+    overflow: auto;
+    background: #fff;
+}
+
+.linea-resumen {
+    display: grid;
+    grid-template-columns: 56px 1fr 80px;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 6px;
+    border-bottom: 1px solid #fafafa;
+}
+
+.linea-resumen .thumb-zapa {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+}
+
+.linea-resumen .info {
+    font-size: 0.92rem;
+}
+
+.linea-resumen .info small {
+    display: block;
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.resumen-calculos {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #eee;
+}
+
+.fila-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    color: #333;
+}
+
+.total-final {
+    font-size: 1.15rem;
+    font-weight: 800;
+}
+
+#checkout-confirmacion {
+    padding: 20px;
+    text-align: center;
+}
+
+.confirm-box {
+    display: inline-block;
+    background: #fff;
+    padding: 18px 22px;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* responsive */
+@media (max-width: 880px) {
+    .checkout-container {
+        grid-template-columns: 1fr;
+    }
+
+    .checkout-right {
+        border-left: none;
+        border-top: 1px solid #eee;
+        margin-top: 10px;
+        padding-top: 14px;
+    }
+}
+
+/* Layout de cada línea del carrito: miniatura + info + columnas */
+.item-carrito {
+    display: grid;
+    grid-template-columns: 110px 1fr auto auto auto;
+    /* foto | info | precioU | importe | acciones */
+    align-items: center;
+    column-gap: 16px;
+    /* <-- separa la info de la foto */
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-carrito header {
+    background: #032a54;
+    /* azul claro */
+    padding: 14px;
+    font-weight: bold;
+    font-size: 1.2rem;
+    border-radius: 8px 8px 0 0;
+}
+
+.modal-footer {
+    background: #032a54;
+    /* mismo azul claro */
+    padding: 14px;
+    border-radius: 0 0 8px 8px;
+}
+
+#btn-pagar {
+    background: #28a745;
+    color: white;
+    font-weight: bold;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+#btn-pagar:hover {
+    background: #1d7f34;
+}
+
+#btn-vaciar {
+    background: #e03131;
+    color: white;
+    font-weight: bold;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+#btn-vaciar:hover {
+    background: #b52525;
+}
+
+/* --- Contenedor del modal (caja blanca y bordes redondeados) --- */
+#modal-carrito .modal-wrap {
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    /* para que el header/footer azules redondeen bien */
+}
+
+/* --- Header azul oscuro --- */
+#modal-carrito .modal-header {
+    background: #032a54;
+    color: #fff;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* botón cerrar (X) en el header */
+#modal-carrito .modal-header .btn-cerrar {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+#modal-carrito .modal-header .btn-cerrar:hover {
+    opacity: 0.85;
+}
+
+/* --- Body (lista del carrito) con scroll si crece mucho --- */
+#modal-carrito .modal-body {
+    padding: 12px 16px;
+    max-height: 60vh;
+    /* evita que se salga de pantalla */
+    overflow: auto;
+}
+
+/* --- Footer azul oscuro: total + botones --- */
+#modal-carrito .modal-footer {
+    background: #032a54;
+    color: #fff;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+/* Total a la izquierda en blanco */
+#modal-carrito .modal-footer .resumen-total span,
+#modal-carrito .modal-footer .resumen-total strong {
+    color: #fff;
+    font-size: 1rem;
+}
+
+/* Contenedor de botones a la derecha */
+#modal-carrito .modal-footer .acciones {
+    display: flex;
+    gap: 10px;
+}
+
+/* --- Botones --- */
+#btn-pagar {
+    background: #28a745;
+    color: #fff;
+    font-weight: 700;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+#btn-pagar:hover {
+    background: #1d7f34;
+}
+
+#btn-vaciar {
+    background: #e03131;
+    color: #fff;
+    font-weight: 700;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+#btn-vaciar:hover {
+    background: #b52525;
+}
+
+
+/* =========================================
+   CHECKOUT — Estilo alineado con el CARRITO
+   (añadir al final del CSS existente)
+   ========================================= */
+
+/* Caja principal del checkout, similar a la “caja blanca” del modal */
+.checkout-container {
+    background: rgba(74, 69, 230, 0.85);
+    border: 1px solid #eee;
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+}
+
+/* “Barras” de encabezado para cada columna (azul oscuro + texto blanco)
+   Sin cambiar el HTML: usamos los h2/h3 existentes como cabeceras visuales */
+.checkout-left h2,
+.checkout-right h3 {
+    background: #032a54;
+    /* mismo azul del carrito */
+    color: #ffffff;
+    padding: 12px 14px;
+    margin: 0 0 12px;
+    border-radius: 10px;
+}
+
+/* Columna derecha con leve contraste y separación, como el footer/header del modal */
+.checkout-right {
+    background: #fafafa;
+    border-left: 1px solid #eee;
+}
+
+/* Caja de líneas del resumen: borde y fondo como en el carrito */
+.resumen-lineas {
+    background: #ffffff;
+    border: 1px solid #f0f0f0;
+}
+
+/* Totales con un poco más de contraste */
+.resumen-calculos .fila-total {
+    color: #111;
+}
+
+.total-final {
+    color: #111;
+}
+
+
+
+/* ===========================================
+   Estilo para la columna "Formulario de envío"
+   =========================================== */
+
+/* Fondo del formulario (columna izquierda del checkout) */
+.checkout-left {
+    background: rgba(74, 69, 230, 0.85);
+    /* azul transparente igual que las tarjetas */
+    border: 1px solid #032a54;
+    /* borde rojo */
+    border-radius: 10px;
+    padding: 20px;
+    color: #fffefe;
+    /* texto en blanco */
+}
+
+/* Ajusta etiquetas y campos para mantener contraste */
+.checkout-left label {
+    color: #fff;
+}
+
+.checkout-left input,
+.checkout-left select,
+.checkout-left textarea {
+    background: rgba(255, 255, 255, 0.9);
+    /* blanco semitransparente */
+    color: #000;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+/* Botones dentro del formulario conservan el estilo verde/rojo */
+#btn-confirmar-pedido {
+    background: #28a745;
+    color: #fff;
+    border: 2px solid #1e6f32;
+    /* borde verde más oscuro */
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+#btn-confirmar-pedido:hover {
+    background: #1d7f34;
+    border-color: #145626;
+    /* tono más oscuro aún en hover */
+}
+
+#btn-cancelar-checkout {
+    background: #e03131;
+    color: #fff;
+    border: 2px solid #a02020;
+    /* borde rojo más oscuro */
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+#btn-cancelar-checkout:hover {
+    background: #b52525;
+    border-color: #7d1919;
+    /* tono más oscuro aún en hover */
+}
+
+
+
+/* ===========================================
+   Estilo para la columna "Resumen del pedido"
+   =========================================== */
+.checkout-right {
+    background: rgba(74, 69, 230, 0.85);
+    /* azul translúcido */
+    border: 1px solid #032a54;
+    /* borde rojo */
+    border-radius: 10px;
+    padding: 20px;
+    color: #fff;
+    /* texto en blanco */
+}
+
+/* Encabezado del resumen */
+.checkout-right h3 {
+    color: #fff;
+}
+
+/* Caja del listado de productos en el resumen */
+.resumen-lineas {
+    background: rgba(255, 255, 255, 0.9);
+    /* mantiene contraste */
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    max-height: 46vh;
+    overflow: auto;
+}
+
+/* Línea de cada producto dentro del resumen */
+.linea-resumen .info {
+    color: #000;
+    /* texto oscuro sobre fondo claro */
+}
+
+/* Cálculos de totales (Subtotal, IVA, Total) */
+.resumen-calculos {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 10px;
+    color: #000;
+}
+
+/* Destaca el total final */
+.total-final {
+    font-weight: bold;
+    color: #000;
+}

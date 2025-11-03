@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UrbanSneakers - Tienda Online</title>
+    <link rel="stylesheet" href="tiendaEstilos.css">
+    
+</head>
+
+<body>
+    <!-- ====== ENCABEZADO ====== -->
+    <header>
+        <h1>UrbanSneakers - tu tienda online de deportivas</h1>
+            <!-- Imagen del logotipo -->
+            <img src="img/logotipo.png" alt="Logotipo de UrbanSneakers" class="logo">
+        <nav>
+            <ul>
+                <li><a href="#">Usuario</a></li>
+                <li><a href="#" id="btn-carrito">Carrito <span id="badge">0</span></a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- ====== CONTENIDO PRINCIPAL ====== -->
+    <main>
+        <!-- Sección principal de productos -->
+        <section id="lista">
+            <h2><!--etiqueta vacia para mostar un espacio en blanco, util para añadir futura seccion--></h2>
+        </section>
+
+        <!-- ====== SECCIONES DE MARCAS ====== -->
+
+        <!-- Nike -->
+        <section class="seccion-deportivas" id="nike">
+            <div class="contenedor-marca">
+                <img src="img/nike.png" alt="Logotipo Nike" class="logo-marca">
+                <div class="texto-marca">
+                    <h3>Nike</h3>
+                    <p>Modelos icónicos de Nike para todos los estilos deportivos y urbanos.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Adidas -->
+        <section class="seccion-deportivas" id="adidas">
+            <div class="contenedor-marca">
+                <img src="img/adidas.png" alt="Logotipo Adidas" class="logo-marca">
+                <div class="texto-marca">
+                    <h3>Adidas</h3>
+                    <p>Comodidad, diseño y tecnología en cada par de Adidas.</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Puma -->
+        <section class="seccion-deportivas" id="puma">
+            <div class="contenedor-marca">
+                <img src="img/puma.png" alt="Logotipo Puma" class="logo-marca">
+                <div class="texto-marca">
+                    <h3>Puma</h3>
+                    <p>Estilo moderno y materiales de alto rendimiento con las Puma.</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Reebok -->
+        <section class="seccion-deportivas" id="reebok">
+            <div class="contenedor-marca">
+                <img src="img/reebok.png" alt="Logotipo Reebok" class="logo-marca">
+                <div class="texto-marca">
+                    <h3>Reebok</h3>
+                    <p>Clásicas, cómodas y resistentes. Descubre lo mejor de Reebok.</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- New Balance -->
+        <section class="seccion-deportivas" id="new-balance">
+            <div class="contenedor-marca">
+                <img src="img/newBalance.png" alt="Logotipo New Balance" class="logo-marca">
+                <div class="texto-marca">
+                    <h3>New Balance</h3>
+                    <p>Equilibrio perfecto entre diseño urbano y confort deportivo.</p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ===== VISTA DE UNA MARCA (SPA) - Oculta por defecto ===== -->
+        <section id="vista-marca" class="oculto">
+            <!-- Barra superior con título y volver -->
+            <div class="cabecera-marca">
+                <h2 id="titulo-marca">Modelos</h2>
+                <button id="btn-volver" type="button">Volver a la página principal</button>
+            </div>
+        
+            <!-- Grid de productos de la marca seleccionada -->
+            <div id="grid-productos" class="rejilla-5"></div>
+        </section>
+
+        <!-- ====== CHECKOUT / RESUMEN PEDIDO (SPA) ====== -->
+        <section id="checkout" class="oculto">
+            <div class="checkout-container">
+                <div class="checkout-left">
+                    <h2>Formulario de envío</h2>
+        
+                    <form id="formulario-checkout" novalidate>
+                        <div class="fila">
+                            <div class="campo">
+                                <label for="nombre">Nombre *</label>
+                                <input id="nombre-c" name="nombre" type="text" required autocomplete="given-name">
+                            </div>
+                            <div class="campo">
+                                <label for="apellidos">Apellidos *</label>
+                                <input id="apellidos-c" name="apellidos" type="text" required autocomplete="family-name">
+                            </div>
+                        </div>
+        
+                        <div class="campo">
+                            <label for="email">Correo electrónico *</label>
+                            <input id="email-c" name="email" type="email" required autocomplete="email">
+                        </div>
+        
+                        <div class="campo">
+                            <label for="telefono">Teléfono *</label>
+                            <input id="telefono-c" name="telefono" type="tel" inputmode="tel" placeholder="+34 612 345 678"
+                                required>
+                        </div>
+        
+                        <div class="campo">
+                            <label for="direccion1">Dirección (línea 1) *</label>
+                            <input id="direccion1-c" name="direccion1" type="text" required autocomplete="address-line1">
+                        </div>
+        
+                        <div class="campo">
+                            <label for="direccion2">Dirección (línea 2) — opcional</label>
+                            <input id="direccion2-c" name="direccion2" type="text" autocomplete="address-line2">
+                        </div>
+        
+                        <div class="fila">
+                            <div class="campo">
+                                <label for="ciudad">Ciudad *</label>
+                                <input id="ciudad-c" name="ciudad" type="text" required autocomplete="address-level2">
+                            </div>
+                            <div class="campo">
+                                <label for="provincia">Provincia *</label>
+                                <input id="provincia-c" name="provincia" type="text" required autocomplete="address-level1">
+                            </div>
+                        </div>
+        
+                        <div class="fila">
+                            <div class="campo">
+                                <label for="cp">Código postal *</label>
+                                <input id="cp-c" name="cp" type="text" inputmode="numeric" pattern="\d{5}" required
+                                    placeholder="08001">
+                            </div>
+                            <div class="campo">
+                                <label for="pais">País *</label>
+                                <select id="pais-c" name="pais" required>
+                                    <option value="España" selected>España</option>
+                                    <option value="Portugal">Portugal</option>
+                                    <option value="Francia">Francia</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
+                        </div>
+        
+                        <div class="campo">
+                            <label for="notas">Notas para el repartidor — opcional</label>
+                            <textarea id="notas-c" name="notas" rows="2" placeholder="Dejar en portería..."></textarea>
+                        </div>
+        
+                        <div class="consentimientos">
+                            <label><input id="acepto-terminos" type="checkbox" required> Acepto los <a href="#"
+                                    target="_blank">Términos y Condiciones</a> *</label>
+                        </div>
+        
+                        <div class="acciones-checkout">
+                            <button id="btn-confirmar-pedido" type="submit" class="btn-primario">Confirmar pedido</button>
+                            <button id="btn-cancelar-checkout" type="button" class="btn-secundario">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+        
+                <aside class="checkout-right">
+                    <h3>Resumen del pedido</h3>
+                    <div id="resumen-lineas" class="resumen-lineas"></div>
+        
+                    <div class="resumen-calculos">
+                        <div class="fila-total"><span>Subtotal</span><strong id="resumen-subtotal">0,00 €</strong></div>
+                        <div class="fila-total"><span>Gastos envío</span><strong id="resumen-envio">0,00 €</strong></div>
+                        <div class="fila-total"><span>IVA (21%)</span><strong id="resumen-iva">0,00 €</strong></div>
+                        <div class="fila-total total-final"><span>Total</span><strong id="resumen-total">0,00 €</strong></div>
+                    </div>
+                </aside>
+            </div>
+        
+            <!-- confirmation (hidden until order simulated) -->
+            <div id="checkout-confirmacion" class="oculto">
+                <div class="confirm-box">
+                    <h2>✅ Pedido recibido</h2>
+                    <p id="confirm-text">Gracias — tu pedido ha sido recibido. Número de pedido: <strong
+                            id="confirm-id"></strong></p>
+                    <button id="confirm-volver" class="btn-primario">Volver a la tienda</button>
+                </div>
+            </div>
+        </section>
+        <!-- ====== /CHECKOUT ====== -->
+
+
+    <!-- ====== PIE DE PÁGINA ====== -->
+    <footer>
+        <p>© 2025 UrbanSneakers - Todos los derechos reservados.</p>
+    </footer>
+
+    <!-- Contenedor para notificaciones (toast) -->
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- ===== Modal Carrito ===== -->
+    <div id="modal-carrito" class="modal-oculto">
+        <div class="modal-overlay"></div>
+    
+        <div class="modal-wrap" role="dialog" aria-modal="true" aria-labelledby="titulo-carrito">
+            <div class="modal-header">
+                <h3 id="titulo-carrito">🛒 Carrito</h3>
+                <button id="btn-cerrar-carrito" class="btn-cerrar" aria-label="Cerrar">×</button>
+            </div>
+    
+            <div class="modal-body">
+                <!-- Contenedor de líneas del carrito -->
+                <div id="carrito-items" class="carrito-lista"></div>
+            </div>
+    
+            <div class="modal-footer">
+                <div class="resumen-total">
+                    <span>Total:</span>
+                    <strong id="carrito-total">0,00 €</strong>
+                </div>
+                <div class="acciones">
+                    <button id="btn-pagar" class="btn-primario">Pagar ahora</button>
+                    <button id="btn-vaciar" class="btn-secundario">Cancelar todos los pedidos</button>
+                </div>
+            </div>
+        </div>
+    </div>
+   
+    <!-- Enlazamos el archivo JavaScript al final del body -->
+    <script src="tiendaApp.js"></script>
+</body>
+
+</html>
