@@ -1,22 +1,135 @@
-/* ============================== ESTILOS GENERALES DE LA TIENDA ============================== */
+/* =======================================================
+   VARIABLES GLOBALES (COLORES, SOMBRAS, ETC.)
+   ======================================================= */
+:root {
+    /* ===== Paleta básica  ===== */
+    --blanco: #ffffff;
+    --negro: #000000;
+    --rojo: #e03131;
+    --rojo-oscuro: #b52525;
+    --azul-transparente: rgba(74, 69, 230, 0.85);
+    --azul-oscuro: rgba(7, 5, 65, 0.85);
+    --verde: #28a745;
+    --verde-oscuro: #1d7f34;
+    --gris-oscuro: #333333;
+    --gris-claro: #dddddd;
+
+    /* ===== Colores semánticos construidos con la paleta ===== */
+
+    /* Colores base */
+    --color-header-bg: var(--gris-oscuro);
+    --color-header-text: var(--blanco);
+
+    --color-page-text-light: var(--blanco);
+    --color-page-text-dark: var(--negro);
+    --color-text-muted: var(--gris-oscuro);
+    --color-text-muted-2: var(--gris-oscuro);
+    --color-text-strong: var(--gris-oscuro);
+
+    /* Tarjetas / secciones */
+    --color-card-bg: var(--azul-transparente);
+    --color-card-border: var(--rojo);
+    --color-checkout-bg: var(--azul-transparente);
+    --color-checkout-border: var(--rojo);
+
+    /* Headers secundarios */
+    --color-dark-blue: var(--azul-oscuro);
+
+    /* Fondos claros */
+    --color-white: var(--blanco);
+    --color-img-bg: var(--gris-claro);
+    --color-thumb-bg: var(--gris-claro);
+    --color-border-light: var(--gris-claro);
+    --color-border-lighter: var(--gris-claro);
+    --color-border-ultralight: var(--gris-claro);
+
+    /* Toasts */
+    --color-toast-success-bg: var(--verde);
+    --color-toast-success-border: var(--verde-oscuro);
+    --color-toast-error-bg: var(--rojo);
+    --color-toast-error-border: var(--rojo-oscuro);
+
+    /* Modales */
+    --color-modal-overlay: rgba(0, 0, 0, 0.45);
+    /* negro con transparencia */
+    --color-modal-bg: var(--blanco);
+
+    /* Botones – negro / primario */
+    --color-btn-primary-bg: var(--negro);
+    --color-btn-primary-text: var(--blanco);
+
+    /* Botones – secundarios */
+    --color-btn-secondary-bg: var(--blanco);
+    --color-btn-secondary-border: var(--gris-claro);
+    --color-btn-secondary-hover-bg: var(--gris-claro);
+
+    /* Botones – verdes (confirmar / pagar) */
+    --color-btn-green-bg: var(--verde);
+    --color-btn-green-hover-bg: var(--verde-oscuro);
+    --color-btn-green-border: var(--verde-oscuro);
+    --color-btn-green-hover-border: var(--verde-oscuro);
+
+    /* Botones – rojos (cancelar / quitar) */
+    --color-btn-red-bg: var(--rojo);
+    --color-btn-red-hover-bg: var(--rojo-oscuro);
+    --color-btn-red-border: var(--rojo-oscuro);
+    --color-btn-red-hover-border: var(--rojo-oscuro);
+    --color-btn-red-alt-hover-bg: var(--rojo-oscuro);
+
+    /* Sombras (todas basadas en negro con transparencias) */
+    --shadow-card: 0 2px 8px rgba(0, 0, 0, .06);
+    --shadow-modal: 0 20px 60px rgba(0, 0, 0, 0.3);
+    --shadow-confirm: 0 12px 30px rgba(0, 0, 0, 0.08);
+    --shadow-toast: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+
+/* =======================================================
+   LAYOUT GENERAL: BODY, MAIN, UTILIDADES
+   ======================================================= */
+
 body {
     background-image: url("img/fondoPagina.png");
     background-size: cover;
-    /* hace que cubra toda la pantalla */
     background-repeat: no-repeat;
-    /* evita repeticiones */
     background-attachment: fixed;
-    /* el fondo se queda quieto al hacer scroll */
     background-position: center;
-    /* centra la imagen */
 }
 
-/* ====== ENCABEZADO ====== */
+/* Contenedor general */
+main,
+.contenedor-pagina {
+    display: block !important;
+}
+
+main h2 {
+    margin-bottom: 20px;
+}
+
+/* Utilidades generales */
+.oculto {
+    display: none;
+}
+
+.modal-visible {
+    display: block !important;
+}
+
+
+/* =======================================================
+   HEADER / CABECERA
+   ======================================================= */
+
 header {
-    background-color: #222;
-    color: white;
+    background-color: var(--color-header-bg);
+    color: var(--color-header-text);
     padding: 20px 0;
     text-align: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2.5em;
 }
 
 header nav ul {
@@ -25,14 +138,12 @@ header nav ul {
     padding: 0 0 0 30px;
     display: flex;
     flex-direction: column;
-    /* uno debajo del otro */
     align-items: flex-start;
-    /* alinea todo a la izquierda */
     gap: 8px;
 }
 
 header nav a {
-    color: white;
+    color: var(--color-header-text);
     text-decoration: none;
     font-weight: 600;
 }
@@ -41,119 +152,59 @@ header nav a:hover {
     text-decoration: underline;
 }
 
-header h1 {
-    margin: 0;
-    font-size: 2.5em;
-}
-
-/* ====== LOGOTIPO ====== */
+/* Logotipo principal grande */
 .logo {
-    /* ocupa casi todo el ancho */
     width: 98%;
-    /* altura reducida — puedes ajustar este valor */
     height: 400px;
     display: block;
     margin: 0 auto;
     object-fit: fill;
 }
 
-.seccion-deportivas {
-    background-color: rgba(74, 69, 230, 0.85);
-    border: 1px solid #ff0404;
-    border-radius: 10px;
-    padding: 100px;
-    margin: 0px 0 0px 0;
-    /* sin margen lateral automático */
-    width: 600px;
-    /* ancho fijo opcional para mantener forma */
-    text-align: left;
-    /* texto dentro alineado a la izquierda */
-}
 
-/* ====== MENÚ PRINCIPAL ====== */
-.menu-principal {
-    background-color: #333;
-    padding: 10px 0;
-}
+/* =======================================================
+   SECCIONES DE MARCAS (HOME)
+   ======================================================= */
 
-.menu-principal ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-}
-
-.menu-principal a {
-    color: white;
-    text-decoration: none;
-    font-weight: bold;
-}
-
-.menu-principal a:hover {
-    color: #ffcc00;
-}
-
-/* ====== CONTENIDO PRINCIPAL ====== */
-main,
-.contenedor-pagina {
-    display: block !important;
-    /* o si debe ser flex: justify-content:flex-start; align-items:flex-start; */
-}
-
-main h2 {
-    margin-bottom: 20px;
-}
-
-/* Cada sección de marca */
 .seccion-deportivas {
     margin-left: 0 !important;
     margin-right: auto !important;
     align-self: flex-start !important;
     text-align: left;
-    /* 💡 separación entre las tarjetas */
     margin-bottom: 20px;
-    /* deja espacio debajo de cada sección */
     padding: 20px;
-    /* espacio interno dentro de la tarjeta */
-    background-color: rgba(74, 69, 230, 0.85);
-    border: 1px solid #ff0404;
+    background-color: var(--color-card-bg);
+    border: 1px solid var(--color-card-border);
     border-radius: 10px;
+    max-width: 600px;
+    width: 100%;
 }
 
-/* Contenedor del logo + texto */
 .contenedor-marca {
     display: flex;
     align-items: center;
     gap: 20px;
-    /* espacio entre logo y texto */
 }
 
-/* Imagen del logo */
 .logo-marca {
     width: 120px;
-    /* tamaño del logo */
     height: auto;
     display: block;
 }
 
-/* Texto al lado derecho */
 .texto-marca {
     flex: 1;
 }
 
-/* Efecto visual al pasar el ratón */
 .seccion-deportivas:hover {
     transform: scale(1.02);
 }
 
-/* Oculta/mostrar vistas */
-.oculto {
-    display: none;
-}
 
-/* Cabecera de la vista de marca */
+/* =======================================================
+   VISTA DE MARCA (GRID DE PRODUCTOS)
+   ======================================================= */
+
 .cabecera-marca {
     display: flex;
     justify-content: space-between;
@@ -165,8 +216,8 @@ main h2 {
     padding: 10px 12px;
     border: none;
     border-radius: 8px;
-    background: #111;
-    color: #fff;
+    background: var(--color-btn-primary-bg);
+    color: var(--color-btn-primary-text);
     cursor: pointer;
 }
 
@@ -178,42 +229,36 @@ main h2 {
 .rejilla-5 {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    /* 5 columnas */
     gap: 16px;
-    /* separación entre tarjetas */
 }
 
 /* Tarjeta del producto */
 .tarjeta-zapatilla {
-    background: rgba(74, 69, 230, 0.85);
-    border: 1px solid #ff0404;
+    background: var(--color-card-bg);
+    border: 1px solid var(--color-card-border);
     border-radius: 10px;
     padding: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+    box-shadow: var(--shadow-card);
 }
 
-/* Hueco para la foto (placeholder por ahora) */
+/* Imagen de la zapatilla */
 .img-zapatilla {
     width: 100%;
     aspect-ratio: 1 / 1;
-    /* ⬅️ Cuadrado perfecto */
-    background: #f0f0f0;
+    background: var(--color-img-bg);
     border-radius: 8px;
     display: grid;
     place-items: center;
-    /* centra la imagen */
     overflow: hidden;
-    /* evita desbordes */
 }
 
 .img-zapatilla img {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    /* sin deformar, encaja dentro del cuadrado */
 }
 
-/* Datos del producto dentro de la tarjeta */
+/* Datos en la tarjeta */
 .tarjeta-zapatilla h4 {
     margin: 6px 0;
     font-size: 1rem;
@@ -233,34 +278,24 @@ main h2 {
 .tarjeta-zapatilla select {
     width: 100%;
     padding: 6px 8px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--color-border-light);
     border-radius: 6px;
     margin-top: 4px;
 }
 
-/* Separación extra para el botón del carrito dentro de la tarjeta */
+/* Botón dentro de la tarjeta */
 .tarjeta-zapatilla .btn-add-carrito {
     margin-top: 12px;
-    /* separa del select de color */
     padding: 8px 10px;
-    /* opcional: mejora el clic */
     border-radius: 8px;
-    /* opcional: consistente con tu estilo */
     width: 100%;
-    /* opcional: que ocupe todo el ancho de la tarjeta */
 }
 
-/* ====== PIE DE PÁGINA ====== */
-footer {
-    background-color: #222;
-    color: white;
-    text-align: center;
-    padding: 20px 10px;
-    margin-top: 40px;
-    font-size: 0.9em;
-}
 
-/* ===== Toast flotante (notificación) ===== */
+/* =======================================================
+   TOAST / NOTIFICACIONES
+   ======================================================= */
+
 #toast-container {
     position: fixed;
     top: 50%;
@@ -274,15 +309,14 @@ footer {
 }
 
 .toast {
-    background: #047b30;
-    color: white;
+    background: var(--color-toast-success-bg);
+    color: var(--color-page-text-light);
     padding: 14px 18px;
     border-radius: 12px;
     font-size: 1.1rem;
     font-weight: 600;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
-    border: 1px solid #013012;
-    /* <--- añadido */
+    box-shadow: var(--shadow-toast);
+    border: 1px solid var(--color-toast-success-border);
     opacity: 0;
     transform: translateY(-8px) scale(0.95);
     animation: toast-in 250ms ease-out forwards, toast-out 280ms ease-in 2s forwards;
@@ -296,9 +330,8 @@ footer {
 }
 
 .toast.error {
-    background: #b00020;
-    /* rojo estilo Android Material */
-    border: 1px solid #5a0010;
+    background: var(--color-toast-error-bg);
+    border: 1px solid var(--color-toast-error-border);
 }
 
 @keyframes toast-in {
@@ -320,7 +353,11 @@ footer {
     }
 }
 
-/* ===== Modal Carrito (centrado) ===== */
+
+/* =======================================================
+   MODAL DEL CARRITO
+   ======================================================= */
+
 .modal-oculto {
     display: none;
 }
@@ -335,7 +372,7 @@ footer {
 #modal-carrito .modal-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.45);
+    background: var(--color-modal-overlay);
 }
 
 #modal-carrito .modal-wrap {
@@ -345,35 +382,62 @@ footer {
     transform: translate(-50%, -50%);
     width: min(900px, 92vw);
     max-height: 85vh;
-    background: #ffffff;
-    border-radius: 14px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    background: var(--color-modal-bg);
+    border-radius: 10px;
+    box-shadow: var(--shadow-modal);
     display: flex;
     flex-direction: column;
     overflow: hidden;
 }
 
 #modal-carrito .modal-header {
+    background: var(--color-dark-blue);
+    color: var(--color-page-text-light);
+    padding: 14px 16px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 14px 18px;
-    border-bottom: 1px solid #eee;
-    background: #fafafa;
+    justify-content: space-between;
 }
 
 #modal-carrito .btn-cerrar {
     border: none;
     background: transparent;
-    font-size: 26px;
+    font-size: 22px;
     line-height: 1;
     cursor: pointer;
     padding: 4px 8px;
+    color: var(--color-page-text-light);
+}
+
+#modal-carrito .btn-cerrar:hover {
+    opacity: 0.85;
 }
 
 #modal-carrito .modal-body {
-    padding: 0;
+    padding: 12px 16px;
+    max-height: 60vh;
     overflow: auto;
+}
+
+#modal-carrito .modal-footer {
+    background: var(--color-dark-blue);
+    color: var(--color-page-text-light);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+#modal-carrito .modal-footer .resumen-total span,
+#modal-carrito .modal-footer .resumen-total strong {
+    color: var(--color-page-text-light);
+    font-size: 1rem;
+}
+
+#modal-carrito .modal-footer .acciones {
+    display: flex;
+    gap: 10px;
 }
 
 /* Lista de productos del carrito */
@@ -385,25 +449,18 @@ footer {
 /* Fila del carrito */
 .item-carrito {
     display: grid;
-    grid-template-columns: 80px 1.2fr 0.8fr 0.6fr 120px;
+    grid-template-columns: 110px 1fr auto auto auto;
     align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    border-bottom: 1px solid #f0f0f0;
+    column-gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--color-border-lighter);
 }
 
-@media (max-width: 640px) {
-    .item-carrito {
-        grid-template-columns: 64px 1fr;
-        grid-auto-rows: auto;
-    }
-}
-
-/* Miniatura más grande en el carrito */
+/* Miniatura en el carrito */
 .thumb-zapa {
     width: 110px;
     height: 110px;
-    background: #f3f3f3;
+    background: var(--color-thumb-bg);
     border-radius: 10px;
     display: flex;
     align-items: center;
@@ -411,7 +468,6 @@ footer {
     overflow: hidden;
 }
 
-/* La imagen ocupa el cuadro sin deformarse */
 .thumb-zapa img {
     width: 100%;
     height: 100%;
@@ -426,7 +482,7 @@ footer {
 
 .info-zapa .meta {
     margin: 2px 0;
-    color: #555;
+    color: var(--color-text-muted);
     font-size: 0.9rem;
 }
 
@@ -438,48 +494,30 @@ footer {
 }
 
 .precio-u {
-    color: #333;
+    color: var(--color-text-strong);
 }
 
 .importe {
     text-align: right;
 }
 
+/* Botón quitar producto del carrito */
 .btn-quitar {
-    padding: 8px 10px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: #fff;
+    background-color: var(--color-btn-red-bg);
+    color: var(--color-page-text-light);
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
     cursor: pointer;
+    font-size: 0.9rem;
+    transition: 0.2s;
 }
 
 .btn-quitar:hover {
-    background: #f7f7f7;
+    background-color: var(--color-btn-red-alt-hover-bg);
 }
 
-/* Pie del modal */
-#modal-carrito .modal-footer {
-    padding: 12px 16px;
-    border-top: 1px solid #eee;
-    background: #fafafa;
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-}
-
-.resumen-total {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-    font-size: 1.1rem;
-}
-
-.resumen-total strong {
-    font-size: 1.25rem;
-}
-
+/* Botones generales reutilizables */
 .btn-primario,
 .btn-secundario {
     border-radius: 10px;
@@ -489,8 +527,8 @@ footer {
 }
 
 .btn-primario {
-    background: #111;
-    color: #fff;
+    background: var(--color-btn-primary-bg);
+    color: var(--color-btn-primary-text);
     border: none;
 }
 
@@ -499,44 +537,89 @@ footer {
 }
 
 .btn-secundario {
-    background: #fff;
-    border: 1px solid #ddd;
+    background: var(--color-btn-secondary-bg);
+    border: 1px solid var(--color-btn-secondary-border);
 }
 
 .btn-secundario:hover {
-    background: #f7f7f7;
+    background: var(--color-btn-secondary-hover-bg);
 }
 
-/* Utilidad para mostrar/ocultar modal */
-.modal-visible {
-    display: block !important;
+/* Botones específicos del carrito */
+#btn-pagar {
+    background: var(--color-btn-green-bg);
+    color: var(--color-page-text-light);
+    font-weight: 700;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 6px;
+    cursor: pointer;
 }
 
-/* ===== Checkout / Resumen estilos ===== */
+#btn-pagar:hover {
+    background: var(--color-btn-green-hover-bg);
+}
+
+#btn-vaciar {
+    background: var(--color-btn-red-bg);
+    color: var(--color-page-text-light);
+    font-weight: 700;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+#btn-vaciar:hover {
+    background: var(--color-btn-red-hover-bg);
+}
+
+
+/* =======================================================
+   CHECKOUT / FORMULARIO / RESUMEN
+   ======================================================= */
+
+/* Caja principal del checkout */
 .checkout-container {
     display: grid;
     grid-template-columns: 1fr 360px;
     gap: 24px;
     padding: 20px;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 12px;
     margin: 18px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
 }
 
+/* Columna izquierda - formulario */
 .checkout-left {
-    padding: 8px 12px;
+    background: var(--color-checkout-bg);
+    border: 1px solid var(--color-checkout-border);
+    border-radius: 10px;
+    padding: 20px;
+    color: var(--color-page-text-light);
 }
 
+/* Columna derecha - resumen */
 .checkout-right {
-    padding: 8px 12px;
-    border-left: 1px solid #eee;
+    background: var(--color-checkout-bg);
+    border: 1px solid var(--color-checkout-border);
+    border-radius: 10px;
+    padding: 20px;
+    color: var(--color-page-text-light);
 }
 
+/* Encabezados de cada columna */
 .checkout-left h2,
 .checkout-right h3 {
+    background: var(--color-dark-blue);
+    color: var(--color-page-text-light);
+    padding: 12px 14px;
     margin: 0 0 12px;
+    border-radius: 10px;
 }
 
+/* Layout de filas y campos */
 .fila {
     display: flex;
     gap: 12px;
@@ -552,15 +635,18 @@ footer {
 .campo label {
     font-weight: 600;
     margin-bottom: 6px;
+    color: var(--color-page-text-light);
 }
 
 .campo input,
 .campo select,
 .campo textarea {
     padding: 8px 10px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--color-border-light);
     border-radius: 8px;
     font-size: 0.95rem;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--color-page-text-dark);
 }
 
 .campo textarea {
@@ -570,7 +656,7 @@ footer {
 .consentimientos {
     margin: 8px 0 12px;
     font-size: 0.95rem;
-    color: #444;
+    color: var(--color-page-text-light);
 }
 
 .acciones-checkout {
@@ -580,13 +666,41 @@ footer {
     margin-top: 8px;
 }
 
+/* Botones de formulario */
+#btn-confirmar-pedido {
+    background: var(--color-btn-green-bg);
+    color: var(--color-page-text-light);
+    border: 2px solid var(--color-btn-green-border);
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+#btn-confirmar-pedido:hover {
+    background: var(--color-btn-green-hover-bg);
+    border-color: var(--color-btn-green-hover-border);
+}
+
+#btn-cancelar-checkout {
+    background: var(--color-btn-red-bg);
+    color: var(--color-page-text-light);
+    border: 2px solid var(--color-btn-red-border);
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+#btn-cancelar-checkout:hover {
+    background: var(--color-btn-red-hover-bg);
+    border-color: var(--color-btn-red-hover-border);
+}
+
+/* Resumen de pedido */
 .resumen-lineas {
-    border: 1px solid #f0f0f0;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--color-border-light);
     border-radius: 8px;
     padding: 10px;
     max-height: 46vh;
     overflow: auto;
-    background: #fff;
 }
 
 .linea-resumen {
@@ -595,7 +709,7 @@ footer {
     gap: 12px;
     align-items: center;
     padding: 10px 6px;
-    border-bottom: 1px solid #fafafa;
+    border-bottom: 1px solid var(--color-border-ultralight);
 }
 
 .linea-resumen .thumb-zapa {
@@ -606,368 +720,227 @@ footer {
 
 .linea-resumen .info {
     font-size: 0.92rem;
+    color: var(--color-page-text-dark);
 }
 
 .linea-resumen .info small {
     display: block;
-    color: #666;
+    color: var(--color-text-muted-2);
     font-size: 0.85rem;
 }
 
+/* Totales */
 .resumen-calculos {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid #eee;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 10px;
+    color: var(--color-page-text-dark);
 }
 
 .fila-total {
     display: flex;
     justify-content: space-between;
     padding: 6px 0;
-    color: #333;
+    color: var(--color-text-strong);
 }
 
 .total-final {
     font-size: 1.15rem;
     font-weight: 800;
+    color: var(--color-page-text-dark);
 }
 
+/* Confirmación de pedido */
 #checkout-confirmacion {
-    padding: 20px;
-    text-align: center;
-}
-
-.confirm-box {
-    display: inline-block;
-    background: #fff;
-    padding: 18px 22px;
-    border-radius: 12px;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
-}
-
-/* responsive */
-@media (max-width: 880px) {
-    .checkout-container {
-        grid-template-columns: 1fr;
+        padding: 20px;
+        text-align: center;
     }
 
-    .checkout-right {
-        border-left: none;
-        border-top: 1px solid #eee;
-        margin-top: 10px;
-        padding-top: 14px;
+    .confirm-box {
+        display: inline-block;
+        background: var(--color-white);
+        padding: 18px 22px;
+        border-radius: 12px;
+        box-shadow: var(--shadow-confirm);
     }
-}
-
-/* Layout de cada línea del carrito: miniatura + info + columnas */
-.item-carrito {
-    display: grid;
-    grid-template-columns: 110px 1fr auto auto auto;
-    /* foto | info | precioU | importe | acciones */
-    align-items: center;
-    column-gap: 16px;
-    /* <-- separa la info de la foto */
-    padding: 10px 0;
-    border-bottom: 1px solid #eee;
-}
-
-.modal-carrito header {
-    background: #032a54;
-    /* azul claro */
-    padding: 14px;
-    font-weight: bold;
-    font-size: 1.2rem;
-    border-radius: 8px 8px 0 0;
-}
-
-.modal-footer {
-    background: #032a54;
-    /* mismo azul claro */
-    padding: 14px;
-    border-radius: 0 0 8px 8px;
-}
-
-#btn-pagar {
-    background: #28a745;
-    color: white;
-    font-weight: bold;
-    border: none;
-    padding: 10px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-#btn-pagar:hover {
-    background: #1d7f34;
-}
-
-#btn-vaciar {
-    background: #e03131;
-    color: white;
-    font-weight: bold;
-    border: none;
-    padding: 10px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-#btn-vaciar:hover {
-    background: #b52525;
-}
-
-/* --- Contenedor del modal (caja blanca y bordes redondeados) --- */
-#modal-carrito .modal-wrap {
-    background: #fff;
-    border-radius: 10px;
-    overflow: hidden;
-    /* para que el header/footer azules redondeen bien */
-}
-
-/* --- Header azul oscuro --- */
-#modal-carrito .modal-header {
-    background: #032a54;
-    color: #fff;
-    padding: 14px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-/* botón cerrar (X) en el header */
-#modal-carrito .modal-header .btn-cerrar {
-    background: transparent;
-    border: none;
-    color: #fff;
-    font-size: 22px;
-    cursor: pointer;
-    line-height: 1;
-}
-
-#modal-carrito .modal-header .btn-cerrar:hover {
-    opacity: 0.85;
-}
-
-/* --- Body (lista del carrito) con scroll si crece mucho --- */
-#modal-carrito .modal-body {
-    padding: 12px 16px;
-    max-height: 60vh;
-    /* evita que se salga de pantalla */
-    overflow: auto;
-}
-
-/* --- Footer azul oscuro: total + botones --- */
-#modal-carrito .modal-footer {
-    background: #032a54;
-    color: #fff;
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-}
-
-/* Total a la izquierda en blanco */
-#modal-carrito .modal-footer .resumen-total span,
-#modal-carrito .modal-footer .resumen-total strong {
-    color: #fff;
-    font-size: 1rem;
-}
-
-/* Contenedor de botones a la derecha */
-#modal-carrito .modal-footer .acciones {
-    display: flex;
-    gap: 10px;
-}
-
-/* --- Botones --- */
-#btn-pagar {
-    background: #28a745;
-    color: #fff;
-    font-weight: 700;
-    border: none;
-    padding: 10px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-#btn-pagar:hover {
-    background: #1d7f34;
-}
-
-#btn-vaciar {
-    background: #e03131;
-    color: #fff;
-    font-weight: 700;
-    border: none;
-    padding: 10px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-#btn-vaciar:hover {
-    background: #b52525;
-}
 
 
-/* =========================================
-   CHECKOUT — Estilo alineado con el CARRITO
-   (añadir al final del CSS existente)
-   ========================================= */
+    /* =======================================================
+   FOOTER
+   ======================================================= */
 
-/* Caja principal del checkout, similar a la “caja blanca” del modal */
-.checkout-container {
-    background: rgba(74, 69, 230, 0.85);
-    border: 1px solid #eee;
-    border-radius: 14px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
-}
-
-/* “Barras” de encabezado para cada columna (azul oscuro + texto blanco)
-   Sin cambiar el HTML: usamos los h2/h3 existentes como cabeceras visuales */
-.checkout-left h2,
-.checkout-right h3 {
-    background: #032a54;
-    /* mismo azul del carrito */
-    color: #ffffff;
-    padding: 12px 14px;
-    margin: 0 0 12px;
-    border-radius: 10px;
-}
-
-/* Columna derecha con leve contraste y separación, como el footer/header del modal */
-.checkout-right {
-    background: #fafafa;
-    border-left: 1px solid #eee;
-}
-
-/* Caja de líneas del resumen: borde y fondo como en el carrito */
-.resumen-lineas {
-    background: #ffffff;
-    border: 1px solid #f0f0f0;
-}
-
-/* Totales con un poco más de contraste */
-.resumen-calculos .fila-total {
-    color: #111;
-}
-
-.total-final {
-    color: #111;
-}
+    footer {
+        background-color: var(--color-header-bg);
+        color: var(--color-header-text);
+        text-align: center;
+        padding: 20px 10px;
+        margin-top: 40px;
+        font-size: 0.9em;
+    }
 
 
+    /* =======================================================
+   RESPONSIVE / MEDIA QUERIES
+   ======================================================= */
 
-/* ===========================================
-   Estilo para la columna "Formulario de envío"
-   =========================================== */
+    /* --- Carrito: filas más compactas en móvil pequeño --- */
+    @media (max-width: 640px) {
+        .item-carrito {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            grid-auto-rows: auto;
+            column-gap: 16px;
+            row-gap: 4px;
+            align-items: start;
+        }
 
-/* Fondo del formulario (columna izquierda del checkout) */
-.checkout-left {
-    background: rgba(74, 69, 230, 0.85);
-    /* azul transparente igual que las tarjetas */
-    border: 1px solid #032a54;
-    /* borde rojo */
-    border-radius: 10px;
-    padding: 20px;
-    color: #fffefe;
-    /* texto en blanco */
-}
+        /* FOTO más grande, a la izquierda ocupando varias filas */
+        .item-carrito .thumb-zapa {
+            grid-column: 1;
+            grid-row: 1 / 4;
+            width: 100px;
+            height: 100px;
+        }
 
-/* Ajusta etiquetas y campos para mantener contraste */
-.checkout-left label {
-    color: #fff;
-}
+        /* DATOS arriba a la derecha */
+        .item-carrito .info-zapa {
+            grid-column: 2;
+            grid-row: 1;
+            padding-left: 4px;
+        }
 
-.checkout-left input,
-.checkout-left select,
-.checkout-left textarea {
-    background: rgba(255, 255, 255, 0.9);
-    /* blanco semitransparente */
-    color: #000;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-}
+        /* IMPORTE debajo de los datos */
+        .item-carrito .importe {
+            grid-column: 2;
+            grid-row: 2;
+            text-align: left;
+            margin-top: 2px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding-left: 4px;
+        }
 
-/* Botones dentro del formulario conservan el estilo verde/rojo */
-#btn-confirmar-pedido {
-    background: #28a745;
-    color: #fff;
-    border: 2px solid #1e6f32;
-    /* borde verde más oscuro */
-    border-radius: 6px;
-    transition: all 0.2s ease;
-}
+        /* BOTÓN debajo del importe */
+        .item-carrito .btn-quitar {
+            grid-column: 2;
+            grid-row: 3;
+            justify-self: flex-start;
+            margin-top: 4px;
+            padding-left: 4px;
+        }
+    }
 
-#btn-confirmar-pedido:hover {
-    background: #1d7f34;
-    border-color: #145626;
-    /* tono más oscuro aún en hover */
-}
+    /* --- Secciones de marcas (home) en móvil / tablet --- */
+    @media (max-width: 768px) {
+        .seccion-deportivas {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            padding: 16px;
+            margin: 10px auto;
+        }
 
-#btn-cancelar-checkout {
-    background: #e03131;
-    color: #fff;
-    border: 2px solid #a02020;
-    /* borde rojo más oscuro */
-    border-radius: 6px;
-    transition: all 0.2s ease;
-}
+        .contenedor-marca {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 10px;
+        }
 
-#btn-cancelar-checkout:hover {
-    background: #b52525;
-    border-color: #7d1919;
-    /* tono más oscuro aún en hover */
-}
+        .logo-marca {
+            width: 90px;
+            height: auto;
+        }
 
+        .texto-marca {
+            width: 100%;
+        }
+    }
 
+    /* --- Grid de productos (vista marca) en móvil --- */
+    @media (max-width: 768px) {
+        .rejilla-5 {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
 
-/* ===========================================
-   Estilo para la columna "Resumen del pedido"
-   =========================================== */
-.checkout-right {
-    background: rgba(74, 69, 230, 0.85);
-    /* azul translúcido */
-    border: 1px solid #032a54;
-    /* borde rojo */
-    border-radius: 10px;
-    padding: 20px;
-    color: #fff;
-    /* texto en blanco */
-}
+        .tarjeta-zapatilla {
+            padding: 10px;
+        }
+    }
 
-/* Encabezado del resumen */
-.checkout-right h3 {
-    color: #fff;
-}
+    /* --- Checkout: 2 columnas -> 1 columna a partir de 880px --- */
+    @media (max-width: 880px) {
+        .checkout-container {
+            grid-template-columns: 1fr;
+        }
 
-/* Caja del listado de productos en el resumen */
-.resumen-lineas {
-    background: rgba(255, 255, 255, 0.9);
-    /* mantiene contraste */
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 10px;
-    max-height: 46vh;
-    overflow: auto;
-}
+        .checkout-right {
+            border-left: none;
+            border-top: 1px solid var(--color-border-lighter);
+            margin-top: 10px;
+            padding-top: 14px;
+        }
+    }
 
-/* Línea de cada producto dentro del resumen */
-.linea-resumen .info {
-    color: #000;
-    /* texto oscuro sobre fondo claro */
-}
+    /* --- Checkout móvil (estructura más compacta) --- */
+    @media (max-width: 768px) {
 
-/* Cálculos de totales (Subtotal, IVA, Total) */
-.resumen-calculos {
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 8px;
-    padding: 10px;
-    margin-top: 10px;
-    color: #000;
-}
+        .checkout-container {
+            grid-template-columns: 1fr;
+            gap: 16px;
+            padding: 10px;
+            margin: 10px 8px;
+        }
 
-/* Destaca el total final */
-.total-final {
-    font-weight: bold;
-    color: #000;
-}
+        .checkout-left,
+        .checkout-right {
+            padding: 12px 10px;
+            border-radius: 10px;
+        }
+
+        .fila {
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .acciones-checkout {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+        }
+
+        .acciones-checkout .btn-primario,
+        .acciones-checkout .btn-secundario {
+            width: 100%;
+            text-align: center;
+        }
+
+        .linea-resumen {
+            grid-template-columns: 56px 1fr;
+            grid-auto-rows: auto;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .linea-resumen .importe {
+            justify-self: flex-end;
+            margin-top: 4px;
+            font-size: 0.9rem;
+        }
+
+        .resumen-lineas {
+            max-height: 40vh;
+        }
+
+        .checkout-left label,
+        .checkout-left input,
+        .checkout-left select,
+        .checkout-left textarea,
+        .checkout-right,
+        .checkout-right .info,
+        .fila-total {
+            font-size: 0.9rem;
+        }
+    }
