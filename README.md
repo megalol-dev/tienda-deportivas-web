@@ -92,3 +92,26 @@ No hay backend real ni pasarela de pago: **todas las compras están simuladas en
     ├── productos.js        # Vista por marcas, grid de productos y selects de talla/color
     ├── carrito.js          # Lógica del carrito, modal, badge y localStorage
     └── checkout.js         # Checkout, validación del formulario y pedido simulado
+```
+
+---
+
+## ⚙️ Tecnologías utilizadas
+
+- **HTML5** – estructura de la página y del formulario.
+- **CSS3** – estilos, layout, diseño responsive y variables CSS (`:root`).
+- **JavaScript (ES6+)** – lógica de la aplicación:
+  - Fetch de `catalogo.json`
+  - Gestión del carrito
+  - SPA de marcas
+  - Validación de formulario
+  - `localStorage` para persistencia del carrito
+
+
+## 🚀 Cómo ejecutar el proyecto
+
+1. **Clonar el repositorio:**
+
+   ```bash
+   git clone https://github.com/megalol-dev/tienda-deportivas-web.git
+   cd tienda-deportivas-web
