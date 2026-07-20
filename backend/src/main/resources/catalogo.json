@@ -1,0 +1,908 @@
+[
+    {
+        "id": 1,
+        "marca": "Nike",
+        "nombre": "Nike Air Max 90",
+        "precio": 119.99,
+        "tallas": [
+            38,
+            39,
+            40,
+            41,
+            42,
+            43
+        ],
+        "colores": [
+            "Blanco",
+            "Negro",
+            "Rojo"
+        ]
+    },
+    {
+        "id": 2,
+        "marca": "Nike",
+        "nombre": "Nike Air Force 1",
+        "precio": 109.99,
+        "tallas": [
+            37,
+            38,
+            39,
+            40,
+            41,
+            42
+        ],
+        "colores": [
+            "Blanco",
+            "Azul",
+            "Gris"
+        ]
+    },
+    {
+        "id": 3,
+        "marca": "Nike",
+        "nombre": "Nike Zoom Fly",
+        "precio": 129.99,
+        "tallas": [
+            39,
+            40,
+            41,
+            42,
+            43,
+            44
+        ],
+        "colores": [
+            "Negro",
+            "Rojo",
+            "Verde"
+        ]
+    },
+    {
+        "id": 4,
+        "marca": "Nike",
+        "nombre": "Nike Revolution 6",
+        "precio": 89.99,
+        "tallas": [
+            36,
+            37,
+            38,
+            39,
+            40,
+            41
+        ],
+        "colores": [
+            "Negro",
+            "Blanco",
+            "Rosa"
+        ]
+    },
+    {
+        "id": 5,
+        "marca": "Nike",
+        "nombre": "Nike Air Jordan 1",
+        "precio": 149.99,
+        "tallas": [
+            40,
+            41,
+            42,
+            43,
+            44
+        ],
+        "colores": [
+            "Rojo",
+            "Blanco",
+            "Negro"
+        ]
+    },
+    {
+        "id": 6,
+        "marca": "Nike",
+        "nombre": "Nike Pegasus Trail",
+        "precio": 134.99,
+        "tallas": [
+            38,
+            39,
+            40,
+            41,
+            42,
+            43
+        ],
+        "colores": [
+            "Verde",
+            "Negro",
+            "Gris"
+        ]
+    },
+    {
+        "id": 7,
+        "marca": "Nike",
+        "nombre": "Nike Waffle Trainer",
+        "precio": 99.99,
+        "tallas": [
+            37,
+            38,
+            39,
+            40,
+            41,
+            42
+        ],
+        "colores": [
+            "Amarillo",
+            "Blanco",
+            "Negro"
+        ]
+    },
+    {
+        "id": 8,
+        "marca": "Nike",
+        "nombre": "Nike Blazer Mid",
+        "precio": 114.99,
+        "tallas": [
+            39,
+            40,
+            41,
+            42,
+            43
+        ],
+        "colores": [
+            "Blanco",
+            "Negro",
+            "Verde"
+        ]
+    },
+    {
+        "id": 9,
+        "marca": "Nike",
+        "nombre": "Nike Air Huarache",
+        "precio": 124.99,
+        "tallas": [
+            38,
+            39,
+            40,
+            41,
+            42
+        ],
+        "colores": [
+            "Azul",
+            "Negro",
+            "Gris"
+        ]
+    },
+    {
+        "id": 10,
+        "marca": "Nike",
+        "nombre": "Nike Free Run 5.0",
+        "precio": 99.99,
+        "tallas": [
+            36,
+            37,
+            38,
+            39,
+            40
+        ],
+        "colores": [
+            "Negro",
+            "Rosa",
+            "Blanco"
+        ]
+    },
+    {
+        "id": 11,
+        "marca": "Adidas",
+        "nombre": "Adidas Ultraboost",
+        "precio": 139.99,
+        "tallas": [
+            38,
+            39,
+            40,
+            41,
+            42
+        ],
+        "colores": [
+            "Blanco",
+            "Negro",
+            "Azul"
+        ]
+    },
+    {
+        "id": 12,
+        "marca": "Adidas",
+        "nombre": "Adidas Superstar",
+        "precio": 99.99,
+        "tallas": [
+            37,
+            38,
+            39,
+            40,
+            41
+        ],
+        "colores": [
+            "Blanco",
+            "Negro",
+            "Dorado"
+        ]
+    },
+    {
+        "id": 13,
+        "marca": "Adidas",
+        "nombre": "Adidas Stan Smith",
+        "precio": 89.99,
+        "tallas": [
+            36,
+            37,
+            38,
+            39,
+            40
+        ],
+        "colores": [
+            "Blanco",
+            "Verde",
+            "Azul"
+        ]
+    },
+    {
+        "id": 14,
+        "marca": "Adidas",
+        "nombre": "Adidas NMD R1",
+        "precio": 129.99,
+        "tallas": [
+            38,
+            39,
+            40,
+            41,
+            42
+        ],
+        "colores": [
+            "Negro",
+            "Gris",
+            "Rojo"
+        ]
+    },
+    {
+        "id": 15,
+        "marca": "Adidas",
+        "nombre": "Adidas Forum Low",
+        "precio": 109.99,
+        "tallas": [
+            37,
+            38,
+            39,
+            40,
+            41
+        ],
+        "colores": [
+            "Blanco",
+            "Azul",
+            "Rojo"
+        ]
+    },
+    {
+        "id": 16,
+        "marca": "Adidas",
+        "nombre": "Adidas Gazelle",
+        "precio": 94.99,
+        "tallas": [
+            38,
+            39,
+            40,
+            41,
+            42
+        ],
+        "colores": [
+            "Verde",
+            "Azul",
+            "Negro"
+        ]
+    },
+    {
+        "id": 17,
+        "marca": "Adidas",
+        "nombre": "Adidas ZX 2K Boost",
+        "precio": 124.99,
+        "tallas": [
+            39,
+            40,
+            41,
+            42,
+            43
+        ],
+        "colores": [
+            "Negro",
+            "Gris",
+            "Naranja"
+        ]
+    },
+    {
+        "id": 18,
+        "marca": "Adidas",
+        "nombre": "Adidas OZWEEGO",
+        "precio": 114.99,
+        "tallas": [
+            37,
+            38,
+            39,
+            40,
+            41
+        ],
+        "colores": [
+            "Verde",
+            "Gris",
+            "Negro"
+        ]
+    },
+    {
+        "id": 19,
+        "marca": "Adidas",
+        "nombre": "Adidas Continental 80",
+        "precio": 84.99,
+        "tallas": [
+            36,
+            37,
+            38,
+            39,
+            40
+        ],
+        "colores": [
+            "Blanco",
+            "Rosa",
+            "Negro"
+        ]
+    },
+    {
+        "id": 20,
+        "marca": "Adidas",
+        "nombre": "Adidas 4DFWD",
+        "precio": 159.99,
+        "tallas": [
+            39,
+            40,
+            41,
+            42,
+            43
+        ],
+        "colores": [
+            "Negro",
+            "Blanco",
+            "Gris"
+        ]
+    },
+    {
+        "id": 21,
+        "marca": "Puma",
+        "nombre": "Puma Suede Classic",
+        "precio": 89.99,
+        "tallas": [
+            37,
+            38,
+            39,
+            40,
+            41
+        ],
+        "colores": [
+            "Negro",
+            "Rojo",
+            "Azul"
+        ]
+    },
+    {
+        "id": 22,
+        "marca": "Puma",
+        "nombre": "Puma RS-X",
+        "precio": 119.99,
+        "tallas": [
+            38,
+            39,
+            40,
+            41,
+            42
+        ],
+        "colores": [
+            "Blanco",
+            "Negro",
+            "Verde"
+        ]
+    },
+    {
+        "id": 23,
+        "marca": "Puma",
+        "nombre": "Puma Cali",
+        "precio": 99.99,
+        "tallas": [
+            36,
+            37,
+            38,
+            39,
+            40
+        ],
+        "colores": [
+            "Blanco",
+            "Rosa",
+            "Negro"
+        ]
+    },
+    {
+        "id": 24,
+        "marca": "Puma",
+        "nombre": "Puma Future Rider",
+        "precio": 109.99,
+        "tallas": [
+            38,
+            39,
+            40,
+            41,
+            42
+        ],
+        "colores": [
+            "Azul",
+            "Gris",
+            "Rojo"
+        ]
+    },
+    {
+        "id": 25,
+        "marca": "Puma",
+        "nombre": "Puma Mirage Sport",
+        "precio": 124.99,
+        "tallas": [
+            37,
+            38,
+            39,
+            40,
+            41
+        ],
+        "colores": [
+            "Negro",
+            "Naranja",
+            "Gris"
+        ]
+    },
+    {
+        "id": 26,
+        "marca": "Puma",
+        "nombre": "Puma Carina Street",
+        "precio": 94.99,
+        "tallas": [
+            36,
+            37,
+            38,
+            39,
+            40
+        ],
+        "colores": [
+            "Blanco",
+            "Rosa",
+            "Negro"
+        ]
+    },
+    {
+        "id": 27,
+        "marca": "Puma",
+        "nombre": "Puma X-Ray 2",
+        "precio": 114.99,
+        "tallas": [
+            39,
+            40,
+            41,
+            42,
+            43
+        ],
+        "colores": [
+            "Verde",
+            "Azul",
+            "Negro"
+        ]
+    },
+    {
+        "id": 28,
+        "marca": "Puma",
+        "nombre": "Puma R78",
+        "precio": 89.99,
+        "tallas": [
+            37,
+            38,
+            39,
+            40,
+            41
+        ],
+        "colores": [
+            "Gris",
+            "Rojo",
+            "Azul"
+        ]
+    },
+    {
+        "id": 29,
+        "marca": "Puma",
+        "nombre": "Puma Smash 3.0",
+        "precio": 79.99,
+        "tallas": [
+            36,
+            37,
+            38,
+            39,
+            40
+        ],
+        "colores": [
+            "Blanco",
+            "Negro",
+            "Azul"
+        ]
+    },
+    {
+        "id": 30,
+        "marca": "Puma",
+        "nombre": "Puma Mayze Stack",
+        "precio": 129.99,
+        "tallas": [
+            37,
+            38,
+            39,
+            40,
+            41
+        ],
+        "colores": [
+            "Negro",
+            "Rosa",
+            "Gris"
+        ]
+    },
+    {
+        "id": 31,
+        "marca": "Reebok",
+        "nombre": "Reebok Classic Leather",
+        "precio": 94.99,
+        "tallas": [
+            37,
+            38,
+            39,
+            40,
+            41
+        ],
+        "colores": [
+            "Blanco",
+            "Beige",
+            "Negro"
+        ]
+    },
+    {
+        "id": 32,
+        "marca": "Reebok",
+        "nombre": "Reebok Club C 85",
+        "precio": 99.99,
+        "tallas": [
+            36,
+            37,
+            38,
+            39,
+            40
+        ],
+        "colores": [
+            "Blanco",
+            "Verde",
+            "Gris"
+        ]
+    },
+    {
+        "id": 33,
+        "marca": "Reebok",
+        "nombre": "Reebok Zig Dynamica",
+        "precio": 114.99,
+        "tallas": [
+            38,
+            39,
+            40,
+            41,
+            42
+        ],
+        "colores": [
+            "Negro",
+            "Naranja",
+            "Gris"
+        ]
+    },
+    {
+        "id": 34,
+        "marca": "Reebok",
+        "nombre": "Reebok Nano X3",
+        "precio": 129.99,
+        "tallas": [
+            39,
+            40,
+            41,
+            42,
+            43
+        ],
+        "colores": [
+            "Gris",
+            "Verde",
+            "Negro"
+        ]
+    },
+    {
+        "id": 35,
+        "marca": "Reebok",
+        "nombre": "Reebok Floatride",
+        "precio": 124.99,
+        "tallas": [
+            38,
+            39,
+            40,
+            41,
+            42
+        ],
+        "colores": [
+            "Azul",
+            "Negro",
+            "Blanco"
+        ]
+    },
+    {
+        "id": 36,
+        "marca": "Reebok",
+        "nombre": "Reebok Royal Glide",
+        "precio": 89.99,
+        "tallas": [
+            36,
+            37,
+            38,
+            39,
+            40
+        ],
+        "colores": [
+            "Blanco",
+            "Rosa",
+            "Negro"
+        ]
+    },
+    {
+        "id": 37,
+        "marca": "Reebok",
+        "nombre": "Reebok DMX Trail",
+        "precio": 139.99,
+        "tallas": [
+            39,
+            40,
+            41,
+            42,
+            43
+        ],
+        "colores": [
+            "Negro",
+            "Verde",
+            "Gris"
+        ]
+    },
+    {
+        "id": 38,
+        "marca": "Reebok",
+        "nombre": "Reebok Energen Lite",
+        "precio": 104.99,
+        "tallas": [
+            37,
+            38,
+            39,
+            40,
+            41
+        ],
+        "colores": [
+            "Blanco",
+            "Azul",
+            "Negro"
+        ]
+    },
+    {
+        "id": 39,
+        "marca": "Reebok",
+        "nombre": "Reebok Classic Nylon",
+        "precio": 84.99,
+        "tallas": [
+            36,
+            37,
+            38,
+            39,
+            40
+        ],
+        "colores": [
+            "Azul",
+            "Gris",
+            "Negro"
+        ]
+    },
+    {
+        "id": 40,
+        "marca": "Reebok",
+        "nombre": "Reebok Zig Kinetica 2",
+        "precio": 149.99,
+        "tallas": [
+            39,
+            40,
+            41,
+            42,
+            43
+        ],
+        "colores": [
+            "Negro",
+            "Rojo",
+            "Gris"
+        ]
+    },
+    {
+        "id": 41,
+        "marca": "New Balance",
+        "nombre": "New Balance 574",
+        "precio": 99.99,
+        "tallas": [
+            37,
+            38,
+            39,
+            40,
+            41
+        ],
+        "colores": [
+            "Gris",
+            "Negro",
+            "Azul"
+        ]
+    },
+    {
+        "id": 42,
+        "marca": "New Balance",
+        "nombre": "New Balance 327",
+        "precio": 119.99,
+        "tallas": [
+            38,
+            39,
+            40,
+            41,
+            42
+        ],
+        "colores": [
+            "Beige",
+            "Verde",
+            "Blanco"
+        ]
+    },
+    {
+        "id": 43,
+        "marca": "New Balance",
+        "nombre": "New Balance 550",
+        "precio": 124.99,
+        "tallas": [
+            39,
+            40,
+            41,
+            42,
+            43
+        ],
+        "colores": [
+            "Blanco",
+            "Rojo",
+            "Azul"
+        ]
+    },
+    {
+        "id": 44,
+        "marca": "New Balance",
+        "nombre": "New Balance Fresh Foam",
+        "precio": 129.99,
+        "tallas": [
+            38,
+            39,
+            40,
+            41,
+            42
+        ],
+        "colores": [
+            "Gris",
+            "Azul",
+            "Negro"
+        ]
+    },
+    {
+        "id": 45,
+        "marca": "New Balance",
+        "nombre": "New Balance 997H",
+        "precio": 114.99,
+        "tallas": [
+            37,
+            38,
+            39,
+            40,
+            41
+        ],
+        "colores": [
+            "Verde",
+            "Gris",
+            "Blanco"
+        ]
+    },
+    {
+        "id": 46,
+        "marca": "New Balance",
+        "nombre": "New Balance 1080v12",
+        "precio": 139.99,
+        "tallas": [
+            39,
+            40,
+            41,
+            42,
+            43
+        ],
+        "colores": [
+            "Negro",
+            "Azul",
+            "Blanco"
+        ]
+    },
+    {
+        "id": 47,
+        "marca": "New Balance",
+        "nombre": "New Balance 237",
+        "precio": 109.99,
+        "tallas": [
+            37,
+            38,
+            39,
+            40,
+            41
+        ],
+        "colores": [
+            "Gris",
+            "Negro",
+            "Rojo"
+        ]
+    },
+    {
+        "id": 48,
+        "marca": "New Balance",
+        "nombre": "New Balance XC-72",
+        "precio": 129.99,
+        "tallas": [
+            38,
+            39,
+            40,
+            41,
+            42
+        ],
+        "colores": [
+            "Azul",
+            "Beige",
+            "Negro"
+        ]
+    },
+    {
+        "id": 49,
+        "marca": "New Balance",
+        "nombre": "New Balance 2002R",
+        "precio": 134.99,
+        "tallas": [
+            39,
+            40,
+            41,
+            42,
+            43
+        ],
+        "colores": [
+            "Gris",
+            "Negro",
+            "Verde"
+        ]
+    },
+    {
+        "id": 50,
+        "marca": "New Balance",
+        "nombre": "New Balance 990v6",
+        "precio": 159.99,
+        "tallas": [
+            38,
+            39,
+            40,
+            41,
+            42
+        ],
+        "colores": [
+            "Blanco",
+            "Gris",
+            "Negro"
+        ]
+    }
+]
