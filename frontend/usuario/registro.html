@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Crear cuenta | UrbanSneakers</title>
+
+    <link rel="stylesheet" href="../css/tiendaEstilos.css" />
+  </head>
+
+  <body>
+    <!-- =======================================
+         CABECERA
+         ======================================= -->
+
+    <header class="header-login">
+      <h1>UrbanSneakers</h1>
+
+      <p>Registro de usuario</p>
+    </header>
+
+    <!-- =======================================
+         REGISTRO
+         ======================================= -->
+
+    <main class="pagina-login">
+      <section class="login-contenedor">
+        <h2>Crear una cuenta</h2>
+
+        <p class="login-intro">
+          Regístrate en UrbanSneakers y empieza a disfrutar de tu cuenta.
+        </p>
+
+        <form id="form-registro" class="form-login">
+
+          <!-- NOMBRE -->
+
+          <div class="campo-login">
+            <label for="registro-nombre">
+              Nombre
+            </label>
+
+            <input
+              id="registro-nombre"
+              name="nombre"
+              type="text"
+              autocomplete="name"
+              placeholder="Introduce tu nombre"
+              required
+            />
+          </div>
+
+          <!-- EMAIL -->
+
+          <div class="campo-login">
+            <label for="registro-email">
+              Correo electrónico
+            </label>
+
+            <input
+              id="registro-email"
+              name="email"
+              type="email"
+              autocomplete="email"
+              placeholder="tu@email.com"
+              required
+            />
+          </div>
+
+          <!-- CONTRASEÑA -->
+
+          <div class="campo-login">
+            <label for="registro-password">
+              Contraseña
+            </label>
+
+            <input
+              id="registro-password"
+              name="password"
+              type="password"
+              autocomplete="new-password"
+              placeholder="Introduce tu contraseña"
+              required
+            />
+          </div>
+
+          <!-- CONFIRMAR CONTRASEÑA -->
+
+          <div class="campo-login">
+            <label for="registro-confirmar-password">
+              Confirmar contraseña
+            </label>
+
+            <input
+              id="registro-confirmar-password"
+              name="confirmarPassword"
+              type="password"
+              autocomplete="new-password"
+              placeholder="Repite tu contraseña"
+              required
+            />
+          </div>
+
+          <!-- BOTÓN -->
+
+          <button type="submit" class="btn-login-form">
+            Crear cuenta
+          </button>
+
+        </form>
+
+        <!-- LOGIN -->
+
+        <div class="login-registro">
+          <p>¿Ya tienes una cuenta?</p>
+
+          <a href="login.html" class="btn-usuario-secundario">
+            Iniciar sesión
+          </a>
+        </div>
+
+        <!-- VOLVER -->
+
+        <div class="login-volver">
+          <a href="../tienda.html">
+            ← Volver a la tienda
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <!-- =======================================
+         FOOTER
+         ======================================= -->
+
+    <footer class="footer-tienda">
+      <p>© 2026 UrbanSneakers · Todos los derechos reservados.</p>
+
+      <nav>
+        <a href="../legal/terminos.html">
+          Términos y Condiciones
+        </a>
+
+        <span>·</span>
+
+        <a href="../legal/privacidad.html">
+          Política de Privacidad
+        </a>
+
+        <span>·</span>
+
+        <a href="../legal/cookies.html">
+          Política de Cookies
+        </a>
+      </nav>
+    </footer>
+
+    <script src="registro.js"></script>
+
+  </body>
+</html>

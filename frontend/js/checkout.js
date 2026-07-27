@@ -83,7 +83,8 @@ function abrirCheckout() {
     confirmacionSection.classList.add("oculto");
   }
 
-  renderizarResumenPedido();
+    renderizarResumenPedido();
+    cargarResumenBackend();
 
   if (sectionCheckout) {
     sectionCheckout.classList.remove("oculto");
@@ -174,6 +175,30 @@ function renderizarResumenPedido() {
 
     resumenLineas.appendChild(div);
   });
+}
+
+async function cargarResumenBackend() {
+  try {
+    const respuesta = await fetch(`${API_URL}/pedido/resumen`, {
+      credentials: "include",
+    });
+
+    if (!respuesta.ok) {
+      throw new Error("No se pudo obtener el resumen.");
+    }
+
+    const resumen = await respuesta.json();
+
+    resumenSubtotalEl.textContent = `${resumen.subtotal.toFixed(2).replace(".", ",")} €`;
+
+    resumenEnvioEl.textContent = `${resumen.envio.toFixed(2).replace(".", ",")} €`;
+
+    resumenIvaEl.textContent = `${resumen.iva.toFixed(2).replace(".", ",")} €`;
+
+    resumenTotalEl.textContent = `${resumen.total.toFixed(2).replace(".", ",")} €`;
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 // ---------- VALIDACIÓN DEL FORMULARIO ----------
@@ -325,9 +350,8 @@ if (formularioCheckout) {
     };
 
     try {
-      const respuesta = await fetch(`${API_URL}/pedido`, {
+      const respuesta = await fetchConCsrf(`${API_URL}/pedido`, {
         method: "POST",
-
         headers: {
           "Content-Type": "application/json",
         },
@@ -335,13 +359,21 @@ if (formularioCheckout) {
         body: JSON.stringify(pedidoRequest),
       });
 
+      if (respuesta.status === 401) {
+        mostrarToast(
+          "Debes iniciar sesión para poder realizar una compra.",
+          "error",
+        );
+        return;
+      }
+
       if (!respuesta.ok) {
         throw new Error("No se pudo crear el pedido.");
       }
 
       const resumen = await respuesta.json();
 
-      mostrarToast(`✅ Pedido realizado: ${resumen.idPedido}`, "success");
+      mostrarToast(`Pedido realizado: ${resumen.idPedido}`, "success");
 
       confirmIdEl.textContent = resumen.idPedido;
 

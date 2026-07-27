@@ -18,7 +18,7 @@ public class PedidoRequest {
     private String email;
 
     @NotBlank(message = "El teléfono es obligatorio")
-    @Pattern(regexp = ".*\\d.*\\d.*\\d.*\\d.*\\d.*\\d.*\\d.*\\d.*\\d.*", message = "El teléfono debe contener al menos 9 dígitos")
+    @Pattern(regexp = "\\d{9,15}", message = "El teléfono debe contener entre 9 y 15 dígitos")
     private String telefono;
 
     @NotBlank(message = "La dirección es obligatoria")

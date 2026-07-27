@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Iniciar sesión | UrbanSneakers</title>
+
+    <link rel="stylesheet" href="../css/tiendaEstilos.css" />
+  </head>
+
+  <body>
+    <!-- =======================================
+         CABECERA
+         ======================================= -->
+
+    <header class="header-login">
+      <h1>UrbanSneakers</h1>
+
+      <p>Acceso de usuario</p>
+    </header>
+
+    <!-- =======================================
+         LOGIN
+         ======================================= -->
+
+    <main class="pagina-login">
+      <section class="login-contenedor">
+        <h2>Iniciar sesión</h2>
+
+        <p class="login-intro">Accede a tu cuenta de UrbanSneakers.</p>
+
+        <form id="form-login" class="form-login">
+          <!-- EMAIL -->
+
+          <div class="campo-login">
+            <label for="login-email"> Correo electrónico </label>
+
+            <input
+              id="login-email"
+              name="email"
+              type="email"
+              autocomplete="email"
+              placeholder="tu@email.com"
+              required
+            />
+          </div>
+
+          <!-- PASSWORD -->
+
+          <div class="campo-login">
+            <label for="login-password"> Contraseña </label>
+
+            <input
+              id="login-password"
+              name="password"
+              type="password"
+              autocomplete="current-password"
+              placeholder="Introduce tu contraseña"
+              required
+            />
+          </div>
+
+          <!-- BOTÓN -->
+
+          <button type="submit" class="btn-login-form">Iniciar sesión</button>
+        </form>
+
+        <!-- REGISTRO -->
+
+        <div class="login-registro">
+          <p>¿Todavía no tienes una cuenta?</p>
+
+          <a href="registro.html" class="btn-usuario-secundario">
+            Crear una cuenta
+          </a>
+        </div>
+
+        <!-- VOLVER -->
+
+        <div class="login-volver">
+          <a href="../tienda.html"> ← Volver a la tienda </a>
+        </div>
+      </section>
+    </main>
+
+    <!-- =======================================
+         FOOTER
+         ======================================= -->
+
+    <footer class="footer-tienda">
+      <p>© 2026 UrbanSneakers · Todos los derechos reservados.</p>
+
+      <nav>
+        <a href="../legal/terminos.html"> Términos y Condiciones </a>
+
+        <span>·</span>
+
+        <a href="../legal/privacidad.html"> Política de Privacidad </a>
+
+        <span>·</span>
+
+        <a href="../legal/cookies.html"> Política de Cookies </a>
+      </nav>
+    </footer>
+
+    <script src="login.js"></script>
+  </body>
+</html>

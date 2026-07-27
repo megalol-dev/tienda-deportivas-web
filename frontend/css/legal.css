@@ -1,0 +1,215 @@
+/* ==========================================
+   PÁGINAS LEGALES - UrbanSneakers
+   ========================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-image: url("../img/fondoPagina.png");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+    color: #222;
+    line-height: 1.7;
+}
+
+/* ==========================================
+   CABECERA
+   ========================================== */
+
+.cabecera {
+    background: rgba(0, 0, 0, .90);
+    color: white;
+    text-align: center;
+    padding: 40px 20px;
+    border-bottom: 4px solid #d62828;
+}
+
+.cabecera h1 {
+    font-size: 2.8rem;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+}
+
+.cabecera p {
+    font-size: 1.1rem;
+    color: #ddd;
+}
+
+/* ==========================================
+   CONTENEDOR
+   ========================================== */
+
+.contenedor-legal {
+    max-width: 950px;
+    margin: 50px auto;
+    background: rgba(255, 255, 255, .96);
+    padding: 45px;
+    border-radius: 16px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, .30);
+}
+
+.contenedor-legal h2 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 15px;
+    color: #111;
+}
+
+.fecha {
+    text-align: center;
+    color: #666;
+    margin-bottom: 40px;
+    font-style: italic;
+}
+
+/* ==========================================
+   SECCIONES
+   ========================================== */
+
+.contenedor-legal section {
+    margin-bottom: 35px;
+}
+
+.contenedor-legal h3 {
+    color: #d62828;
+    margin-bottom: 12px;
+    font-size: 1.35rem;
+}
+
+.contenedor-legal p {
+    margin-bottom: 12px;
+    text-align: justify;
+}
+
+.contenedor-legal ul {
+    margin-left: 25px;
+    margin-top: 12px;
+}
+
+.contenedor-legal li {
+    margin-bottom: 8px;
+}
+
+/* ==========================================
+   BOTÓN VOLVER
+   ========================================== */
+
+.acciones {
+    text-align: center;
+    margin-top: 45px;
+}
+
+.btn-volver {
+    display: inline-block;
+    padding: 14px 30px;
+    background: #d62828;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 8px;
+    transition: .25s;
+}
+
+.btn-volver:hover {
+    background: #b71c1c;
+    transform: translateY(-2px);
+}
+
+/* ==========================================
+   FOOTER
+   ========================================== */
+
+footer {
+    margin-top: 40px;
+    background: rgba(0, 0, 0, .90);
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+footer p {
+    font-size: .95rem;
+}
+
+/* ==========================================
+   ENLACES
+   ========================================== */
+
+a {
+    color: #d62828;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+
+@media (max-width: 992px) {
+
+    .contenedor-legal {
+        width: 92%;
+        padding: 35px;
+    }
+
+    .cabecera h1 {
+        font-size: 2.2rem;
+    }
+
+}
+
+@media (max-width: 768px) {
+
+    .cabecera {
+        padding: 30px 15px;
+    }
+
+    .cabecera h1 {
+        font-size: 1.9rem;
+    }
+
+    .cabecera p {
+        font-size: 1rem;
+    }
+
+    .contenedor-legal {
+        padding: 25px;
+        margin: 30px auto;
+    }
+
+    .contenedor-legal h2 {
+        font-size: 1.6rem;
+    }
+
+    .contenedor-legal h3 {
+        font-size: 1.2rem;
+    }
+
+}
+
+@media (max-width: 480px) {
+
+    .contenedor-legal {
+        padding: 20px;
+    }
+
+    .cabecera h1 {
+        font-size: 1.6rem;
+    }
+
+    .btn-volver {
+        display: block;
+        width: 100%;
+        text-align: center;
+    }
+
+}

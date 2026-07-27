@@ -13,7 +13,7 @@
 
 // Dirección del servidor Spring Boot.
 // En producción únicamente habrá que cambiar esta constante.
-const API_URL = "http://localhost:8080";
+// const API_URL = "http://localhost:8080";
 
 
 // ===============================================
@@ -50,17 +50,18 @@ function getToastContainer() {
 }
 
 // Muestra un toast con mensaje y variante (success|error)
-function mostrarToast(mensaje, variante = 'success') {
+function mostrarToast(mensaje, variante = "success") {
     const container = getToastContainer();
-    const toast = document.createElement('div');
+    const toast = document.createElement("div");
     toast.className = `toast ${variante}`;
-    toast.innerHTML = `<span class="icon">✅</span> ${mensaje}`;
 
+    // Icono dependiendo del tipo de mensaje
+    const icono = variante === "error" ? "❌" : "✅";
+    toast.innerHTML = `<span class="icon">${icono}</span> ${mensaje}`;
     container.appendChild(toast);
-
     setTimeout(() => {
         toast.remove();
-    }, TOAST_DURATION_MS + 400);
+    }, TOAST_DURATION_MS + 3000);
 }
 
 
@@ -202,17 +203,17 @@ async function agregarAlCarrito(idProducto) {
     }
 
     try {
-        const respuesta = await fetch(`${API_URL}/carrito`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                idProducto: producto.id,
-                talla,
-                color,
-                cantidad: 1
-            })
+        const respuesta = await fetchConCsrf(`${API_URL}/carrito`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            idProducto: producto.id,
+            talla,
+            color,
+            cantidad: 1,
+          }),
         });
 
         if (!respuesta.ok) {
@@ -376,9 +377,9 @@ if (listaCarrito) {
         color: item.color,
       });
 
-      const respuesta = await fetch(`${API_URL}/carrito?${parametros}`, {
-        method: "DELETE",
-      });
+     const respuesta = await fetchConCsrf(`${API_URL}/carrito?${parametros}`, {
+       method: "DELETE",
+     });
 
       if (!respuesta.ok) {
         throw new Error("El servidor no pudo eliminar el producto.");
@@ -400,7 +401,7 @@ if (listaCarrito) {
 if (btnVaciar) {
   btnVaciar.addEventListener("click", async () => {
     try {
-      const respuesta = await fetch(`${API_URL}/carrito/todo`, {
+      const respuesta = await fetchConCsrf(`${API_URL}/carrito/todo`, {
         method: "DELETE",
       });
 

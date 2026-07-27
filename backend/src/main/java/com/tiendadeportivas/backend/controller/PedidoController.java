@@ -1,21 +1,18 @@
 package com.tiendadeportivas.backend.controller;
 
-import jakarta.validation.Valid;
-
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+
+import jakarta.validation.Valid;
 
 import com.tiendadeportivas.backend.model.PedidoRequest;
-import com.tiendadeportivas.backend.service.PedidoService;
 import com.tiendadeportivas.backend.model.PedidoResumen;
-
+import com.tiendadeportivas.backend.service.PedidoService;
 
 @RestController
-@CrossOrigin(origins = "http://127.0.0.1:5500")
 @RequestMapping("/pedido")
 public class PedidoController {
 
@@ -25,10 +22,16 @@ public class PedidoController {
         this.pedidoService = pedidoService;
     }
 
+    @GetMapping("/resumen")
+    public PedidoResumen obtenerResumenPedido() {
+
+        return pedidoService.obtenerResumenPedido();
+    }
+
     @PostMapping
-    public PedidoResumen crearPedido(@RequestBody PedidoRequest pedido) {
+    public PedidoResumen crearPedido(
+            @Valid @RequestBody PedidoRequest pedido) {
 
         return pedidoService.crearPedido(pedido);
     }
-
 }

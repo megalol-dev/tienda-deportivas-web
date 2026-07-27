@@ -1,0 +1,14 @@
+reinciar spring -> 
+.\mvnw.cmd clean compile
+
+
+Iniciar spring, recuerda esta en la ruta cd backend ->
+.\mvnw.cmd spring-boot:run
+
+
+Iniciar xaamp -> 
+Panel de control de xaamp , activa apache + sqlite
+
+
+Inciar la tienda .Para que no exitan problemas entre los hots e spring y el live server entra siempre desde la siguietne ruta -> 
+http://localhost:5500/frontend/tienda.html
