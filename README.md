@@ -1,146 +1,201 @@
-# 🛒 Tienda Online de Deportivas
+# 🛒 UrbanSneakers — Tienda Online de Deportivas
 
-Proyecto Full Stack desarrollado como práctica de desarrollo web utilizando **HTML, CSS, JavaScript, Java y Spring Boot**.
+Proyecto **Full Stack** desarrollado con **HTML, CSS, JavaScript, Java y Spring Boot**.
 
-El objetivo del proyecto es construir una tienda online completa siguiendo una arquitectura similar a la utilizada en aplicaciones reales, separando claramente el **Frontend** de la **lógica de negocio del Backend**.
+El objetivo del proyecto es construir una tienda online completa siguiendo una arquitectura similar a la utilizada en aplicaciones reales, separando claramente el **Frontend**, la **API REST**, la **lógica de negocio** y la **persistencia de datos**.
+
+El proyecto se desarrolla progresivamente incorporando seguridad, autenticación, gestión de usuarios, pedidos y otras funcionalidades propias de un e-commerce real.
 
 ---
 
 # 📌 Estado actual del proyecto
 
-Actualmente la aplicación permite recorrer el flujo completo de compra:
+Actualmente la aplicación permite realizar el flujo completo desde el registro de un usuario hasta la creación de un pedido asociado a su cuenta:
 
 - Consultar el catálogo de productos.
 - Navegar por marcas.
+- Seleccionar talla y color.
 - Añadir productos al carrito.
 - Gestionar el carrito.
+- Registrarse como usuario.
+- Iniciar y cerrar sesión.
+- Mantener una sesión mediante cookies.
 - Completar el formulario de envío.
-- Realizar un pedido.
-- Obtener un resumen del pedido generado por el servidor.
-
-El pago online y la persistencia en base de datos todavía no están implementados y forman parte de las siguientes fases del proyecto.
+- Realizar pedidos únicamente como usuario autenticado.
+- Persistir usuarios, pedidos y líneas de pedido en MariaDB.
+- Asociar cada pedido con el usuario que lo realizó.
+- Obtener el resumen del pedido generado por el servidor.
 
 ---
 
 # 🧩 Funcionalidades implementadas
 
-## Frontend
+## 🎨 Frontend
 
 - 🛍️ Catálogo dinámico de deportivas.
 - 👟 Cambio de color de las zapatillas en tiempo real.
 - 📏 Selección de talla.
 - 🛒 Carrito de compra interactivo.
-- 🧾 Checkout con validación completa del formulario.
+- 🧾 Checkout con validación del formulario.
+- 👤 Registro de usuarios.
+- 🔐 Inicio de sesión.
+- 🚪 Cierre de sesión.
+- 👤 Visualización del usuario autenticado.
+- 🔔 Sistema de notificaciones Toast.
 - 📱 Diseño responsive.
-- 🔔 Sistema de notificaciones (Toast).
+- 📄 Páginas legales de términos, privacidad y cookies.
 
 ---
 
-## Backend (Spring Boot)
+## ⚙️ Backend — Spring Boot
 
 - 🌐 API REST desarrollada con Spring Boot.
-- 📦 Catálogo servido desde el backend mediante JSON.
-- 🛒 Gestión del carrito en el servidor.
+- 📦 Catálogo servido desde el backend.
+- 🛒 Gestión del carrito.
 - ➕ Añadir productos al carrito.
 - ❌ Eliminar productos.
 - 🗑️ Vaciar carrito.
-- 📋 Creación de pedidos.
+- 📋 Creación y persistencia de pedidos.
 - 🧮 Cálculo del subtotal.
 - 💰 Cálculo automático del IVA.
 - 🚚 Cálculo de gastos de envío.
 - 🧾 Generación automática del identificador del pedido.
+- 👤 Gestión y persistencia de usuarios.
+- 🔗 Asociación entre usuarios y pedidos.
 
-Toda la lógica crítica de negocio se realiza en el backend para evitar manipulaciones desde el navegador.
+La lógica crítica de negocio se realiza en el backend para evitar que datos como precios, totales o el propietario de un pedido puedan ser manipulados desde el navegador.
+
+---
+
+# 🔐 Seguridad y autenticación
+
+La aplicación utiliza **Spring Security** para gestionar la autenticación.
+
+Actualmente están implementados:
+
+- Registro de usuarios.
+- Contraseñas cifradas mediante **BCrypt**.
+- Login mediante email y contraseña.
+- Autenticación basada en sesión.
+- Cookies de sesión mediante `JSESSIONID`.
+- Protección **CSRF**.
+- Logout e invalidación de sesión.
+- Endpoint para consultar el usuario autenticado.
+- Protección de la creación de pedidos.
+- Asociación del pedido al usuario obtenida desde la sesión del servidor.
+
+El identificador del usuario propietario de un pedido **no se envía desde el frontend**. Spring Security obtiene la identidad desde la sesión autenticada y el backend realiza la asociación.
+
+---
+
+# 🗄️ Persistencia y base de datos
+
+La aplicación utiliza **MariaDB** junto con **Spring Data JPA / Hibernate**.
+
+Actualmente se persisten:
+
+- Usuarios.
+- Pedidos.
+- Líneas de pedido.
+- Relaciones entre usuarios y pedidos.
+
+Relación principal:
+
+```
+Usuario
+   │
+   │ 1:N
+   ▼
+Pedido
+   │
+   │ 1:N
+   ▼
+PedidoItem
 
 ---
 
 # 🧠 Tecnologías utilizadas
 
-### Frontend
+Frontend
+HTML5
+CSS3
+JavaScript (ES6)
+Fetch API
 
-- HTML5
-- CSS3
-- JavaScript (ES6)
-
-### Backend
-
-- Java 21
-- Spring Boot
-- Maven
-- REST API
-- Jackson (JSON)
+Backend
+Java 21
+Spring Boot
+Spring Web
+Spring Security
+Spring Data JPA
+Bean Validation
+Maven
+REST API
+Jackson
+Base de datos
+MariaDB
+Hibernate / JPA
 
 ---
 
 # 🏗️ Arquitectura
 
-El proyecto está dividido en dos aplicaciones independientes.
+El proyecto está dividido principalmente en frontend y backend.
 
-## Frontend
-
-```
 frontend/
 │
 ├── css/
-├── js/
 ├── img/
+├── js/
+├── legal/
+├── usuario/
+│   ├── login.html
+│   ├── login.js
+│   ├── registro.html
+│   └── registro.js
+│
 └── tienda.html
-```
 
-## Backend
 
-```
 backend/
 │
-├── controller/
-├── model/
-├── service/
-└── resources/
-```
-
-La comunicación entre ambas partes se realiza mediante peticiones HTTP utilizando **Fetch API** y una **API REST** desarrollada con Spring Boot.
-
----
-
-# 🚀 Cómo ejecutar el proyecto
-
-## 1. Clonar el repositorio
-
-```bash
-git clone https://github.com/megalol-dev/tienda-deportivas-web.git
-```
+└── src/main/java/com/tiendadeportivas/backend/
+    │
+    ├── config/
+    ├── controller/
+    ├── model/
+    ├── repository/
+    ├── security/
+    └── service/
 
 ---
 
-## 2. Iniciar el backend
-
-Desde la carpeta `backend`:
-
-```bash
-./mvnw spring-boot:run
-```
-
-El servidor quedará disponible en:
-
-```
-http://localhost:8080
-```
+La comunicación entre ambas partes se realiza mediante peticiones HTTP utilizando Fetch API y la API REST desarrollada con Spring Boot.
 
 ---
 
-## 3. Iniciar el frontend
+# 🔄 Flujo actual de compra
 
-Abrir `tienda.html` utilizando **Live Server** de Visual Studio Code.
+Registro / Login
+       ↓
+Spring Security
+       ↓
+Sesión + JSESSIONID
+       ↓
+Catálogo
+       ↓
+Carrito
+       ↓
+Checkout
+       ↓
+Validación Backend
+       ↓
+Creación del Pedido
+       ↓
+Asociación con Usuario
+       ↓
+MariaDB
 
 ---
 
-# 📈 Próximas mejoras
-
-- Base de datos MySQL.
-- Persistencia de pedidos.
-- Gestión de usuarios.
-- Login y registro.
-- Panel de administración.
-- Gestión de stock.
-- Historial de pedidos.
-- Integración de pasarela de pago.
+<Tiena aún sin terminar>
