@@ -5,12 +5,70 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>UrbanSneakers - Tienda Online</title>
     <link rel="stylesheet" href="css/tiendaEstilos.css" />
+    <link rel="stylesheet" href="css/animacionTitulo.css" />
   </head>
 
   <body>
     <!-- ====== ENCABEZADO ====== -->
     <header>
-      <h1>UrbanSneakers - tu tienda online de deportivas</h1>
+      <h1 class="titulo-animado">
+    <span style="--i:0">U</span>
+    <span style="--i:1">r</span>
+    <span style="--i:2">b</span>
+    <span style="--i:3">a</span>
+    <span style="--i:4">n</span>
+    <span style="--i:5">S</span>
+    <span style="--i:6">n</span>
+    <span style="--i:7">e</span>
+    <span style="--i:8">a</span>
+    <span style="--i:9">k</span>
+    <span style="--i:10">e</span>
+    <span style="--i:11">r</span>
+    <span style="--i:12">s</span>
+
+    <span class="espacio"></span>
+    <span style="--i:13">-</span>
+    <span class="espacio"></span>
+
+    <span style="--i:14">t</span>
+    <span style="--i:15">u</span>
+
+    <span class="espacio"></span>
+
+    <span style="--i:16">t</span>
+    <span style="--i:17">i</span>
+    <span style="--i:18">e</span>
+    <span style="--i:19">n</span>
+    <span style="--i:20">d</span>
+    <span style="--i:21">a</span>
+
+    <span class="espacio"></span>
+
+    <span style="--i:22">o</span>
+    <span style="--i:23">n</span>
+    <span style="--i:24">l</span>
+    <span style="--i:25">i</span>
+    <span style="--i:26">n</span>
+    <span style="--i:27">e</span>
+
+    <span class="espacio"></span>
+
+    <span style="--i:28">d</span>
+    <span style="--i:29">e</span>
+
+    <span class="espacio"></span>
+
+    <span style="--i:30">d</span>
+    <span style="--i:31">e</span>
+    <span style="--i:32">p</span>
+    <span style="--i:33">o</span>
+    <span style="--i:34">r</span>
+    <span style="--i:35">t</span>
+    <span style="--i:36">i</span>
+    <span style="--i:37">v</span>
+    <span style="--i:38">a</span>
+    <span style="--i:39">s</span>
+</h1>
       <!-- Imagen del logotipo -->
       <img
         src="img/logotipo.png"
@@ -29,6 +87,15 @@
         </ul>
 
         <div class="nav-derecha">
+          <a
+            href="usuario/perfil.html"
+            class="btn-login btn-perfil"
+            id="btn-perfil"
+            hidden
+          >
+            Mi perfil
+          </a>
+
           <a href="usuario/login.html" class="btn-login" id="btn-auth">
             Registrarse / Iniciar sesión
           </a>
@@ -115,7 +182,7 @@
         <div class="cabecera-marca">
           <h2 id="titulo-marca">Modelos</h2>
           <button id="btn-volver" type="button">
-            Volver a la página principal
+            Volver al catálogo principal
           </button>
         </div>
 
@@ -131,44 +198,52 @@
 
             <form id="formulario-checkout" novalidate>
               <div class="fila">
+                <!-- NOMBRE-->
                 <div class="campo">
                   <label for="nombre">Nombre *</label>
                   <input
                     id="nombre-c"
                     name="nombre"
                     type="text"
+                    placeholder="Ej.: Luis"
                     required
                     autocomplete="given-name"
                   />
                 </div>
+
+                <!-- APELLIDOS -->
                 <div class="campo">
                   <label for="apellidos">Apellidos *</label>
                   <input
                     id="apellidos-c"
                     name="apellidos"
                     type="text"
+                    placeholder="Ej.: García López"
                     required
                     autocomplete="family-name"
                   />
                 </div>
               </div>
 
+              <!-- CORREO ELECTRONICO -->
               <div class="campo">
                 <label for="email">Correo electrónico *</label>
                 <input
                   id="email-c"
                   name="email"
                   type="email"
+                  placeholder="Ej.: usuario@email.com"
                   required
                   autocomplete="email"
                 />
               </div>
 
+              <!-- TELEFONO -->
               <div class="campo">
                 <label for="telefono">Teléfono *</label>
                 <input
                   id="telefono-c"
-                  name="telefono"
+                  name="Ej.: telefono"
                   type="tel"
                   inputmode="tel"
                   placeholder="+34 612 345 678"
@@ -176,27 +251,21 @@
                 />
               </div>
 
+              <!-- DIRECCION -->
               <div class="campo">
-                <label for="direccion1">Dirección (línea 1) *</label>
+                <label for="direccion1-c">Dirección *</label>
+
                 <input
                   id="direccion1-c"
                   name="direccion1"
                   type="text"
+                  placeholder="Ej.: Calle Mayor, 8, portal 4, 2º B"
                   required
-                  autocomplete="address-line1"
+                  autocomplete="street-address"
                 />
               </div>
 
-              <div class="campo">
-                <label for="direccion2">Dirección (línea 2) — opcional</label>
-                <input
-                  id="direccion2-c"
-                  name="direccion2"
-                  type="text"
-                  autocomplete="address-line2"
-                />
-              </div>
-
+              <!-- CIUDAD -->
               <div class="fila">
                 <div class="campo">
                   <label for="ciudad">Ciudad *</label>
@@ -204,22 +273,27 @@
                     id="ciudad-c"
                     name="ciudad"
                     type="text"
+                    placeholder="Ej.: Madrid"
                     required
                     autocomplete="address-level2"
                   />
                 </div>
+
+                <!-- PROVINCIA -->
                 <div class="campo">
                   <label for="provincia">Provincia *</label>
                   <input
                     id="provincia-c"
                     name="provincia"
                     type="text"
+                    placeholder="Ej.: Madrid"
                     required
                     autocomplete="address-level1"
                   />
                 </div>
               </div>
 
+              <!-- CODIGO POSTAL  -->
               <div class="fila">
                 <div class="campo">
                   <label for="cp">Código postal *</label>
@@ -230,7 +304,7 @@
                     inputmode="numeric"
                     pattern="\d{5}"
                     required
-                    placeholder="08001"
+                    placeholder="Ej.: 08001"
                   />
                 </div>
                 <div class="campo">
@@ -259,16 +333,33 @@
                   <input id="acepto-terminos" type="checkbox" required />
 
                   Acepto los
-                  <a href="legal/terminos.html" target="_blank"
-                    >Términos y Condiciones</a
+
+                  <a
+                    href="legal/terminos.html"
+                    target="_blank"
+                    class="enlace-legal-checkout"
+                  >
+                    Términos y Condiciones </a
                   >, la
-                  <a href="legal/privacidad.html" target="_blank"
-                    >Política de Privacidad</a
+
+                  <a
+                    href="legal/privacidad.html"
+                    target="_blank"
+                    class="enlace-legal-checkout"
                   >
+                    Política de Privacidad
+                  </a>
+
                   y la
-                  <a href="legal/cookies.html" target="_blank"
-                    >Política de Cookies</a
+
+                  <a
+                    href="legal/cookies.html"
+                    target="_blank"
+                    class="enlace-legal-checkout"
                   >
+                    Política de Cookies
+                  </a>
+
                   *
                 </label>
               </div>
@@ -337,19 +428,21 @@
       <p>© 2026 UrbanSneakers · Todos los derechos reservados.</p>
 
       <nav>
-        <a href="legal/terminos.html" target="_blank">
+        <a href="legal/terminos.html" class="enlace-legal-checkout">
           Términos y Condiciones
         </a>
 
         <span>·</span>
 
-        <a href="legal/privacidad.html" target="_blank">
+        <a href="legal/privacidad.html" class="enlace-legal-checkout">
           Política de Privacidad
         </a>
 
         <span>·</span>
 
-        <a href="legal/cookies.html" target="_blank"> Política de Cookies </a>
+        <a href="legal/cookies.html" class="enlace-legal-checkout">
+          Política de Cookies
+        </a>
       </nav>
     </footer>
 
@@ -393,6 +486,39 @@
               Cancelar todos los pedidos
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =======================================
+     MODAL - SESIÓN NECESARIA PARA COMPRAR
+     ======================================= -->
+
+    <div id="modal-sesion-carrito" class="modal-sesion-carrito" hidden>
+      <div class="modal-sesion-overlay"></div>
+
+      <div
+        class="modal-sesion-contenido"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-modal-sesion"
+      >
+        <h3 id="titulo-modal-sesion">Inicia sesión para continuar</h3>
+
+        <p>Para añadir artículos al carrito debes iniciar sesión.</p>
+
+        <div class="modal-sesion-botones">
+          <a href="usuario/login.html" class="btn-modal-login">
+            Iniciar sesión
+          </a>
+
+          <button
+            type="button"
+            id="btn-cancelar-modal-sesion"
+            class="btn-modal-cancelar"
+          >
+            Cancelar
+          </button>
         </div>
       </div>
     </div>

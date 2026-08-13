@@ -4,19 +4,109 @@
 
 const formLogin = document.getElementById("form-login");
 
+const loginEmail = document.getElementById("login-email");
+const loginPassword = document.getElementById("login-password");
+
+const errorLoginEmail = document.getElementById("error-login-email");
+const errorLoginPassword = document.getElementById("error-login-password");
+
+// =====================================================
+// MOSTRAR ERROR
+// =====================================================
+
+function mostrarError(input, error, mensaje) {
+  input.classList.add("campo-invalido");
+  error.textContent = mensaje;
+}
+
+// =====================================================
+// LIMPIAR ERROR
+// =====================================================
+
+function limpiarError(input, error) {
+  input.classList.remove("campo-invalido");
+  error.textContent = "";
+}
+
+// =====================================================
+// VALIDAR EMAIL
+// =====================================================
+
+function validarEmailLogin() {
+  const email = loginEmail.value.trim();
+
+  if (email.length === 0 || email.length > 150) {
+    mostrarError(
+      loginEmail,
+      errorLoginEmail,
+      "Introduce un correo electrónico válido.",
+    );
+    return false;
+  }
+
+  const patron = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!patron.test(email)) {
+    mostrarError(
+      loginEmail,
+      errorLoginEmail,
+      "Introduce un correo electrónico válido.",
+    );
+    return false;
+  }
+
+  limpiarError(loginEmail, errorLoginEmail);
+
+  return true;
+}
+
+// =====================================================
+// VALIDAR PASSWORD
+// =====================================================
+
+function validarPasswordLogin() {
+  const password = loginPassword.value;
+
+  if (password.length < 8 || password.length > 72) {
+    mostrarError(
+      loginPassword,
+      errorLoginPassword,
+      "La contraseña debe tener entre 8 y 72 caracteres.",
+    );
+    return false;
+  }
+
+  limpiarError(loginPassword, errorLoginPassword);
+
+  return true;
+}
+
+// =====================================================
+// VALIDACIÓN EN VIVO
+// =====================================================
+
+loginEmail.addEventListener("blur", validarEmailLogin);
+
+loginPassword.addEventListener("blur", validarPasswordLogin);
+
+// =====================================================
+// LOGIN
+// =====================================================
+
 formLogin.addEventListener("submit", async (event) => {
   event.preventDefault();
+
+  if (!validarEmailLogin() || !validarPasswordLogin()) {
+    return;
+  }
 
   // =================================================
   // RECOGER DATOS
   // =================================================
 
-  const email = document.getElementById("login-email").value.trim();
-  const password = document.getElementById("login-password").value;
-
   const datosLogin = {
-    email: email,
-    password: password,
+    email: loginEmail.value.trim(),
+    password: loginPassword.value,
   };
 
   try {
@@ -65,9 +155,7 @@ formLogin.addEventListener("submit", async (event) => {
         if (error.message) {
           mensaje = error.message;
         }
-      } catch {
-        // Dejamos el mensaje genérico
-      }
+      } catch {}
 
       alert(mensaje);
 
@@ -82,13 +170,17 @@ formLogin.addEventListener("submit", async (event) => {
 
     console.log("Usuario autenticado:", usuario);
 
-    // Volvemos a la tienda.
-    //
-    // NO guardamos el usuario en localStorage.
-    // Spring mantiene la autenticación mediante
-    // la cookie JSESSIONID.
-
-    window.location.href = "../tienda.html";
+    if (usuario.rol === "CLIENTE") {
+      window.location.href = "../tienda.html";
+    } else if (
+      usuario.rol === "TRABAJADOR" ||
+      usuario.rol === "JEFE" ||
+      usuario.rol === "ADMIN"
+    ) {
+      window.location.href = "../panel/panel.html";
+    } else {
+      console.error("Rol desconocido:", usuario.rol);
+    }
   } catch (error) {
     console.error("Error durante el login:", error);
 

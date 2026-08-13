@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Mi perfil | UrbanSneakers</title>
+
+    <link rel="stylesheet" href="../css/tiendaEstilos.css" />
+  </head>
+
+  <body>
+    <!-- =======================================
+         CABECERA
+         ======================================= -->
+
+    <header class="header-login">
+      <h1>UrbanSneakers</h1>
+
+      <p>Área personal</p>
+    </header>
+
+    <!-- =======================================
+         PANEL DEL CLIENTE
+         ======================================= -->
+
+    <main class="pagina-login">
+      <section class="login-contenedor">
+        <h2>Perfil</h2>
+
+        <p class="login-intro">
+          Saludos, <strong id="perfil-nombre">Usuario</strong>
+        </p>
+
+        <!-- ===================================
+             NAVEGACIÓN DEL PERFIL
+             =================================== -->
+
+        <!-- ===================================
+     NAVEGACIÓN DEL PERFIL
+     ==================================== -->
+
+        <div class="perfil-opciones">
+          <button type="button" id="btn-mi-cuenta" class="btn-perfil-opcion">
+            Mi cuenta
+          </button>
+
+          <button type="button" id="btn-mis-pedidos" class="btn-perfil-opcion">
+            Mis pedidos
+          </button>
+        </div>
+
+        <!-- ===================================
+             SECCIÓN MI CUENTA
+             =================================== -->
+
+        <section id="seccion-mi-cuenta">
+          <h3>Mi cuenta</h3>
+
+          <table class="tabla-mi-cuenta">
+            <tbody>
+              <!-- NOMBRE -->
+
+              <tr>
+                <th>Nombre</th>
+
+                <td id="cuenta-nombre">-</td>
+
+                <td>
+                  <button
+                    type="button"
+                    id="btn-editar-nombre"
+                    class="btn-editar-cuenta"
+                  >
+                    Editar
+                  </button>
+                </td>
+              </tr>
+
+              <!-- EMAIL -->
+
+              <tr>
+                <th>Correo electrónico</th>
+
+                <td id="cuenta-email">-</td>
+
+                <td>
+                  <button
+                    type="button"
+                    id="btn-editar-email"
+                    class="btn-editar-cuenta"
+                  >
+                    Editar
+                  </button>
+                </td>
+              </tr>
+
+              <!-- CONTRASEÑA -->
+
+              <tr>
+                <th>Contraseña</th>
+
+                <td>••••••••</td>
+
+                <td>
+                  <button
+                    type="button"
+                    id="btn-cambiar-password"
+                    class="btn-editar-cuenta"
+                  >
+                    Editar
+                  </button>
+                </td>
+              </tr>
+
+              <!-- TIPO DE CUENTA -->
+
+              <tr>
+                <th>Tipo de cuenta</th>
+
+                <td id="cuenta-rol">-</td>
+
+                <td>
+                  <!-- No se puede modificar -->
+                </td>
+              </tr>
+
+              <!-- FECHA DE ALTA -->
+
+              <tr>
+                <th>Miembro desde</th>
+
+                <td id="cuenta-fecha-alta">-</td>
+
+                <td>
+                  <!-- No se puede modificar -->
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ===================================
+             SECCIÓN MIS PEDIDOS
+             -----------------------------------
+             La desarrollaremos posteriormente.
+        =================================== -->
+
+        <section id="seccion-mis-pedidos" hidden>
+          <h3>Mis pedidos</h3>
+
+          <p>Aquí podrás consultar tus pedidos realizados.</p>
+
+          <div id="lista-pedidos">
+            <!-- Los pedidos se cargarán aquí más adelante -->
+          </div>
+        </section>
+
+        <!-- ===================================
+            VOLVER A LA TIENDA
+          ==================================== -->
+
+        <div class="perfil-volver">
+          <a href="../tienda.html" class="btn-perfil-volver">
+            Volver a la tienda
+          </a>
+        </div>
+
+        <!-- ===================================
+     CERRAR SESIÓN
+     ==================================== -->
+
+        <div class="perfil-cerrar-sesion">
+          <button
+            type="button"
+            id="btn-cerrar-sesion-perfil"
+            class="btn-perfil-cerrar"
+          >
+            Cerrar sesión
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <!-- =======================================
+         MODAL EDITAR NOMBRE
+        ======================================= -->
+
+    <div id="modal-editar-nombre" class="modal-perfil" hidden>
+      <div class="modal-perfil-contenido">
+        <h3>Editar nombre</h3>
+
+        <label for="input-editar-nombre"> Nombre </label>
+
+        <input
+          type="text"
+          id="input-editar-nombre"
+          maxlength="100"
+          autocomplete="name"
+          placeholder="Introduce tu nombre"
+        />
+
+        <small>
+          Entre 2 y 100 caracteres. Solo letras, espacios, puntos, apóstrofes y
+          guiones.
+        </small>
+
+        <p id="error-editar-nombre" class="mensaje-error"></p>
+
+        <div class="modal-perfil-botones">
+          <button
+            type="button"
+            id="btn-guardar-nombre"
+            class="btn-modal-guardar"
+          >
+            Guardar
+          </button>
+
+          <button
+            type="button"
+            id="btn-cancelar-nombre"
+            class="btn-modal-cancelar"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- =======================================
+         MODAL EDITAR EMAIL
+         ======================================= -->
+
+    <div id="modal-editar-email" class="modal-perfil" hidden>
+      <div class="modal-perfil-contenido">
+        <h3>Editar correo electrónico</h3>
+
+        <label for="input-editar-email"> Nuevo correo electrónico </label>
+
+        <input
+          type="email"
+          id="input-editar-email"
+          maxlength="150"
+          autocomplete="email"
+          placeholder="ejemplo@email.com"
+        />
+
+        <small>
+          Introduce un correo electrónico válido. El correo no puede pertenecer
+          a otra cuenta.
+        </small>
+
+        <p id="error-editar-email" class="mensaje-error"></p>
+
+        <p class="aviso-importante-perfil">
+          AL CAMBIAR TU CORREO ELECTRÓNICO SE CERRARÁ LA SESIÓN. TENDRÁS QUE
+          INICIAR SESIÓN DE NUEVO UTILIZANDO EL NUEVO CORREO.
+        </p>
+
+        <div class="modal-perfil-botones">
+          <button
+            type="button"
+            id="btn-guardar-email"
+            class="btn-modal-guardar"
+          >
+            Guardar
+          </button>
+
+          <button
+            type="button"
+            id="btn-cancelar-email"
+            class="btn-modal-cancelar"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- =======================================
+         MODAL CAMBIAR CONTRASEÑA
+         ======================================= -->
+
+    <div id="modal-cambiar-password" class="modal-perfil" hidden>
+      <div class="modal-perfil-contenido">
+        <h3>Cambiar contraseña</h3>
+
+        <label for="input-nueva-password"> Nueva contraseña </label>
+
+        <input
+          type="password"
+          id="input-nueva-password"
+          maxlength="72"
+          autocomplete="new-password"
+          placeholder="Introduce la nueva contraseña"
+        />
+
+        <small>
+          Entre 8 y 72 caracteres y debe contener al menos una letra y un
+          número.
+        </small>
+
+        <p id="error-nueva-password" class="mensaje-error"></p>
+
+        <label for="input-confirmar-password">
+          Confirmar nueva contraseña
+        </label>
+
+        <input
+          type="password"
+          id="input-confirmar-password"
+          maxlength="72"
+          autocomplete="new-password"
+          placeholder="Repite la nueva contraseña"
+        />
+
+        <p id="error-confirmar-password" class="mensaje-error"></p>
+
+        <p class="aviso-importante-perfil">
+          DESPUÉS DE CAMBIAR LA CONTRASEÑA TENDRÁS QUE INICIAR SESIÓN DE NUEVO.
+        </p>
+
+        <div class="modal-perfil-botones">
+          <button
+            type="button"
+            id="btn-guardar-password"
+            class="btn-modal-guardar"
+          >
+            Guardar contraseña
+          </button>
+
+          <button
+            type="button"
+            id="btn-cancelar-password"
+            class="btn-modal-cancelar"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- =======================================
+         FOOTER
+         ======================================= -->
+
+    <footer class="footer-tienda">
+      <p>© 2026 UrbanSneakers · Todos los derechos reservados.</p>
+
+      <nav>
+        <a href="../legal/terminos.html"> Términos y Condiciones </a>
+
+        <span>·</span>
+
+        <a href="../legal/privacidad.html"> Política de Privacidad </a>
+
+        <span>·</span>
+
+        <a href="../legal/cookies.html"> Política de Cookies </a>
+      </nav>
+    </footer>
+
+    <script src="perfil.js"></script>
+  </body>
+</html>

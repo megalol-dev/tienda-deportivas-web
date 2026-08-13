@@ -22,71 +22,170 @@ import com.tiendadeportivas.backend.security.CustomUserDetailsService;
 @Configuration
 public class SecurityConfig {
 
-    private final CustomUserDetailsService customUserDetailsService;
+        private final CustomUserDetailsService customUserDetailsService;
 
-    public SecurityConfig(CustomUserDetailsService customUserDetailsService) {
-        this.customUserDetailsService = customUserDetailsService;
-    }
+        public SecurityConfig(CustomUserDetailsService customUserDetailsService) {
+                this.customUserDetailsService = customUserDetailsService;
+        }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder();
+        }
 
-    @Bean
-    public AuthenticationManager authenticationManager(
-            PasswordEncoder passwordEncoder) {
+        @Bean
+        public AuthenticationManager authenticationManager(
+                        PasswordEncoder passwordEncoder) {
 
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(customUserDetailsService);
+                DaoAuthenticationProvider provider = new DaoAuthenticationProvider(customUserDetailsService);
 
-        provider.setPasswordEncoder(passwordEncoder);
+                provider.setPasswordEncoder(passwordEncoder);
 
-        return new ProviderManager(provider);
-    }
+                return new ProviderManager(provider);
+        }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http)
-            throws Exception {
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http)
+                        throws Exception {
 
-        http
-                .cors(cors -> {
-                })
+                http
+                                .cors(cors -> {
+                                })
 
-                .csrf(csrf -> csrf
-                        .csrfTokenRepository(
-                                CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                                .csrf(csrf -> csrf
+                                                .csrfTokenRepository(
+                                                                CookieCsrfTokenRepository.withHttpOnlyFalse()))
 
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll());
+                                .authorizeHttpRequests(auth -> auth
 
-        return http.build();
-    }
+                                                // =================================================
+                                                // GESTIÓN DE PEDIDOS
+                                                // -------------------------------------------------
+                                                // TRABAJADOR, JEFE y ADMIN pueden consultar
+                                                // pedidos y modificar su estado.
+                                                // =================================================
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+                                                .requestMatchers("/admin/pedidos/**")
+                                                .hasAnyRole(
+                                                                "TRABAJADOR",
+                                                                "JEFE",
+                                                                "ADMIN")
 
-        CorsConfiguration configuration = new CorsConfiguration();
+                                                // =================================================
+                                                // GESTIÓN DE PRODUCTOS
+                                                // -------------------------------------------------
+                                                // TRABAJADOR, JEFE y ADMIN pueden consultar,
+                                                // crear y modificar productos.
+                                                // =================================================
 
-        configuration.setAllowedOrigins(List.of(
-                "http://127.0.0.1:5500",
-                "http://localhost:5500"));
+                                                .requestMatchers("/admin/productos/**")
+                                                .hasAnyRole(
+                                                                "TRABAJADOR",
+                                                                "JEFE",
+                                                                "ADMIN")
 
-        configuration.setAllowedMethods(List.of(
-                "GET",
-                "POST",
-                "PUT",
-                "PATCH",
-                "DELETE",
-                "OPTIONS"));
+                                                // =================================================
+                                                // GESTIÓN DE EMPLEADOS
+                                                // -------------------------------------------------
+                                                // Solamente JEFE y ADMIN pueden acceder
+                                                // a la gestión del personal.
+                                                // =================================================
 
-        configuration.setAllowedHeaders(List.of("*"));
+                                                .requestMatchers("/admin/usuarios/**")
+                                                .hasAnyRole(
+                                                                "JEFE",
+                                                                "ADMIN")
 
-        configuration.setAllowCredentials(true);
+                                                // =================================================
+                                                // SEGURIDAD GENERAL DEL ÁREA ADMIN
+                                                // -------------------------------------------------
+                                                // Cualquier futuro endpoint /admin que olvidemos
+                                                // configurar explícitamente seguirá necesitando
+                                                // pertenecer al personal.
+                                                // =================================================
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                                                .requestMatchers("/admin/**")
+                                                .hasAnyRole(
+                                                                "TRABAJADOR",
+                                                                "JEFE",
+                                                                "ADMIN")
 
-        source.registerCorsConfiguration("/**", configuration);
+                                                // =================================================
+                                                // ÁREA PRIVADA DEL CLIENTE
+                                                // -------------------------------------------------
+                                                // Todos los endpoints relacionados con el perfil
+                                                // personal del cliente requieren:
+                                                // • Sesión iniciada.
+                                                // • Rol CLIENTE.
+                                                // =================================================
 
-        return source;
-    }
+                                                .requestMatchers("/cliente/**")
+                                                .hasRole("CLIENTE")
+
+                                                // =================================================
+                                                // CARRITO DEL CLIENTE
+                                                // -------------------------------------------------
+                                                // El carrito solo puede utilizarse si existe una
+                                                // sesión iniciada con rol CLIENTE.
+                                                //
+                                                // Esto protege:
+                                                // GET /carrito
+                                                // POST /carrito
+                                                // DELETE /carrito
+                                                // DELETE /carrito/todo
+                                                // =================================================
+
+                                                .requestMatchers("/carrito/**", "/carrito")
+                                                .hasRole("CLIENTE")
+
+                                                // =================================================
+                                                // REALIZACIÓN DE PEDIDOS
+                                                // -------------------------------------------------
+                                                // Solamente un cliente autenticado puede consultar
+                                                // el resumen de compra o confirmar un pedido.
+                                                // =================================================
+
+                                                .requestMatchers("/pedido/**", "/pedido")
+                                                .hasRole("CLIENTE")
+
+                                                // =================================================
+                                                // RESTO DE ENDPOINTS
+                                                // -------------------------------------------------
+                                                // Tienda, login, registro, catálogo, etc.
+                                                // continúan funcionando con normalidad.
+                                                // =================================================
+
+                                                .anyRequest()
+                                                .permitAll());
+
+                return http.build();
+        }
+
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+
+                CorsConfiguration configuration = new CorsConfiguration();
+
+                configuration.setAllowedOrigins(List.of(
+                                "http://127.0.0.1:5500",
+                                "http://localhost:5500"));
+
+                configuration.setAllowedMethods(List.of(
+                                "GET",
+                                "POST",
+                                "PUT",
+                                "PATCH",
+                                "DELETE",
+                                "OPTIONS"));
+
+                configuration.setAllowedHeaders(List.of("*"));
+
+                configuration.setAllowCredentials(true);
+
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+
+                source.registerCorsConfiguration("/**", configuration);
+
+                return source;
+        }
 }

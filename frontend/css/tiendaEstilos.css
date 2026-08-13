@@ -7,7 +7,7 @@
     --negro: #000000;
     --rojo: #e03131;
     --rojo-oscuro: #b52525;
-    --azul-transparente: rgba(74, 69, 230, 0.85);
+    --azul-transparente: rgba(74, 69, 230, 0.911);
     --azul-oscuro: rgba(7, 5, 65, 0.85);
     --verde: #28a745;
     --verde-oscuro: #1d7f34;
@@ -151,8 +151,25 @@ header nav ul {
     justify-content: space-between;
     align-items: center;
 
-    padding: 0 30px;
-    margin-top: 10px;
+    width: 98%;
+    box-sizing: border-box;
+
+    padding: 0;
+
+    margin: 10px auto 0;
+}
+
+/* =====================================================
+   ZONA DERECHA DE LA NAVEGACIÓN
+   Mi perfil + Cerrar sesión
+   ===================================================== */
+
+.nav-derecha {
+    display: flex;
+    align-items: center;
+
+    /* Separación entre los dos botones */
+    gap: 12px;
 }
 
 /* Usuario + carrito */
@@ -167,11 +184,7 @@ header nav ul {
     gap: 8px;
 }
 
-/* Zona derecha */
-.nav-derecha {
-    display: flex;
-    align-items: center;
-}
+
 
 /* Botón login / registro */
 .btn-login {
@@ -190,6 +203,17 @@ header nav ul {
     font-weight: 700;
 
     transition: 0.2s ease;
+}
+
+/* =====================================================
+   ELEMENTOS OCULTOS
+   -----------------------------------------------------
+   Garantiza que el atributo HTML hidden tenga prioridad
+   aunque el elemento tenga otros estilos de display.
+   ===================================================== */
+
+[hidden] {
+    display: none !important;
 }
 
 .btn-login:hover {
@@ -271,17 +295,33 @@ header nav a:hover {
     margin: 10px 0 16px;
 }
 
+/* =====================================================
+   BOTÓN VOLVER AL CATÁLOGO PRINCIPAL
+   ===================================================== */
+
 #btn-volver {
-    padding: 10px 12px;
-    border: none;
+    padding: 12px 18px;
+
+    background-color: #d32f2f;
+    color: white;
+
+    border: 2px solid #b71c1c;
     border-radius: 8px;
-    background: var(--color-btn-primary-bg);
-    color: var(--color-btn-primary-text);
+
+    font-size: 1rem;
+    font-weight: bold;
+
     cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
 }
 
 #btn-volver:hover {
-    opacity: .9;
+    background-color: #b71c1c;
+
+    transform: translateY(-2px);
 }
 
 /* Grid fija de 5 columnas (desktop) */
@@ -1051,10 +1091,318 @@ header nav a:hover {
 }
 
 
-
-    /* =======================================================
-   FOOTER
+/* =======================================================
+   PANEL - GESTIÓN DE PEDIDOS
    ======================================================= */
+
+.panel-pedidos {
+    width: 100%;
+    max-width: 1100px;
+
+    padding: 30px;
+
+    background: var(--color-checkout-bg);
+
+    border: 1px solid var(--color-checkout-border);
+    border-radius: 12px;
+
+    box-shadow: var(--shadow-modal);
+
+    color: var(--color-page-text-light);
+}
+
+.panel-pedidos h2 {
+    margin: 0 0 10px;
+
+    padding: 14px;
+
+    background: var(--color-dark-blue);
+
+    border-radius: 10px;
+
+    text-align: center;
+}
+
+.tabla-pedidos-contenedor {
+    margin-top: 20px;
+    overflow-x: auto;
+}
+
+.tabla-pedidos {
+    width: 100%;
+    border-collapse: collapse;
+
+    background: rgba(255, 255, 255, 0.95);
+
+    color: var(--color-page-text-dark);
+
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.tabla-pedidos th,
+.tabla-pedidos td {
+    padding: 12px;
+
+    border-bottom: 1px solid var(--color-border-light);
+
+    text-align: center;
+}
+
+.tabla-pedidos th {
+    background: var(--color-dark-blue);
+    color: var(--color-page-text-light);
+}
+
+.tabla-pedidos select {
+    padding: 8px;
+
+    border: 1px solid var(--color-border-light);
+    border-radius: 6px;
+}
+
+.btn-guardar-estado {
+    padding: 8px 12px;
+
+    background: var(--color-btn-green-bg);
+    color: var(--color-page-text-light);
+
+    border: 1px solid var(--color-btn-green-border);
+    border-radius: 6px;
+
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-guardar-estado:hover {
+    background: var(--color-btn-green-hover-bg);
+}
+
+
+/* =====================================================
+   PANEL DE ADMINISTRACIÓN
+   ===================================================== */
+
+/*
+ * En el panel queremos colocar las distintas secciones
+ * verticalmente:
+ *
+ * Panel de gestión
+ *       ↓
+ * Gestión de pedidos
+ *       ↓
+ * futuras secciones
+ */
+
+
+ /* =====================================================
+   PANEL PRINCIPAL DE GESTIÓN
+   ===================================================== */
+
+ /*
+ * El panel principal utiliza el mismo ancho máximo
+ * que las secciones de pedidos, productos y usuarios.
+ */
+
+ .panel-gestion-principal {
+     max-width: 1100px;
+ }
+
+
+ /*
+ * Los tres botones principales se muestran
+ * en una única fila.
+ */
+
+ .botones-gestion-panel {
+     display: flex;
+
+     justify-content: center;
+     align-items: center;
+
+     gap: 12px;
+
+     flex-wrap: nowrap;
+ }
+
+
+ /*
+ * Evitamos que el texto de los botones
+ * se divida en varias líneas.
+ */
+
+ .botones-gestion-panel .btn-login-form {
+     white-space: nowrap;
+ }
+.pagina-panel {
+    flex-direction: column;
+}
+
+
+/* =====================================================
+   MODAL DEL PANEL
+   ===================================================== */
+
+.modal-panel {
+    position: fixed;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    background: rgba(0, 0, 0, 0.6);
+
+    z-index: 1000;
+}
+
+
+/*
+ * Reutilizamos visualmente el estilo azul
+ * transparente utilizado en el resto de la web.
+ */
+
+.modal-panel-contenido {
+    width: 90%;
+    max-width: 450px;
+
+    padding: 30px;
+
+    text-align: center;
+
+    background: rgba(40, 40, 190, 0.85);
+
+    border: 1px solid red;
+
+    border-radius: 15px;
+
+    color: white;
+}
+
+
+.modal-panel-contenido h3 {
+    margin-top: 0;
+
+    background: rgba(0, 0, 70, 0.8);
+
+    padding: 15px;
+
+    border-radius: 10px;
+}
+
+
+.modal-panel-contenido p {
+    margin: 25px 0;
+}
+
+
+/*
+ * IMPORTANTE:
+ * debe estar después de .modal-panel para que
+ * "oculto" pueda esconder correctamente el modal.
+ */
+
+.modal-panel.oculto {
+    display: none;
+}
+
+/* =====================================================
+   FORMULARIO DE PRODUCTOS DEL PANEL
+   ===================================================== */
+
+#formulario-producto-contenedor,
+#formulario-empleado-contenedor {
+    width: 100%;
+    max-width: 900px;
+    box-sizing: border-box;
+    margin-top: 20px;
+}
+
+#form-producto,
+#form-empleado {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+#form-producto .form-grupo,
+#form-empleado .form-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+#form-producto .form-grupo label,
+#form-empleado .form-grupo label {
+    font-weight: 700;
+}
+
+#form-producto .form-grupo input,
+#form-producto .form-grupo select,
+#form-empleado .form-grupo input,
+#form-empleado .form-grupo select {
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 12px;
+
+    border: 1px solid var(--color-border-light);
+    border-radius: 8px;
+
+    font-size: 1rem;
+}
+
+#form-producto .form-grupo small {
+    font-size: 0.9rem;
+}
+
+/* =====================================================
+   EMPLEADO CON LA SESIÓN ACTUAL
+   ===================================================== */
+
+.tabla-pedidos tbody tr.empleado-actual {
+    background-color: #fff3a3;
+    font-weight: 600;
+}
+
+
+.mensaje-error-campo {
+    display: block;
+    min-height: 18px;
+    margin-top: 4px;
+
+    color: #ffe66d;
+
+    font-weight: 800;
+    font-size: 0.95rem;
+
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.campo-invalido {
+    border: 3px solid #ff3333 !important;
+}
+
+/* =====================================================
+   MENSAJES DE ERROR - PERFIL
+   ===================================================== */
+
+.modal-perfil-contenido .mensaje-error {
+    color: #ffff00;
+    font-weight: bold;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+/* =======================================================
+   FOOTER
+======================================================= */
 
 
     
@@ -1116,6 +1464,1322 @@ header nav a:hover {
     
     }
 
+
+/* =====================================================
+   ENLACES LEGALES DEL FORMULARIO DE ENVÍO
+   ===================================================== */
+
+/* =====================================================
+   ENLACES LEGALES CHECKOUT
+   ===================================================== */
+/* =====================================================
+   ENLACES LEGALES - CHECKOUT Y FOOTER
+   ===================================================== */
+
+
+/* CHECKOUT */
+
+.consentimientos a.enlace-legal-checkout {
+    color: #ffeb00;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.consentimientos a.enlace-legal-checkout:visited {
+    color: #ffeb00;
+}
+
+.consentimientos a.enlace-legal-checkout:hover {
+    color: #fff59d;
+}
+
+
+/* FOOTER */
+
+.footer-tienda nav a.enlace-legal-checkout {
+    color: #ffeb00;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.footer-tienda nav a.enlace-legal-checkout:visited {
+    color: #ffeb00;
+}
+
+.footer-tienda nav a.enlace-legal-checkout:hover {
+    color: #fff59d;
+    text-decoration: underline;
+}
+
+
+/* =====================================================
+   PANEL - BOTÓN CERRAR SESIÓN
+   ===================================================== */
+
+#btn-logout-panel {
+    background-color: #d32f2f;
+    color: white;
+
+    border: 2px solid #b71c1c;
+    border-radius: 8px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+#btn-logout-panel:hover {
+    background-color: #b71c1c;
+    border-color: #8e1616;
+
+    transform: translateY(-2px);
+}
+
+/* =====================================================
+MODALES DEL PERFIL
+-----------------------------------------------------
+Capa emergente utilizada para editar:
+    • Nombre
+    • Correo electrónico
+    • Contraseña
+===================================================== */
+    
+.modal-perfil {
+    position: fixed;
+    
+    top: 0;
+    left: 0;
+    
+    width: 100%;
+    height: 100%;
+    
+    /* Oscurece la página que queda detrás */
+    background-color: rgba(0, 0, 0, 0.65);
+    
+    /* Colocamos el contenido en el centro */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    /* Debe quedar por encima de toda la web */
+    z-index: 9999;
+    padding: 20px;
+    box-sizing: border-box;
+    }
+    
+    
+    /* =====================================================
+    IMPORTANTE: RESPETAR EL ATRIBUTO HIDDEN
+    ===================================================== */
+    
+    .modal-perfil[hidden] {
+        display: none;
+    }
+    
+    
+        /* =====================================================
+       CONTENIDO DEL MODAL
+       ===================================================== */
+    
+        .modal-perfil-contenido {
+            width: 100%;
+            max-width: 500px;
+    
+            padding: 30px;
+    
+            box-sizing: border-box;
+    
+            background-color: white;
+    
+            border-radius: 12px;
+    
+            /* El modal puede tener contenido largo */
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+    
+    
+        /* =====================================================
+       TÍTULO DEL MODAL
+       ===================================================== */
+    
+        .modal-perfil-contenido h3 {
+            margin-top: 0;
+    
+            text-align: center;
+        }
+    
+    
+        /* =====================================================
+       CAMPOS DEL MODAL
+       ===================================================== */
+    
+        .modal-perfil-contenido label {
+            display: block;
+    
+            margin-top: 15px;
+            margin-bottom: 6px;
+    
+            font-weight: bold;
+        }
+    
+    
+        .modal-perfil-contenido input {
+            width: 100%;
+    
+            padding: 10px;
+    
+            box-sizing: border-box;
+        }
+    
+    
+/* =====================================================
+TEXTO DE AYUDA
+===================================================== */
+.modal-perfil-contenido small {
+    display: block;
+    margin-top: 6px;
+}
+    
+    
+/* =====================================================
+ BOTONES DEL MODAL
+===================================================== */
+.modal-perfil-botones {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 25px;
+}
+    
+    
+/* =====================================================
+BLOQUEAR SCROLL CUANDO HAY UN MODAL ABIERTO
+===================================================== */
+    
+body.modal-abierto {
+    overflow: hidden;
+    }
+
+html {
+    scrollbar-gutter: stable;
+    }
+
+
+/* =====================================================
+   PERFIL - MIS PEDIDOS
+   ===================================================== */
+
+#seccion-mis-pedidos {
+    margin-top: 25px;
+}
+
+
+/* =====================================================
+   LISTA DE PEDIDOS
+   ===================================================== */
+
+#lista-pedidos {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    margin-top: 20px;
+}
+
+
+/* =====================================================
+   TARJETA DE PEDIDO
+   ===================================================== */
+
+.tarjeta-pedido {
+    padding: 20px;
+
+    background: rgba(255, 255, 255, 0.12);
+
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 12px;
+
+    box-sizing: border-box;
+}
+
+
+/* =====================================================
+   CABECERA DEL PEDIDO
+   ===================================================== */
+
+.pedido-cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.pedido-cabecera h4 {
+    margin: 0 0 5px 0;
+}
+
+.pedido-cabecera p {
+    margin: 0;
+}
+
+
+/* =====================================================
+   ESTADO DEL PEDIDO
+   ===================================================== */
+
+.estado-pedido {
+    display: inline-block;
+
+    padding: 6px 12px;
+
+    border-radius: 20px;
+
+    font-size: 0.85rem;
+    font-weight: bold;
+
+    background: rgba(255, 255, 255, 0.85);
+    color: #222;
+}
+
+
+/* =====================================================
+   COLORES SEGÚN ESTADO
+   ===================================================== */
+
+.estado-pendiente {
+    background: #ffd54f;
+    color: #222;
+}
+
+.estado-pagado {
+    background: #64b5f6;
+    color: #111;
+}
+
+.estado-preparando {
+    background: #ffb74d;
+    color: #222;
+}
+
+.estado-enviado {
+    background: #4fc3f7;
+    color: #111;
+}
+
+.estado-entregado {
+    background: #66bb6a;
+    color: white;
+}
+
+.estado-cancelado {
+    background: #ef5350;
+    color: white;
+}
+
+
+/* =====================================================
+   DATOS DE ENVÍO
+   ===================================================== */
+
+.pedido-datos {
+    margin-bottom: 20px;
+}
+
+.pedido-datos h4 {
+    margin-bottom: 12px;
+}
+
+.pedido-datos p {
+    margin: 7px 0;
+}
+
+
+/* =====================================================
+   PRODUCTOS DEL PEDIDO
+   ===================================================== */
+
+.pedido-productos {
+    margin-top: 20px;
+}
+
+.pedido-productos h4 {
+    margin-bottom: 15px;
+}
+
+.lista-productos-pedido {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+
+/* =====================================================
+   PRODUCTO INDIVIDUAL
+   ===================================================== */
+
+.producto-pedido {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+
+    padding: 12px;
+
+    background: rgba(255, 255, 255, 0.15);
+
+    border-radius: 10px;
+}
+
+
+/* =====================================================
+   IMAGEN DEL PRODUCTO
+   -----------------------------------------------------
+   ESTO SOLUCIONA LA ZAPATILLA GIGANTE
+   ===================================================== */
+
+.producto-pedido-imagen {
+    width: 110px;
+    height: 110px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+
+    background: white;
+
+    border-radius: 8px;
+}
+
+.producto-pedido-imagen img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+
+    display: block;
+}
+
+
+/* =====================================================
+   INFORMACIÓN DEL PRODUCTO
+   ===================================================== */
+
+.producto-pedido-info {
+    flex: 1;
+}
+
+.producto-pedido-info h5 {
+    margin: 0 0 10px 0;
+
+    font-size: 1rem;
+}
+
+.producto-pedido-info p {
+    margin: 4px 0;
+}
+
+
+/* =====================================================
+   TOTAL DEL PEDIDO
+   ===================================================== */
+
+.pedido-total {
+    margin-top: 18px;
+    padding-top: 15px;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.35);
+
+    text-align: right;
+
+    font-size: 1.1rem;
+}
+
+/* =====================================================
+   MODAL - SESIÓN NECESARIA PARA UTILIZAR EL CARRITO
+   ===================================================== */
+
+.modal-sesion-carrito {
+    position: fixed;
+    inset: 0;
+
+    z-index: 9999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* El atributo hidden debe ocultar realmente el modal */
+
+.modal-sesion-carrito[hidden] {
+    display: none;
+}
+
+
+/* Fondo que bloquea toda la tienda */
+
+.modal-sesion-overlay {
+    position: absolute;
+    inset: 0;
+
+    background: rgba(0, 0, 0, 0.65);
+}
+
+
+/* Caja del mensaje */
+
+.modal-sesion-contenido {
+    position: relative;
+
+    z-index: 1;
+
+    width: min(90%, 430px);
+
+    padding: 30px;
+
+    border-radius: 14px;
+
+    background: rgba(40, 35, 145, 0.96);
+
+    color: white;
+
+    text-align: center;
+
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45);
+}
+
+
+/* Título */
+
+.modal-sesion-contenido h3 {
+    margin-top: 0;
+    margin-bottom: 18px;
+
+    font-size: 1.5rem;
+}
+
+
+/* Texto */
+
+.modal-sesion-contenido p {
+    margin-bottom: 25px;
+
+    line-height: 1.5;
+}
+
+
+/* Contenedor de botones */
+
+.modal-sesion-botones {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+
+    flex-wrap: wrap;
+}
+
+
+/* Botón iniciar sesión */
+
+.btn-modal-login {
+    display: inline-block;
+
+    padding: 10px 18px;
+
+    border-radius: 8px;
+
+    background: #16a34a;
+
+    color: white;
+
+    text-decoration: none;
+
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+
+/* Botón cancelar */
+
+.btn-modal-cancelar {
+    padding: 10px 18px;
+
+    border: none;
+    border-radius: 8px;
+
+    background: #dddddd;
+
+    color: #222;
+
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+
+/* Efectos */
+
+.btn-modal-login:hover {
+    filter: brightness(1.1);
+}
+
+.btn-modal-cancelar:hover {
+    filter: brightness(0.92);
+}
+
+
+/* Impide hacer scroll mientras el modal está abierto */
+
+body.modal-sesion-abierto {
+    overflow: hidden;
+}
+
+
+/* =====================================================
+   RESPONSIVE
+   ===================================================== */
+
+@media (max-width: 600px) {
+
+    .pedido-cabecera {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .producto-pedido {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .producto-pedido-imagen {
+        width: 100%;
+        height: 180px;
+    }
+
+    .producto-pedido-info {
+        width: 100%;
+    }
+
+    .pedido-total {
+        text-align: left;
+    }
+}
+
+/* =====================================================
+   BOTÓN CREAR CUENTA
+   ===================================================== */
+
+.btn-usuario-secundario {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 14px 20px;
+
+    background-color: #1976d2;
+    color: white;
+
+    border: 2px solid #0d47a1;
+    border-radius: 8px;
+
+    font-size: 1rem;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.btn-usuario-secundario:hover {
+    background-color: #1565c0;
+    transform: translateY(-2px);
+}
+
+
+/* =====================================================
+   BOTÓN VOLVER A LA TIENDA
+   ===================================================== */
+
+.btn-volver-tienda {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 14px 20px;
+
+    background-color: #d32f2f;
+    color: white;
+
+    border: 2px solid #b71c1c;
+    border-radius: 8px;
+
+    font-size: 1rem;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.btn-volver-tienda:hover {
+    background-color: #b71c1c;
+    transform: translateY(-2px);
+}
+
+.btn-usuario-secundario:hover {
+    background-color: #1565c0;
+    transform: translateY(-2px);
+}
+
+
+/* =====================================================
+   BOTÓN MI PERFIL
+   ===================================================== */
+
+.btn-login.btn-perfil {
+    background-color: #1976d2;
+    color: white;
+
+    border: 2px solid #0d47a1;
+    border-radius: 8px;
+
+    text-decoration: none;
+    box-shadow: none;
+    outline: none;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.btn-login.btn-perfil:hover {
+    background-color: #1565c0;
+    color: white;
+
+    border: 2px solid #0d47a1;
+
+    text-decoration: none;
+    box-shadow: none;
+    outline: none;
+
+    transform: translateY(-2px);
+}
+
+
+/* =====================================================
+   BOTÓN CERRAR SESIÓN
+   ===================================================== */
+
+.btn-login#btn-auth[data-accion="logout"] {
+    background-color: #d32f2f;
+    color: white;
+
+    border: 2px solid #b71c1c;
+    border-radius: 8px;
+
+    text-decoration: none;
+    box-shadow: none;
+    outline: none;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.btn-login#btn-auth[data-accion="logout"]:hover {
+    background-color: #b71c1c;
+    color: white;
+
+    border: 2px solid #b71c1c;
+
+    text-decoration: none;
+    box-shadow: none;
+    outline: none;
+
+    transform: translateY(-2px);
+}
+
+
+/* =====================================================
+   PERFIL DEL CLIENTE
+   ===================================================== */
+
+
+/* =====================================================
+   BOTONES MI CUENTA / MIS PEDIDOS
+   ===================================================== */
+
+.perfil-opciones {
+    display: flex;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.btn-perfil-opcion {
+    flex: 1;
+
+    padding: 12px 20px;
+
+    background-color: white;
+    color: #222;
+
+    border: 2px solid #d5d5d5;
+    border-radius: 8px;
+
+    font-weight: bold;
+    font-size: 15px;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        background-color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.btn-perfil-opcion:hover {
+    background-color: #f2f2f2;
+    border-color: #999;
+
+    transform: translateY(-2px);
+}
+
+
+/* =====================================================
+   TABLA MI CUENTA
+   ===================================================== */
+
+.tabla-mi-cuenta {
+    width: 100%;
+
+    margin-top: 15px;
+    margin-bottom: 25px;
+
+    border-collapse: collapse;
+
+    background-color: rgba(255, 255, 255, 0.9);
+
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.tabla-mi-cuenta th,
+.tabla-mi-cuenta td {
+    padding: 12px 14px;
+
+    border-bottom: 1px solid #d5d5d5;
+
+    color: #222;
+}
+
+.tabla-mi-cuenta th {
+    text-align: left;
+
+    background-color: rgba(235, 235, 235, 0.95);
+
+    font-weight: bold;
+}
+
+.tabla-mi-cuenta td {
+    background-color: rgba(255, 255, 255, 0.9);
+}
+
+.tabla-mi-cuenta tr:last-child th,
+.tabla-mi-cuenta tr:last-child td {
+    border-bottom: none;
+}
+
+
+/* =====================================================
+   BOTONES EDITAR / CAMBIAR
+   ===================================================== */
+
+.btn-editar-cuenta {
+    padding: 6px 12px;
+
+    background-color: #0af722;
+    color: white;
+
+    border: 2px solid rgb(17, 68, 0);
+    border-radius: 6px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.btn-editar-cuenta:hover {
+    background-color: #08c61b;
+
+    transform: translateY(-1px);
+}
+
+
+/* =====================================================
+   VOLVER A LA TIENDA
+   ===================================================== */
+
+.perfil-volver {
+    margin-top: 25px;
+}
+
+.btn-perfil-volver {
+    display: block;
+
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 13px 20px;
+
+    text-align: center;
+    text-decoration: none;
+
+    background-color: #2684d9;
+    color: white;
+
+    border: 2px solid #1765aa;
+    border-radius: 8px;
+
+    font-weight: bold;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.btn-perfil-volver:hover {
+    background-color: #176fc0;
+    color: white;
+
+    transform: translateY(-2px);
+}
+
+
+/* =====================================================
+   CERRAR SESIÓN
+   ===================================================== */
+
+.perfil-cerrar-sesion {
+    margin-top: 15px;
+}
+
+.btn-perfil-cerrar {
+    width: 100%;
+
+    padding: 13px 20px;
+
+    background-color: #dc3030;
+    color: white;
+
+    border: 2px solid #b91f1f;
+    border-radius: 8px;
+
+    font-weight: bold;
+    font-size: 15px;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.btn-perfil-cerrar:hover {
+    background-color: #bd2424;
+
+    transform: translateY(-2px);
+}
+
+
+/* =====================================================
+   MODALES DEL PERFIL
+   ===================================================== */
+
+
+/* =====================================================
+   CUADRO PRINCIPAL DEL MODAL
+   ===================================================== */
+
+.modal-perfil-contenido {
+    background-color: #151568;
+    color: white;
+
+    border: 2px solid #ff3030;
+    border-radius: 14px;
+
+    padding: 30px;
+
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.45);
+}
+
+
+/* =====================================================
+   TÍTULO DEL MODAL
+   ===================================================== */
+
+.modal-perfil-contenido h3 {
+    color: white;
+
+    text-align: center;
+
+    margin-top: 0;
+    margin-bottom: 25px;
+
+    font-size: 22px;
+}
+
+
+/* =====================================================
+   LABELS
+   ===================================================== */
+
+.modal-perfil-contenido label {
+    display: block;
+
+    color: white;
+    font-weight: bold;
+
+    margin-top: 15px;
+    margin-bottom: 7px;
+}
+
+
+/* =====================================================
+   INPUTS
+   ===================================================== */
+
+.modal-perfil-contenido input {
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 11px 12px;
+
+    background-color: white;
+    color: #222;
+
+    border: 2px solid #2684d9;
+    border-radius: 6px;
+
+    font-size: 15px;
+}
+
+
+/* =====================================================
+   TEXTOS DE AYUDA
+   ===================================================== */
+
+.modal-perfil-contenido small {
+    display: block;
+
+    color: white;
+
+    margin-top: 7px;
+}
+
+
+/* =====================================================
+   AVISO IMPORTANTE
+   ===================================================== */
+
+.aviso-importante-perfil {
+    margin-top: 20px;
+    margin-bottom: 20px;
+
+    padding: 12px;
+
+    color: #ffe600;
+
+    background-color: rgba(0, 0, 0, 0.25);
+
+    border: 1px solid #ffe600;
+    border-radius: 7px;
+
+    font-weight: bold;
+    text-align: center;
+
+    line-height: 1.4;
+}
+
+
+/* =====================================================
+   CONTENEDOR BOTONES
+   ===================================================== */
+
+.modal-perfil-botones {
+    display: flex;
+
+    justify-content: center;
+
+    gap: 15px;
+
+    margin-top: 25px;
+}
+
+
+/* =====================================================
+   BOTÓN GUARDAR
+   ===================================================== */
+
+.btn-modal-guardar {
+    padding: 10px 18px;
+
+    background-color: #28a745;
+    color: white;
+
+    border: 2px solid #16802e;
+    border-radius: 7px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.btn-modal-guardar:hover {
+    background-color: #218838;
+
+    transform: translateY(-2px);
+}
+
+
+/* =====================================================
+   BOTÓN CANCELAR
+   ===================================================== */
+
+.btn-modal-cancelar {
+    padding: 10px 18px;
+
+    background-color: #dc3030;
+    color: white;
+
+    border: 2px solid #a91e1e;
+    border-radius: 7px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.btn-modal-cancelar:hover {
+    background-color: #bd2424;
+
+    transform: translateY(-2px);
+}
+
+/* =====================================================
+   PANEL - BOTÓN EDITAR PRODUCTO
+   ===================================================== */
+
+.btn-editar-producto {
+    background-color: #1976d2;
+    color: white;
+
+    border: 1px solid #0d47a1;
+    border-radius: 4px;
+
+    cursor: pointer;
+}
+
+.btn-editar-producto:hover {
+    background-color: #1565c0;
+    border-color: #0d47a1;
+}
+
+
+/* =====================================================
+   PANEL - CANCELAR CREACIÓN / EDICIÓN DE PRODUCTO
+   ===================================================== */
+
+.btn-cancelar-producto {
+    background-color: #dc2f2f;
+    color: white;
+
+    border: 2px solid #b71c1c;
+    border-radius: 6px;
+
+    padding: 10px 16px;
+
+    font-weight: bold;
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.btn-cancelar-producto:hover {
+    background-color: #b71c1c;
+    border-color: #8e0000;
+    transform: translateY(-1px);
+}
+
+/* =====================================================
+   PANEL - CANCELAR CREACIÓN DE EMPLEADO
+   ===================================================== */
+
+.btn-cancelar-empleado {
+    background-color: #dc2f2f;
+    color: white;
+
+    border: 2px solid #b71c1c;
+    border-radius: 6px;
+
+    padding: 10px 16px;
+
+    font-weight: bold;
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.btn-cancelar-empleado:hover {
+    background-color: #b71c1c;
+    border-color: #8e0000;
+    transform: translateY(-1px);
+}
+
+
+/* =====================================================
+   PANEL - EDITAR EMPLEADO
+   ===================================================== */
+
+.btn-editar-empleado {
+    background-color: #2583d8;
+    color: white;
+
+    border: 2px solid #1261aa;
+    border-radius: 5px;
+
+    font-weight: bold;
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.btn-editar-empleado:hover {
+    background-color: #1261aa;
+    border-color: #0b477e;
+    transform: translateY(-1px);
+}
+
+
+/* =====================================================
+   REGISTRO - VOLVER A LA TIENDA
+   ===================================================== */
+
+.registro-volver {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.btn-registro-volver {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 12px 16px;
+
+    background-color: #dc2f2f;
+    color: white;
+
+    border: 2px solid #b71c1c;
+    border-radius: 6px;
+
+    text-decoration: none;
+    text-align: center;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.btn-registro-volver:hover {
+    background-color: #b71c1c;
+    border-color: #8e0000;
+
+    color: white;
+    text-decoration: none;
+
+    transform: translateY(-1px);
+}
+
+/* =====================================================
+   PANEL DE GESTIÓN - DATOS DEL USUARIO
+   ===================================================== */
+
+.datos-usuario-panel {
+    text-align: center;
+
+    margin-top: 15px;
+    margin-bottom: 22px;
+}
+
+
+/* TEXTO USUARIO / ROL */
+
+.datos-usuario-panel p {
+    margin: 7px 0;
+
+    color: #ffeb00;
+
+    font-size: 16px;
+    font-weight: bold;
+}
+
+
+/* NOMBRE Y ROL QUE INSERTA JAVASCRIPT */
+
+.datos-usuario-panel strong {
+    color: #ffeb00;
+    font-weight: bold;
+}
 
     /* =======================================================
    RESPONSIVE / MEDIA QUERIES
@@ -1300,7 +2964,9 @@ header nav a:hover {
     }
 
     .nav-derecha {
-        justify-content: center;
+        display: flex;
+        align-items: center;
+        gap: 12px;
     }
 
     .btn-login {

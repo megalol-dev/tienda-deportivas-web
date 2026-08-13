@@ -269,12 +269,9 @@ function validarFormularioCheckout() {
     );
   }
 
-  // Dirección 1
+  // Dirección
   if (!dir1 || !dir1.value.trim()) {
-    return mostrarErrorCampo(
-      dir1,
-      'El campo "Dirección (línea 1)" es obligatorio.',
-    );
+    return mostrarErrorCampo(dir1, 'El campo "Dirección" es obligatorio.');
   }
 
   // Ciudad

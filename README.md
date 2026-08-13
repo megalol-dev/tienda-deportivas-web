@@ -112,29 +112,32 @@ Pedido
    ▼
 PedidoItem
 
+```
+
 ---
 
 # 🧠 Tecnologías utilizadas
 
 Frontend
-HTML5
-CSS3
-JavaScript (ES6)
-Fetch API
+- HTML5
+- CSS3
+- JavaScript (ES6)
+- Fetch API
 
 Backend
-Java 21
-Spring Boot
-Spring Web
-Spring Security
-Spring Data JPA
-Bean Validation
-Maven
-REST API
-Jackson
+- Java 21
+- Spring Boot
+- Spring Web
+- Spring Security
+- Spring Data JPA
+- Bean Validation
+- Maven
+- REST API
+- Jackson
+
 Base de datos
-MariaDB
-Hibernate / JPA
+- MariaDB
+- Hibernate / JPA
 
 ---
 
@@ -142,6 +145,7 @@ Hibernate / JPA
 
 El proyecto está dividido principalmente en frontend y backend.
 
+```
 frontend/
 │
 ├── css/
@@ -155,8 +159,8 @@ frontend/
 │   └── registro.js
 │
 └── tienda.html
-
-
+```
+```
 backend/
 │
 └── src/main/java/com/tiendadeportivas/backend/
@@ -167,7 +171,7 @@ backend/
     ├── repository/
     ├── security/
     └── service/
-
+```
 ---
 
 La comunicación entre ambas partes se realiza mediante peticiones HTTP utilizando Fetch API y la API REST desarrollada con Spring Boot.
@@ -175,7 +179,7 @@ La comunicación entre ambas partes se realiza mediante peticiones HTTP utilizan
 ---
 
 # 🔄 Flujo actual de compra
-
+```
 Registro / Login
        ↓
 Spring Security
@@ -195,7 +199,7 @@ Creación del Pedido
 Asociación con Usuario
        ↓
 MariaDB
-
+```
 ---
 
 <Tiena aún sin terminar>

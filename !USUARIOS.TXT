@@ -1,5 +1,77 @@
 // Usuarios de prueba de la aplicación
+------------------------------------------------------------------------------------------
+Exiten 4 roles
+ADMIN <solo hay uno>
+Gestion de pedidos:     Puede ver los pedidos y cambiar su estado.
+Gestion de productos:   Puede ver los productos, crear nuevos, editarlos o darlos de baja.
+Gestion de personal:    Puede crear, editar o bloquear personal <JEJES Y TRABAJADORES>
+
+JEFE
+Gestion de pedidos:     Puede ver los pedidos y cambiar su estado.
+Gestion de productos:   Puede ver los productos, crear nuevos, editarlos o darlos de baja.
+Gestion de personal:    Puede crear, editar o bloquear personal <TRABAJADORES>
+
+TRABAJADORES
+Gestion de pedidos:     Puede ver los pedidos y cambiar su estado.
+Gestion de productos:   Puede ver los productos, crear nuevos, editarlos o darlos de baja.
+Gestion de personal:    ----
+
+CLIENTES 
+Gestion de datos:       Pueden acceder a su panel de control y cambiar sus datos
+Gestion de pedidos:     Pueden ver sus pedidos y el estado en el que estan
+
+------------------------------------------------------------------------------------------
+
+// EMPLEADOS    ROL -> ADMIN ////////////////////////////////////////////////////////
+
+Nombre:         Jefe UrbanSneakers
+Email:          jefe@urbansneakers.com
+Contraseña:     a1234567
+
+
+// EMPLEADOS    ROL -> JEFE ////////////////////////////////////////////////////////
 
 Nombre:         pepe
-Correo:         pepe@gmail.com
-Contraseña:     12345678
+Email:          pepe@gmail.com 
+Contraseña:     a1234567
+
+Nombre:         Laura Parla
+Email:          Laura@gmail.com
+Contraseña:     a1234567
+
+
+
+// EMPLEADOS    ROL -> TRABAJADORES ///////////////////////////////////////////////
+
+Nombre:         Paco Pepe
+Email:          pacopepe@gmail.com 
+Contraseña:     a1234567
+
+Nombre:         Raúl
+Email:          raul@gmail.com
+Contraseña:     a1234567
+
+Nombre:         Alex
+Email:          alex@gmail.com 
+Contraseña:     a1234567
+
+
+
+// Clientes ////////////////////////////////////////////////////////
+
+Nombre:         Luis
+Correo:         luisito@gmail.com
+Contraseña:     b1234567
+
+Nombre:         Pepe
+Correo:         pepito@gmail.com
+Contraseña:     a1234567
+
+Nombre:         Pepe
+Correo:         arturo@gmail.com
+Contraseña:     a1234567
+
+
+Nombre:         Manu    
+Correo:         manu@gmail.com
+Contraseña:     b1234567

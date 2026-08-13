@@ -42,9 +42,14 @@
               name="email"
               type="email"
               autocomplete="email"
-              placeholder="tu@email.com"
+              maxlength="150"
+              placeholder="Ejemplo: usuario@email.com"
               required
             />
+
+            <small> Introduce un correo electrónico válido. </small>
+
+            <small id="error-login-email" class="mensaje-error-campo"></small>
           </div>
 
           <!-- PASSWORD -->
@@ -57,9 +62,18 @@
               name="password"
               type="password"
               autocomplete="current-password"
+              minlength="8"
+              maxlength="72"
               placeholder="Introduce tu contraseña"
               required
             />
+
+            <small> Entre 8 y 72 caracteres. </small>
+
+            <small
+              id="error-login-password"
+              class="mensaje-error-campo"
+            ></small>
           </div>
 
           <!-- BOTÓN -->
@@ -80,7 +94,9 @@
         <!-- VOLVER -->
 
         <div class="login-volver">
-          <a href="../tienda.html"> ← Volver a la tienda </a>
+          <a href="../tienda.html" class="btn-volver-tienda">
+            Volver a la tienda
+          </a>
         </div>
       </section>
     </main>

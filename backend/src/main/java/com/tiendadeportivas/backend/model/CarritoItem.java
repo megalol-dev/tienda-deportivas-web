@@ -1,28 +1,77 @@
 package com.tiendadeportivas.backend.model;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+
+@Entity
+@Table(name = "carrito_items", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {
+                "carrito_id",
+                "producto_id",
+                "talla",
+                "color"
+        })
+})
 public class CarritoItem {
 
-    private int idProducto;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // =====================================================
+    // CARRITO
+    // =====================================================
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "carrito_id", nullable = false)
+    private Carrito carrito;
+
+    // =====================================================
+    // PRODUCTO
+    // =====================================================
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "producto_id", nullable = false)
+    private Producto producto;
+
+    // =====================================================
+    // DATOS DE LA SELECCIÓN
+    // =====================================================
+
     private int talla;
+
     private String color;
+
     private int cantidad;
 
     public CarritoItem() {
     }
 
-    public CarritoItem(int idProducto, int talla, String color, int cantidad) {
-        this.idProducto = idProducto;
-        this.talla = talla;
-        this.color = color;
-        this.cantidad = cantidad;
+    public Long getId() {
+        return id;
     }
 
-    public int getIdProducto() {
-        return idProducto;
+    public Carrito getCarrito() {
+        return carrito;
     }
 
-    public void setIdProducto(int idProducto) {
-        this.idProducto = idProducto;
+    public void setCarrito(Carrito carrito) {
+        this.carrito = carrito;
+    }
+
+    public Producto getProducto() {
+        return producto;
+    }
+
+    public void setProducto(Producto producto) {
+        this.producto = producto;
     }
 
     public int getTalla() {

@@ -1,0 +1,666 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Panel de administración | UrbanSneakers</title>
+
+    <link rel="stylesheet" href="../css/tiendaEstilos.css" />
+  </head>
+
+  <body>
+    <!-- =========================================
+       CABECERA DEL PANEL
+       ========================================= -->
+
+    <header class="header-login">
+      <h1>UrbanSneakers</h1>
+
+      <p>Panel de administración</p>
+    </header>
+
+    <!-- =========================================
+       CONTENIDO PRINCIPAL DEL PANEL
+       ========================================= -->
+
+    <main class="pagina-login pagina-panel">
+      <!-- =========================================
+         PANEL DE GESTIÓN
+         ========================================= -->
+
+      <section class="login-contenedor panel-gestion-principal">
+        <h2>Panel de gestión</h2>
+
+        <!-- =====================================
+   INFORMACIÓN DEL USUARIO
+   ===================================== -->
+
+        <div class="datos-usuario-panel">
+          <p>
+            USUARIO:
+            <strong id="nombre-panel">Usuario</strong>
+          </p>
+
+          <p>
+            ROL:
+            <strong id="rol-panel">---</strong>
+          </p>
+        </div>
+
+        <!-- =====================================
+           OPCIONES DE GESTIÓN
+           ===================================== -->
+
+        <div class="botones-gestion-panel">
+          <button type="button" id="btn-gestion-pedidos" class="btn-login-form">
+            Gestión de pedidos
+          </button>
+
+          <button
+            type="button"
+            id="btn-gestion-productos"
+            class="btn-login-form"
+          >
+            Gestión de productos
+          </button>
+
+          <button
+            type="button"
+            id="btn-gestion-usuarios"
+            class="btn-login-form"
+          >
+            Gestión de empleados
+          </button>
+        </div>
+
+        <!-- =====================================
+           CERRAR SESIÓN
+           ===================================== -->
+
+        <div class="login-registro">
+          <button type="button" id="btn-logout-panel" class="btn-login-form">
+            Cerrar sesión
+          </button>
+        </div>
+      </section>
+
+      <!-- =========================================
+         GESTIÓN DE PEDIDOS
+         ========================================= -->
+
+      <section id="seccion-pedidos" class="panel-pedidos oculto">
+        <h2>Gestión de pedidos</h2>
+
+        <p>Consulta los pedidos realizados y modifica su estado.</p>
+
+        <!-- =====================================
+           TABLA DE PEDIDOS
+           ===================================== -->
+
+        <div class="tabla-pedidos-contenedor">
+          <table class="tabla-pedidos">
+            <thead>
+              <tr>
+                <th>Pedido</th>
+
+                <th>Cliente</th>
+
+                <th>Fecha</th>
+
+                <th>Total</th>
+
+                <th>Estado</th>
+
+                <th>Acción</th>
+              </tr>
+            </thead>
+
+            <tbody id="tabla-pedidos-body">
+              <!--
+              JavaScript insertará aquí
+              los pedidos recibidos del backend
+            --></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- =========================================
+         GESTIÓN DE PRODUCTOS
+         ========================================= -->
+
+      <section id="seccion-productos" class="panel-pedidos oculto">
+        <h2>Gestión de productos</h2>
+
+        <p>
+          Crea nuevos productos, modifica los existentes y controla si están
+          activos en la tienda.
+        </p>
+
+        <!-- =====================================
+           CREAR PRODUCTO
+           ===================================== -->
+
+        <div class="login-registro">
+          <button type="button" id="btn-nuevo-producto" class="btn-login-form">
+            Crear nuevo producto
+          </button>
+        </div>
+
+        <!-- =====================================
+           TABLA DE PRODUCTOS
+           ===================================== -->
+
+        <div class="tabla-pedidos-contenedor">
+          <table class="tabla-pedidos">
+            <thead>
+              <tr>
+                <th>ID</th>
+
+                <th>Marca</th>
+
+                <th>Nombre</th>
+
+                <th>Precio</th>
+
+                <th>Tallas</th>
+
+                <th>Colores</th>
+
+                <th>Estado</th>
+
+                <th>Acciones</th>
+              </tr>
+            </thead>
+
+            <tbody id="tabla-productos-body">
+              <!--
+              JavaScript insertará aquí
+              los productos recibidos desde MySQL
+            --></tbody>
+          </table>
+        </div>
+
+        <!-- =====================================
+           FORMULARIO CREAR / EDITAR PRODUCTO
+           ===================================== -->
+
+        <div
+          id="formulario-producto-contenedor"
+          class="login-contenedor oculto"
+        >
+          <h2 id="titulo-formulario-producto">Crear producto</h2>
+
+          <!--
+          El mismo formulario servirá tanto para
+          crear como para editar productos.
+        -->
+
+          <form id="form-producto">
+            <!-- ID DEL PRODUCTO
+               Solo se utiliza internamente al editar.
+          -->
+
+            <input type="hidden" id="producto-id" />
+
+            <!-- MARCA -->
+
+            <div class="form-grupo">
+              <label for="producto-marca">Marca</label>
+
+              <input
+                type="text"
+                id="producto-marca"
+                minlength="2"
+                maxlength="100"
+                placeholder="Ejemplo: Nike"
+                required
+              />
+
+              <small> Entre 2 y 100 caracteres. </small>
+
+              <small
+                id="error-producto-marca"
+                class="mensaje-error-campo"
+              ></small>
+            </div>
+
+            <!-- NOMBRE -->
+
+            <div class="form-grupo">
+              <label for="producto-nombre">Nombre</label>
+
+              <input
+                type="text"
+                id="producto-nombre"
+                minlength="2"
+                maxlength="150"
+                placeholder="Ejemplo: Nike Air Max 90"
+                required
+              />
+
+              <small> Entre 2 y 150 caracteres. </small>
+
+              <small
+                id="error-producto-nombre"
+                class="mensaje-error-campo"
+              ></small>
+            </div>
+
+            <!-- PRECIO -->
+
+            <div class="form-grupo">
+              <label for="producto-precio">Precio</label>
+
+              <input
+                type="number"
+                id="producto-precio"
+                min="0.01"
+                max="99999999.99"
+                step="0.01"
+                placeholder="Ejemplo: 129,99"
+                required
+              />
+
+              <small>
+                Introduce un precio superior a 0 € y con un máximo de dos
+                decimales.
+              </small>
+
+              <small
+                id="error-producto-precio"
+                class="mensaje-error-campo"
+              ></small>
+            </div>
+
+            <!-- TALLAS -->
+
+            <div class="form-grupo">
+              <label for="producto-tallas">Tallas</label>
+
+              <input
+                type="text"
+                id="producto-tallas"
+                placeholder="Ejemplo: 38, 39, 40, 41, 42"
+                maxlength="100"
+                required
+              />
+
+              <small>
+                Introduce números enteros del 1 al 100 separados por comas.
+              </small>
+
+              <small
+                id="error-producto-tallas"
+                class="mensaje-error-campo"
+              ></small>
+            </div>
+
+            <!-- COLORES -->
+
+            <div class="form-grupo">
+              <label for="producto-colores">Colores</label>
+
+              <input
+                type="text"
+                id="producto-colores"
+                placeholder="Ejemplo: Blanco, Negro, Rojo"
+                maxlength="300"
+                required
+              />
+
+              <small>
+                Introduce los colores separados por comas. Máximo 50 caracteres
+                por color.
+              </small>
+
+              <small
+                id="error-producto-colores"
+                class="mensaje-error-campo"
+              ></small>
+            </div>
+
+            <!-- ESTADO -->
+
+            <div class="form-grupo">
+              <label for="producto-activo"> Estado </label>
+
+              <select id="producto-activo">
+                <option value="true">Activo</option>
+
+                <option value="false">Inactivo</option>
+              </select>
+            </div>
+
+            <!-- =================================
+               BOTONES DEL FORMULARIO
+               ================================= -->
+
+            <div class="login-registro">
+              <button
+                type="submit"
+                id="btn-guardar-producto"
+                class="btn-login-form"
+              >
+                Guardar producto
+              </button>
+
+              <button
+                type="button"
+                id="btn-cancelar-producto"
+                class="btn-cancelar-producto"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- =========================================
+     GESTIÓN DE EMPLEADOS
+     ========================================= -->
+
+      <section id="seccion-usuarios" class="panel-pedidos oculto">
+        <h2>Gestión de empleados</h2>
+
+        <p>
+          Consulta el personal de UrbanSneakers y gestiona sus permisos y estado
+          dentro de la aplicación.
+        </p>
+
+        <!-- =====================================
+       CREAR NUEVO EMPLEADO
+       -------------------------------------
+       Este botón solo se mostrará mediante
+       JavaScript a usuarios JEFE o ADMIN.
+       ===================================== -->
+
+        <div id="contenedor-nuevo-empleado" class="login-registro oculto">
+          <button type="button" id="btn-nuevo-empleado" class="btn-login-form">
+            Crear nuevo empleado
+          </button>
+        </div>
+
+        <!-- =====================================
+       TABLA DE EMPLEADOS
+       ===================================== -->
+
+        <div class="tabla-pedidos-contenedor">
+          <table class="tabla-pedidos">
+            <thead>
+              <tr>
+                <th>ID</th>
+
+                <th>Nombre</th>
+
+                <th>Email</th>
+
+                <th>Rol</th>
+
+                <th>Estado</th>
+
+                <th>Fecha de alta</th>
+
+                <th>Acciones</th>
+              </tr>
+            </thead>
+
+            <tbody id="tabla-usuarios-body">
+              <!--
+          JavaScript insertará aquí únicamente
+          los usuarios con rol:
+
+          TRABAJADOR
+          JEFE
+          ADMIN
+
+          Los CLIENTE no aparecerán
+          en esta sección.
+        -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- =====================================
+       FORMULARIO CREAR / EDITAR EMPLEADO
+       ===================================== -->
+
+        <div
+          id="formulario-empleado-contenedor"
+          class="login-contenedor oculto"
+        >
+          <h2 id="titulo-formulario-empleado">Crear empleado</h2>
+
+          <!--
+      Utilizaremos el mismo formulario para
+      crear y editar empleados.
+    -->
+
+          <form id="form-empleado">
+            <!-- =================================
+           ID
+           ---------------------------------
+           Solo se utilizará internamente
+           cuando estemos editando.
+           ================================= -->
+
+            <input type="hidden" id="empleado-id" />
+
+            <!-- =================================
+   NOMBRE
+   ================================= -->
+
+            <div class="form-grupo">
+              <label for="empleado-nombre">Nombre</label>
+
+              <input
+                type="text"
+                id="empleado-nombre"
+                minlength="2"
+                maxlength="100"
+                placeholder="Ejemplo: Laura García"
+                autocomplete="name"
+                required
+              />
+
+              <small>
+                Entre 2 y 100 caracteres. Solo letras, espacios, puntos,
+                apóstrofes y guiones.
+              </small>
+
+              <small
+                id="error-empleado-nombre"
+                class="mensaje-error-campo"
+              ></small>
+            </div>
+
+            <!-- =================================
+   EMAIL
+   ================================= -->
+
+            <div class="form-grupo">
+              <label for="empleado-email">Email</label>
+
+              <input
+                type="email"
+                id="empleado-email"
+                maxlength="150"
+                placeholder="Ejemplo: laura.garcia@urbansneakers.es"
+                autocomplete="email"
+                required
+              />
+
+              <small>
+                Introduce un correo electrónico válido. Máximo 150 caracteres.
+              </small>
+
+              <small
+                id="error-empleado-email"
+                class="mensaje-error-campo"
+              ></small>
+            </div>
+
+            <!-- =================================
+                CONTRASEÑAS
+             ---------------------------------
+                Estos campos solamente se mostrarán
+                cuando creemos un nuevo empleado.
+
+                Al editar un empleado se ocultarán
+                mediante JavaScript.
+            ================================= -->
+
+            <!-- CONTRASEÑA -->
+
+            <div id="campos-password-empleado">
+              <!-- CONTRASEÑA -->
+
+              <div class="form-grupo">
+                <label for="empleado-password"> Contraseña </label>
+
+                <input
+                  type="password"
+                  id="empleado-password"
+                  minlength="8"
+                  maxlength="72"
+                  placeholder="Ejemplo: Urban2026"
+                  autocomplete="new-password"
+                />
+
+                <small id="ayuda-password-empleado">
+                  Entre 8 y 72 caracteres. Debe contener al menos una letra y un
+                  número.
+                </small>
+
+                <small
+                  id="error-empleado-password"
+                  class="mensaje-error-campo"
+                ></small>
+              </div>
+
+              <!-- CONFIRMAR CONTRASEÑA -->
+
+              <div class="form-grupo">
+                <label for="empleado-confirmar-password">
+                  Confirmar contraseña
+                </label>
+
+                <input
+                  type="password"
+                  id="empleado-confirmar-password"
+                  minlength="8"
+                  maxlength="72"
+                  placeholder="Repite la contraseña anterior"
+                  autocomplete="new-password"
+                />
+
+                <small>
+                  Debe coincidir exactamente con la contraseña anterior.
+                </small>
+
+                <small
+                  id="error-empleado-confirmar-password"
+                  class="mensaje-error-campo"
+                ></small>
+              </div>
+            </div>
+
+            <!-- =================================
+           ROL
+           ---------------------------------
+           IMPORTANTE:
+           Desde este formulario únicamente
+           permitimos crear JEFE o TRABAJADOR.
+
+           ADMIN y CLIENTE no son opciones.
+           ================================= -->
+
+            <div class="form-grupo">
+              <label for="empleado-rol"> Rol </label>
+
+              <select id="empleado-rol" required>
+                <option value="TRABAJADOR">Trabajador</option>
+
+                <option value="JEFE">Jefe</option>
+              </select>
+            </div>
+
+            <!-- =================================
+           ESTADO
+           ================================= -->
+
+            <div class="form-grupo">
+              <label for="empleado-activo"> Estado </label>
+
+              <select id="empleado-activo" required>
+                <option value="true">Activo</option>
+
+                <option value="false">Inactivo</option>
+              </select>
+            </div>
+
+            <!-- =================================
+           BOTONES DEL FORMULARIO
+           ================================= -->
+
+            <div class="login-registro">
+              <button
+                type="submit"
+                id="btn-guardar-empleado"
+                class="btn-login-form"
+              >
+                Guardar empleado
+              </button>
+
+              <button
+                type="button"
+                id="btn-cancelar-empleado"
+                class="btn-cancelar-empleado"
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <!-- =========================================
+       MODAL DE MENSAJES DEL PANEL
+       ========================================= -->
+
+    <div id="modal-panel" class="modal-panel oculto">
+      <div class="modal-panel-contenido">
+        <h3 id="modal-panel-titulo">Operación realizada</h3>
+
+        <p id="modal-panel-mensaje">La acción se ha realizado correctamente.</p>
+
+        <button
+          type="button"
+          id="btn-cerrar-modal-panel"
+          class="btn-login-form"
+        >
+          Aceptar
+        </button>
+      </div>
+    </div>
+
+    <!-- =========================================
+       PIE DE PÁGINA
+       ========================================= -->
+
+    <footer class="footer-tienda">
+      <p>© 2026 UrbanSneakers · Todos los derechos reservados.</p>
+    </footer>
+
+    <!-- =========================================
+       JAVASCRIPT
+       ========================================= -->
+
+    <script src="../js/api.js"></script>
+
+    <script src="panel.js"></script>
+  </body>
+</html>

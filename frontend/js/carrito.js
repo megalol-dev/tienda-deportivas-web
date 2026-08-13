@@ -15,7 +15,6 @@
 // En producción únicamente habrá que cambiar esta constante.
 // const API_URL = "http://localhost:8080";
 
-
 // ===============================================
 // ESTADO DEL CARRITO
 // ===============================================
@@ -34,36 +33,33 @@ let totalPrecio = 0;
 // Tiempo que permanece visible un aviso.
 const TOAST_DURATION_MS = 2000;
 
-
-
 // Crea (si no existe) y devuelve el contenedor
 function getToastContainer() {
-    let container = document.getElementById('toast-container');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'toast-container';
-        container.setAttribute('aria-live', 'polite');
-        container.setAttribute('aria-atomic', 'true');
-        document.body.appendChild(container);
-    }
-    return container;
+  let container = document.getElementById("toast-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "toast-container";
+    container.setAttribute("aria-live", "polite");
+    container.setAttribute("aria-atomic", "true");
+    document.body.appendChild(container);
+  }
+  return container;
 }
 
 // Muestra un toast con mensaje y variante (success|error)
 function mostrarToast(mensaje, variante = "success") {
-    const container = getToastContainer();
-    const toast = document.createElement("div");
-    toast.className = `toast ${variante}`;
+  const container = getToastContainer();
+  const toast = document.createElement("div");
+  toast.className = `toast ${variante}`;
 
-    // Icono dependiendo del tipo de mensaje
-    const icono = variante === "error" ? "❌" : "✅";
-    toast.innerHTML = `<span class="icon">${icono}</span> ${mensaje}`;
-    container.appendChild(toast);
-    setTimeout(() => {
-        toast.remove();
-    }, TOAST_DURATION_MS + 3000);
+  // Icono dependiendo del tipo de mensaje
+  const icono = variante === "error" ? "❌" : "✅";
+  toast.innerHTML = `<span class="icon">${icono}</span> ${mensaje}`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.remove();
+  }, TOAST_DURATION_MS + 3000);
 }
-
 
 // ===============================================
 // SINCRONIZACIÓN CON EL BACKEND
@@ -77,82 +73,105 @@ function mostrarToast(mensaje, variante = "success") {
 // Después completamos cada elemento utilizando
 // la información oficial del catálogo.
 async function cargarCarritoDesdeBackend() {
-    try {
-        // Esperamos a que catalogo.js termine de cargar los productos.
-        await catalogoPromise;
+  try {
+    // Esperamos a que catalogo.js termine de cargar los productos.
+    await catalogoPromise;
 
-        const respuesta = await fetch(`${API_URL}/carrito`);
+    const respuesta = await fetch(`${API_URL}/carrito`, {
+      method: "GET",
+      credentials: "include",
+    });
 
-        if (!respuesta.ok) {
-            throw new Error("No se pudo obtener el carrito del servidor.");
+    if (!respuesta.ok) {
+      throw new Error("No se pudo obtener el carrito del servidor.");
+    }
+
+    const itemsBackend = await respuesta.json();
+
+    carrito = itemsBackend
+      .map((itemBackend) => {
+        const producto = catalogo.find(
+          (prod) => prod.id === itemBackend.idProducto,
+        );
+
+        // Si el producto ya no existe en el catálogo,
+        // no se muestra en el carrito.
+        if (!producto) {
+          return null;
         }
 
-        const itemsBackend = await respuesta.json();
+        return {
+          clave: `${producto.id}-${itemBackend.talla}-${itemBackend.color}`,
+          id: producto.id,
+          marca: producto.marca,
+          nombre: producto.nombre,
+          precio: producto.precio,
+          talla: itemBackend.talla,
+          color: itemBackend.color,
+          cantidad: itemBackend.cantidad,
+        };
+      })
+      .filter(Boolean);
 
-        carrito = itemsBackend
-            .map(itemBackend => {
-                const producto = catalogo.find(
-                    prod => prod.id === itemBackend.idProducto
-                );
+    actualizarInterfazCarrito();
 
-                // Si el producto ya no existe en el catálogo,
-                // no se muestra en el carrito.
-                if (!producto) {
-                    return null;
-                }
+    return carrito;
+  } catch (error) {
+    console.error("Error cargando el carrito:", error);
 
-                return {
-                    clave: `${producto.id}-${itemBackend.talla}-${itemBackend.color}`,
-                    id: producto.id,
-                    marca: producto.marca,
-                    nombre: producto.nombre,
-                    precio: producto.precio,
-                    talla: itemBackend.talla,
-                    color: itemBackend.color,
-                    cantidad: itemBackend.cantidad
-                };
-            })
-            .filter(Boolean);
+    carrito = [];
+    actualizarInterfazCarrito();
 
-        actualizarInterfazCarrito();
-
-        return carrito;
-
-    } catch (error) {
-        console.error("Error cargando el carrito:", error);
-
-        carrito = [];
-        actualizarInterfazCarrito();
-
-        return [];
-    }
+    return [];
+  }
 }
-
 
 // Actualiza todos los elementos visuales que dependen
 // del estado actual del carrito.
 function actualizarInterfazCarrito() {
-    recalcularTotales();
-    actualizarBadge();
+  recalcularTotales();
+  actualizarBadge();
 
-    // Solo intentamos renderizar el modal si sus elementos existen.
-    if (listaCarrito && totalCarritoEl) {
-        renderizarCarritoModal();
-    }
+  // Solo intentamos renderizar el modal si sus elementos existen.
+  if (listaCarrito && totalCarritoEl) {
+    renderizarCarritoModal();
+  }
 }
 
+// ===============================================
+// LIMPIAR CARRITO DEL FRONTEND
+// ------------------------------------------------
+// Se utiliza al cerrar sesión.
+//
+// NO borra el carrito real del usuario en Spring.
+// Solo elimina de la pantalla los datos que quedaron
+// cargados en memoria del usuario anterior.
+// ===============================================
+
+function limpiarCarritoFrontend() {
+  carrito = [];
+
+  totalProductos = 0;
+  totalPrecio = 0;
+
+  actualizarInterfazCarrito();
+
+  // Cerramos el modal del carrito si estaba abierto.
+  if (typeof cerrarModalCarrito === "function") {
+    cerrarModalCarrito();
+  }
+}
 
 function recalcularTotales() {
-    totalProductos = carrito.reduce(
-        (acumulado, item) => acumulado + item.cantidad,
-        0
-    );
+  totalProductos = carrito.reduce(
+    (acumulado, item) => acumulado + item.cantidad,
+    0,
+  );
 
-    totalPrecio = carrito.reduce(
-        (acumulado, item) =>
-            acumulado + item.precio * item.cantidad,
-        0
-    );
+  totalPrecio = carrito.reduce(
+    (acumulado, item) => acumulado + item.precio * item.cantidad,
+    0,
+  );
 }
 
 // ===============================================
@@ -160,148 +179,233 @@ function recalcularTotales() {
 // ===============================================
 
 function actualizarBadge() {
-    const badge = document.getElementById('badge');
-    if (!badge) return;
-    const unidades = carrito.reduce((acc, item) => acc + item.cantidad, 0);
-    badge.textContent = unidades;
+  const badge = document.getElementById("badge");
+  if (!badge) return;
+  const unidades = carrito.reduce((acc, item) => acc + item.cantidad, 0);
+  badge.textContent = unidades;
 }
+
+// ===============================================
+// MODAL - SESIÓN NECESARIA PARA COMPRAR
+// ===============================================
+
+const modalSesionCarrito = document.getElementById("modal-sesion-carrito");
+
+const btnCancelarModalSesion = document.getElementById(
+  "btn-cancelar-modal-sesion",
+);
+
+// Abre el aviso que informa al usuario de que
+// necesita iniciar sesión para utilizar el carrito.
+function abrirModalSesionCarrito() {
+  if (!modalSesionCarrito) return;
+
+  modalSesionCarrito.hidden = false;
+
+  document.body.classList.add("modal-sesion-abierto");
+}
+
+// Cierra el aviso y devuelve al usuario a la tienda.
+function cerrarModalSesionCarrito() {
+  if (!modalSesionCarrito) return;
+
+  modalSesionCarrito.hidden = true;
+
+  document.body.classList.remove("modal-sesion-abierto");
+}
+
+// Botón Cancelar.
+if (btnCancelarModalSesion) {
+  btnCancelarModalSesion.addEventListener("click", cerrarModalSesionCarrito);
+}
+
+// Permitir cerrar también pulsando ESC.
+document.addEventListener("keydown", (event) => {
+  if (
+    event.key === "Escape" &&
+    modalSesionCarrito &&
+    !modalSesionCarrito.hidden
+  ) {
+    cerrarModalSesionCarrito();
+  }
+});
 
 // ===============================================
 // GESTIÓN DEL CARRITO
 // ===============================================
 
 // Envía a Spring el producto seleccionado.
-// Después vuelve a pedir el carrito completo para
-// actualizar la interfaz con el estado real del servidor.
+//
+// Antes de añadir:
+// 1. Comprueba que exista una sesión activa.
+// 2. Comprueba que el producto exista.
+// 3. Obtiene talla y color.
+// 4. Envía el producto a Spring.
+// 5. Recarga el carrito desde el backend.
+//
+// El backend sigue siendo la autoridad real sobre
+// si el usuario puede utilizar el carrito.
+// ===============================================
+
 async function agregarAlCarrito(idProducto) {
-    const producto = catalogo.find(
-        prod => prod.id === idProducto
-    );
+  // ===========================================
+  // COMPROBAR SESIÓN
+  // ===========================================
 
-    if (!producto) {
-        mostrarToast("El producto no existe.", "error");
-        return;
+  const sesionActiva = await comprobarSesionCarrito();
+
+  if (!sesionActiva) {
+    // Eliminamos cualquier carrito antiguo
+    // que pudiera quedar cargado visualmente.
+    limpiarCarritoFrontend();
+
+    // Mostramos el modal indicando que
+    // es necesario iniciar sesión.
+    abrirModalSesionCarrito();
+
+    return;
+  }
+
+  // ===========================================
+  // BUSCAR PRODUCTO
+  // ===========================================
+
+  const producto = catalogo.find((prod) => prod.id === idProducto);
+
+  if (!producto) {
+    mostrarToast("El producto no existe.", "error");
+
+    return;
+  }
+
+  // ===========================================
+  // OBTENER TALLA Y COLOR
+  // ===========================================
+
+  const selectTalla = document.getElementById(`talla-${idProducto}`);
+
+  const selectColor = document.getElementById(`color-${idProducto}`);
+
+  const talla = Number(selectTalla?.value);
+  const color = selectColor?.value;
+
+  if (!talla || !color) {
+    mostrarToast("Selecciona una talla y un color.", "error");
+
+    return;
+  }
+
+  // ===========================================
+  // AÑADIR PRODUCTO EN SPRING
+  // ===========================================
+
+  try {
+    const respuesta = await fetchConCsrf(`${API_URL}/carrito`, {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json",
+      },
+
+      body: JSON.stringify({
+        idProducto: producto.id,
+        talla: talla,
+        color: color,
+        cantidad: 1,
+      }),
+    });
+
+    // =======================================
+    // SPRING RECHAZÓ LA OPERACIÓN
+    // =======================================
+
+    if (!respuesta.ok) {
+      throw new Error("El servidor no pudo añadir el producto.");
     }
 
-    const selectTalla = document.getElementById(
-        `talla-${idProducto}`
-    );
+    // =======================================
+    // ACTUALIZAR CARRITO
+    // =======================================
 
-    const selectColor = document.getElementById(
-        `color-${idProducto}`
-    );
+    // No modificamos el array manualmente.
+    // Volvemos a pedir a Spring el carrito real
+    // perteneciente al usuario autenticado.
 
-    const talla = Number(selectTalla?.value);
-    const color = selectColor?.value;
+    await cargarCarritoDesdeBackend();
 
-    if (!talla || !color) {
-        mostrarToast(
-            "Selecciona una talla y un color.",
-            "error"
-        );
-        return;
-    }
+    // =======================================
+    // AVISO DE ÉXITO
+    // =======================================
 
-    try {
-        const respuesta = await fetchConCsrf(`${API_URL}/carrito`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            idProducto: producto.id,
-            talla,
-            color,
-            cantidad: 1,
-          }),
-        });
+    mostrarToast(`🛒 Añadido: ${producto.nombre}`, "success");
+  } catch (error) {
+    console.error("Error añadiendo el producto:", error);
 
-        if (!respuesta.ok) {
-            throw new Error(
-                "El servidor no pudo añadir el producto."
-            );
-        }
-
-        // Volvemos a leer el carrito desde Spring.
-        await cargarCarritoDesdeBackend();
-
-        mostrarToast(
-            `🛒 Añadido: ${producto.nombre}`,
-            "success"
-        );
-
-    } catch (error) {
-        console.error(
-            "Error añadiendo el producto:",
-            error
-        );
-
-        mostrarToast(
-            "No se pudo añadir el producto.",
-            "error"
-        );
-    }
+    mostrarToast("No se pudo añadir el producto.", "error");
+  }
 }
-
 
 // ===============================================
 // ELEMENTOS DEL MODAL
 // ===============================================
 
-const btnCarrito = document.getElementById('btn-carrito');
-const modalCarrito = document.getElementById('modal-carrito');
-const modalOverlay = modalCarrito.querySelector('.modal-overlay');
-const btnCerrarCarrito = document.getElementById('btn-cerrar-carrito');
-const listaCarrito = document.getElementById('carrito-items');
-const totalCarritoEl = document.getElementById('carrito-total');
-const btnVaciar = document.getElementById('btn-vaciar');
-const btnPagar = document.getElementById('btn-pagar'); // llama a abrirCheckout()
-
+const btnCarrito = document.getElementById("btn-carrito");
+const modalCarrito = document.getElementById("modal-carrito");
+const modalOverlay = modalCarrito.querySelector(".modal-overlay");
+const btnCerrarCarrito = document.getElementById("btn-cerrar-carrito");
+const listaCarrito = document.getElementById("carrito-items");
+const totalCarritoEl = document.getElementById("carrito-total");
+const btnVaciar = document.getElementById("btn-vaciar");
+const btnPagar = document.getElementById("btn-pagar"); // llama a abrirCheckout()
 
 // ===============================================
 // FUNCIONES DEL MODAL
 // ===============================================
 
 function abrirModalCarrito() {
-    renderizarCarritoModal();
-    modalCarrito.classList.add('modal-visible');
+  renderizarCarritoModal();
+  modalCarrito.classList.add("modal-visible");
 }
 
 function cerrarModalCarrito() {
-    modalCarrito.classList.remove('modal-visible');
+  modalCarrito.classList.remove("modal-visible");
 }
 
 function renderizarCarritoModal() {
-    if (!carrito.length) {
-        listaCarrito.innerHTML = `
+  if (!carrito.length) {
+    listaCarrito.innerHTML = `
             <div style="padding:18px; text-align:center; color:#666;">
                 Tu carrito está vacío.
             </div>`;
-        totalCarritoEl.textContent = '0,00 €';
-        return;
-    }
+    totalCarritoEl.textContent = "0,00 €";
+    return;
+  }
 
-    listaCarrito.innerHTML = '';
+  listaCarrito.innerHTML = "";
 
-    carrito.forEach(item => {
-        const importe = (item.precio * item.cantidad).toFixed(2).replace('.', ',');
-        const precioU = item.precio.toFixed(2).replace('.', ',');
-        const srcImg = item.color ? obtenerSrcImagenProducto(item.id, item.color) : '';
+  carrito.forEach((item) => {
+    const importe = (item.precio * item.cantidad).toFixed(2).replace(".", ",");
+    const precioU = item.precio.toFixed(2).replace(".", ",");
+    const srcImg = item.color
+      ? obtenerSrcImagenProducto(item.id, item.color)
+      : "";
 
-        const fila = document.createElement('div');
-        fila.className = 'item-carrito';
+    const fila = document.createElement("div");
+    fila.className = "item-carrito";
 
-        fila.innerHTML = `
+    fila.innerHTML = `
             <div class="thumb-zapa">
-                ${srcImg
-                ? `<img class="thumb-img" src="${srcImg}" alt="${item.marca} ${item.nombre}">`
-                : `Foto`}
+                ${
+                  srcImg
+                    ? `<img class="thumb-img" src="${srcImg}" alt="${item.marca} ${item.nombre}">`
+                    : `Foto`
+                }
             </div>
 
             <div class="info-zapa">
                 <h4>${item.marca} — ${item.nombre}</h4>
-                <div class="meta">Talla: ${item.talla ?? '-'}</div>
-                <div class="meta">Color: ${item.color ?? '-'}</div>
+                <div class="meta">Talla: ${item.talla ?? "-"}</div>
+                <div class="meta">Color: ${item.color ?? "-"}</div>
                 <div class="meta">Precio: ${precioU} €</div>
                 <div class="meta">Cantidad: ${item.cantidad}</div>
             </div>
@@ -313,50 +417,97 @@ function renderizarCarritoModal() {
             </div>
         `;
 
-        const img = fila.querySelector('.thumb-img');
-        if (img) {
-            img.onerror = () => {
-                const fallback = `img/p${item.id}_default.png`;
-                if (!img.dataset.fallbackTried) {
-                    img.dataset.fallbackTried = '1';
-                    img.src = fallback;
-                } else {
-                    img.style.display = 'none';
-                }
-            };
+    const img = fila.querySelector(".thumb-img");
+    if (img) {
+      img.onerror = () => {
+        const fallback = `img/p${item.id}_default.png`;
+        if (!img.dataset.fallbackTried) {
+          img.dataset.fallbackTried = "1";
+          img.src = fallback;
+        } else {
+          img.style.display = "none";
         }
+      };
+    }
 
-        listaCarrito.appendChild(fila);
-    });
+    listaCarrito.appendChild(fila);
+  });
 
-    const total = carrito.reduce((acc, it) => acc + it.precio * it.cantidad, 0);
-    totalCarritoEl.textContent = `${total.toFixed(2).replace('.', ',')} €`;
+  const total = carrito.reduce((acc, it) => acc + it.precio * it.cantidad, 0);
+  totalCarritoEl.textContent = `${total.toFixed(2).replace(".", ",")} €`;
 }
 
+// ===============================================
+// COMPROBAR SESIÓN PARA UTILIZAR EL CARRITO
+// ===============================================
+
+async function comprobarSesionCarrito() {
+  try {
+    const respuesta = await fetch(`${API_URL}/auth/me`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    return respuesta.ok;
+  } catch (error) {
+    console.error("Error comprobando la sesión del carrito:", error);
+
+    return false;
+  }
+}
 
 // ===============================================
 // EVENTOS
 // ===============================================
 
 if (btnCarrito) {
-    btnCarrito.addEventListener('click', (e) => {
-        e.preventDefault();
-        abrirModalCarrito();
-    });
+  btnCarrito.addEventListener("click", async (event) => {
+    event.preventDefault();
+
+    // =======================================
+    // COMPROBAR SESIÓN
+    // =======================================
+
+    const sesionActiva = await comprobarSesionCarrito();
+
+    // =======================================
+    // SIN SESIÓN
+    // =======================================
+
+    if (!sesionActiva) {
+      // Por seguridad visual eliminamos
+      // cualquier carrito antiguo que pudiera
+      // quedar cargado en memoria.
+      limpiarCarritoFrontend();
+
+      abrirModalSesionCarrito();
+
+      return;
+    }
+
+    // =======================================
+    // CON SESIÓN
+    // =======================================
+
+    // Volvemos a consultar Spring antes de
+    // mostrar el carrito.
+    await cargarCarritoDesdeBackend();
+
+    abrirModalCarrito();
+  });
 }
 
 if (btnCerrarCarrito) {
-    btnCerrarCarrito.addEventListener('click', cerrarModalCarrito);
+  btnCerrarCarrito.addEventListener("click", cerrarModalCarrito);
 }
 
 if (modalOverlay) {
-    modalOverlay.addEventListener('click', cerrarModalCarrito);
+  modalOverlay.addEventListener("click", cerrarModalCarrito);
 }
 
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') cerrarModalCarrito();
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") cerrarModalCarrito();
 });
-
 
 if (listaCarrito) {
   listaCarrito.addEventListener("click", async (event) => {
@@ -377,9 +528,9 @@ if (listaCarrito) {
         color: item.color,
       });
 
-     const respuesta = await fetchConCsrf(`${API_URL}/carrito?${parametros}`, {
-       method: "DELETE",
-     });
+      const respuesta = await fetchConCsrf(`${API_URL}/carrito?${parametros}`, {
+        method: "DELETE",
+      });
 
       if (!respuesta.ok) {
         throw new Error("El servidor no pudo eliminar el producto.");
@@ -396,7 +547,6 @@ if (listaCarrito) {
     }
   });
 }
-
 
 if (btnVaciar) {
   btnVaciar.addEventListener("click", async () => {
@@ -420,33 +570,44 @@ if (btnVaciar) {
   });
 }
 
-
 if (btnPagar) {
-    btnPagar.addEventListener('click', (e) => {
-        e.preventDefault();
+  btnPagar.addEventListener("click", (e) => {
+    e.preventDefault();
 
-        // Si el carrito está vacío o el total de unidades es 0, mostramos aviso
-        if (!carrito.length || totalProductos === 0) {
-            if (typeof mostrarToast === 'function') {
-                mostrarToast('No puedes hacer un pedido con 0 productos.', 'error');
-            } else {
-                alert('No puedes hacer un pedido con 0 productos.');
-            }
-            return; // no abrimos el checkout
-        }
+    // Si el carrito está vacío o el total de unidades es 0, mostramos aviso
+    if (!carrito.length || totalProductos === 0) {
+      if (typeof mostrarToast === "function") {
+        mostrarToast("No puedes hacer un pedido con 0 productos.", "error");
+      } else {
+        alert("No puedes hacer un pedido con 0 productos.");
+      }
+      return; // no abrimos el checkout
+    }
 
-        // Si hay productos, continuamos al checkout
-        if (typeof abrirCheckout === 'function') {
-            abrirCheckout();
-        }
-    });
+    // Si hay productos, continuamos al checkout
+    if (typeof abrirCheckout === "function") {
+      abrirCheckout();
+    }
+  });
 }
 
-
 // ===============================================
-// INICIALIZACIÓN
+// INICIALIZAR CARRITO
+// ------------------------------------------------
+// Solo cargamos un carrito cuando existe una
+// sesión autenticada.
 // ===============================================
 
-// Al abrir la tienda, el estado inicial del carrito
-// se obtiene siempre desde Spring Boot.
-cargarCarritoDesdeBackend();
+async function inicializarCarrito() {
+  const sesionActiva = await comprobarSesionCarrito();
+
+  if (!sesionActiva) {
+    limpiarCarritoFrontend();
+
+    return;
+  }
+
+  await cargarCarritoDesdeBackend();
+}
+
+inicializarCarrito();

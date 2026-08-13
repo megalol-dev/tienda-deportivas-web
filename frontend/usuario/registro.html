@@ -34,58 +34,85 @@
         </p>
 
         <form id="form-registro" class="form-login">
-
           <!-- NOMBRE -->
 
           <div class="campo-login">
-            <label for="registro-nombre">
-              Nombre
-            </label>
+            <label for="registro-nombre"> Nombre </label>
 
             <input
               id="registro-nombre"
               name="nombre"
               type="text"
+              minlength="2"
+              maxlength="100"
               autocomplete="name"
-              placeholder="Introduce tu nombre"
+              placeholder="Ejemplo: Laura García"
               required
             />
+
+            <small>
+              Entre 2 y 100 caracteres. Solo letras, espacios, puntos,
+              apóstrofes y guiones.
+            </small>
+
+            <small
+              id="error-registro-nombre"
+              class="mensaje-error-campo"
+            ></small>
           </div>
 
           <!-- EMAIL -->
 
           <div class="campo-login">
-            <label for="registro-email">
-              Correo electrónico
-            </label>
+            <label for="registro-email"> Correo electrónico </label>
 
             <input
               id="registro-email"
               name="email"
               type="email"
+              maxlength="150"
               autocomplete="email"
-              placeholder="tu@email.com"
+              placeholder="Ejemplo: laura@email.com"
               required
             />
+
+            <small>
+              Introduce un correo electrónico válido. Máximo 150 caracteres.
+            </small>
+
+            <small
+              id="error-registro-email"
+              class="mensaje-error-campo"
+            ></small>
           </div>
 
           <!-- CONTRASEÑA -->
 
           <div class="campo-login">
-            <label for="registro-password">
-              Contraseña
-            </label>
+            <label for="registro-password"> Contraseña </label>
 
             <input
               id="registro-password"
               name="password"
               type="password"
+              minlength="8"
+              maxlength="72"
               autocomplete="new-password"
-              placeholder="Introduce tu contraseña"
+              placeholder="Ejemplo: Urban2026"
               required
             />
-          </div>
 
+            <small>
+              Entre 8 y 72 caracteres. Debe contener al menos una letra y un
+              número.
+            </small>
+
+            <small
+              id="error-registro-password"
+              class="mensaje-error-campo"
+            ></small>
+          </div>
+          
           <!-- CONFIRMAR CONTRASEÑA -->
 
           <div class="campo-login">
@@ -97,18 +124,26 @@
               id="registro-confirmar-password"
               name="confirmarPassword"
               type="password"
+              minlength="8"
+              maxlength="72"
               autocomplete="new-password"
-              placeholder="Repite tu contraseña"
+              placeholder="Repite la contraseña anterior"
               required
             />
+
+            <small>
+              Debe coincidir exactamente con la contraseña anterior.
+            </small>
+
+            <small
+              id="error-registro-confirmar-password"
+              class="mensaje-error-campo"
+            ></small>
           </div>
 
           <!-- BOTÓN -->
 
-          <button type="submit" class="btn-login-form">
-            Crear cuenta
-          </button>
-
+          <button type="submit" class="btn-login-form">Crear cuenta</button>
         </form>
 
         <!-- LOGIN -->
@@ -123,11 +158,11 @@
 
         <!-- VOLVER -->
 
-        <div class="login-volver">
-          <a href="../tienda.html">
-            ← Volver a la tienda
-          </a>
-        </div>
+        <div class="registro-volver">
+    <a href="../tienda.html" class="btn-registro-volver">
+        Volver a la tienda
+    </a>
+</div>
       </section>
     </main>
 
@@ -139,25 +174,18 @@
       <p>© 2026 UrbanSneakers · Todos los derechos reservados.</p>
 
       <nav>
-        <a href="../legal/terminos.html">
-          Términos y Condiciones
-        </a>
+        <a href="../legal/terminos.html"> Términos y Condiciones </a>
 
         <span>·</span>
 
-        <a href="../legal/privacidad.html">
-          Política de Privacidad
-        </a>
+        <a href="../legal/privacidad.html"> Política de Privacidad </a>
 
         <span>·</span>
 
-        <a href="../legal/cookies.html">
-          Política de Cookies
-        </a>
+        <a href="../legal/cookies.html"> Política de Cookies </a>
       </nav>
     </footer>
 
     <script src="registro.js"></script>
-
   </body>
 </html>

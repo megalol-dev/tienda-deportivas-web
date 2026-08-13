@@ -1,0 +1,71 @@
+/* =====================================================
+   ANIMACIÓN DEL TÍTULO PRINCIPAL - URBANSNEAKERS
+   ===================================================== */
+
+.titulo-animado {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+
+/* Cada letra se anima individualmente */
+.titulo-animado span {
+    color: white;
+
+    animation-name: color-letra;
+    animation-duration: 6s;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+
+    /* Cada letra utiliza el número indicado en --i */
+    animation-delay: calc(var(--i) * 0.12s);
+}
+
+
+/* Animación de colores */
+@keyframes color-letra {
+
+    0% {
+        color: white;
+    }
+
+    20% {
+        color: #ff3030;
+    }
+
+    40% {
+        color: #00bfff;
+    }
+
+    60% {
+        color: #ffe600;
+    }
+
+    80% {
+        color: #39ff14;
+    }
+
+    100% {
+        color: white;
+    }
+}
+
+
+/* Espacios entre palabras */
+.titulo-animado .espacio {
+    width: 0.3em;
+}
+
+
+/* Accesibilidad:
+   si el usuario tiene desactivadas las animaciones,
+   dejamos el título normal */
+@media (prefers-reduced-motion: reduce) {
+
+    .titulo-animado span {
+        animation: none;
+        color: white;
+    }
+
+}

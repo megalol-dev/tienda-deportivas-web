@@ -1,48 +1,244 @@
 package com.tiendadeportivas.backend.service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.tiendadeportivas.backend.model.Carrito;
 import com.tiendadeportivas.backend.model.CarritoItem;
+import com.tiendadeportivas.backend.model.CarritoItemRequest;
+import com.tiendadeportivas.backend.model.CarritoItemRespuesta;
+import com.tiendadeportivas.backend.model.Producto;
+import com.tiendadeportivas.backend.model.Usuario;
+import com.tiendadeportivas.backend.repository.CarritoItemRepository;
+import com.tiendadeportivas.backend.repository.CarritoRepository;
+import com.tiendadeportivas.backend.repository.ProductoRepository;
+import com.tiendadeportivas.backend.repository.UsuarioRepository;
 
 @Service
 public class CarritoService {
 
-    private final List<CarritoItem> carrito = new ArrayList<>();
+    private final CarritoRepository carritoRepository;
+    private final CarritoItemRepository carritoItemRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final ProductoRepository productoRepository;
 
-    public List<CarritoItem> obtenerCarrito() {
-        return carrito;
+    public CarritoService(
+            CarritoRepository carritoRepository,
+            CarritoItemRepository carritoItemRepository,
+            UsuarioRepository usuarioRepository,
+            ProductoRepository productoRepository) {
+
+        this.carritoRepository = carritoRepository;
+        this.carritoItemRepository = carritoItemRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.productoRepository = productoRepository;
     }
 
-    public void agregarProducto(CarritoItem item) {
+    // =====================================================
+    // OBTENER O CREAR CARRITO
+    // =====================================================
 
-        for (CarritoItem existente : carrito) {
+    @Transactional
+    public Carrito obtenerOCrearCarrito(
+            String emailUsuario) {
 
-            if (existente.getIdProducto() == item.getIdProducto()
-                    && existente.getTalla() == item.getTalla()
-                    && existente.getColor().equals(item.getColor())) {
+        return carritoRepository
+                .findByUsuarioEmail(emailUsuario)
+                .orElseGet(() -> {
 
-                existente.setCantidad(
-                        existente.getCantidad() + item.getCantidad());
+                    Usuario usuario = usuarioRepository
+                            .findByEmail(emailUsuario)
+                            .orElseThrow(() -> new IllegalArgumentException(
+                                    "Usuario no encontrado."));
 
-                return;
-            }
+                    Carrito carrito = new Carrito();
+
+                    carrito.setUsuario(usuario);
+
+                    return carritoRepository.save(carrito);
+                });
+    }
+
+    // =====================================================
+    // OBTENER CARRITO DEL USUARIO
+    // =====================================================
+
+    @Transactional(readOnly = true)
+    public List<CarritoItemRespuesta> obtenerCarrito(
+            String emailUsuario) {
+
+        Carrito carrito = carritoRepository
+                .findByUsuarioEmail(emailUsuario)
+                .orElse(null);
+
+        if (carrito == null) {
+            return List.of();
         }
 
-        carrito.add(item);
+        return carrito.getItems()
+                .stream()
+                .map(item -> new CarritoItemRespuesta(
+                        item.getProducto()
+                                .getId()
+                                .intValue(),
+                        item.getTalla(),
+                        item.getColor(),
+                        item.getCantidad()))
+                .toList();
     }
 
-    public void eliminarProducto(int idProducto, int talla, String color) {
+    // =====================================================
+    // OBTENER ENTIDADES DEL CARRITO
+    // -----------------------------------------------------
+    // Se utiliza internamente para crear pedidos.
+    // =====================================================
 
-        carrito.removeIf(item -> item.getIdProducto() == idProducto
-                && item.getTalla() == talla
-                && item.getColor().equals(color));
+    @Transactional(readOnly = true)
+    public List<CarritoItem> obtenerItemsEntidad(
+            String emailUsuario) {
+
+        Carrito carrito = carritoRepository
+                .findByUsuarioEmail(emailUsuario)
+                .orElse(null);
+
+        if (carrito == null) {
+            return List.of();
+        }
+
+        return List.copyOf(carrito.getItems());
     }
 
-    public void vaciarCarrito() {
-        carrito.clear();
+    // =====================================================
+    // AGREGAR PRODUCTO
+    // =====================================================
+
+    @Transactional
+    public void agregarProducto(
+            String emailUsuario,
+            CarritoItemRequest request) {
+
+        if (request.getCantidad() <= 0) {
+            throw new IllegalArgumentException(
+                    "La cantidad debe ser mayor que 0.");
+        }
+
+        Producto producto = productoRepository
+                .findById((long) request.getIdProducto())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "El producto no existe."));
+
+        if (!producto.isActivo()) {
+            throw new IllegalArgumentException(
+                    "El producto no está disponible.");
+        }
+
+        // =================================================
+        // VALIDAR TALLA
+        // =================================================
+
+        if (!producto.getTallas()
+                .contains(request.getTalla())) {
+
+            throw new IllegalArgumentException(
+                    "La talla seleccionada no es válida.");
+        }
+
+        // =================================================
+        // VALIDAR COLOR
+        // =================================================
+
+        if (request.getColor() == null
+                || !producto.getColores()
+                        .contains(request.getColor())) {
+
+            throw new IllegalArgumentException(
+                    "El color seleccionado no es válido.");
+        }
+
+        Carrito carrito = obtenerOCrearCarrito(emailUsuario);
+
+        carritoItemRepository
+                .findByCarritoIdAndProductoIdAndTallaAndColor(
+                        carrito.getId(),
+                        producto.getId(),
+                        request.getTalla(),
+                        request.getColor())
+                .ifPresentOrElse(
+                        existente -> {
+
+                            existente.setCantidad(
+                                    existente.getCantidad()
+                                            + request.getCantidad());
+
+                            carritoItemRepository.save(
+                                    existente);
+                        },
+                        () -> {
+
+                            CarritoItem item = new CarritoItem();
+
+                            item.setCarrito(carrito);
+                            item.setProducto(producto);
+                            item.setTalla(
+                                    request.getTalla());
+                            item.setColor(
+                                    request.getColor());
+                            item.setCantidad(
+                                    request.getCantidad());
+
+                            carritoItemRepository.save(item);
+                        });
     }
 
+    // =====================================================
+    // ELIMINAR PRODUCTO
+    // =====================================================
+
+    @Transactional
+    public void eliminarProducto(
+            String emailUsuario,
+            int idProducto,
+            int talla,
+            String color) {
+
+        Carrito carrito = carritoRepository
+                .findByUsuarioEmail(emailUsuario)
+                .orElse(null);
+
+        if (carrito == null) {
+            return;
+        }
+
+        carritoItemRepository
+                .findByCarritoIdAndProductoIdAndTallaAndColor(
+                        carrito.getId(),
+                        (long) idProducto,
+                        talla,
+                        color)
+                .ifPresent(
+                        carritoItemRepository::delete);
+    }
+
+    // =====================================================
+    // VACIAR CARRITO
+    // =====================================================
+
+    @Transactional
+    public void vaciarCarrito(
+            String emailUsuario) {
+
+        Carrito carrito = carritoRepository
+                .findByUsuarioEmail(emailUsuario)
+                .orElse(null);
+
+        if (carrito == null) {
+            return;
+        }
+
+        carrito.getItems().clear();
+
+        carritoRepository.save(carrito);
+    }
 }
