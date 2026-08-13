@@ -319,6 +319,42 @@ function validarFormularioCheckout() {
 // ENVÍO DEL PEDIDO AL BACKEND
 // ===============================================
 
+// ===============================================
+// CREAR CHECKOUT DE STRIPE DESDE EL CARRITO REAL
+// ===============================================
+
+async function crearCheckoutStripe() {
+
+  const respuesta = await fetchConCsrf(
+    `${API_URL}/api/stripe/checkout/carrito`,
+    {
+      method: "POST",
+    },
+  );
+
+  if (respuesta.status === 401 || respuesta.status === 403) {
+    throw new Error(
+      "Debes iniciar sesión como cliente para realizar el pago.",
+    );
+  }
+
+  if (!respuesta.ok) {
+    throw new Error(
+      "No se pudo crear la sesión de pago con Stripe.",
+    );
+  }
+
+  const datos = await respuesta.json();
+
+  if (!datos.url) {
+    throw new Error(
+      "Stripe no devolvió una URL de pago.",
+    );
+  }
+
+  return datos.url;
+}
+
 if (formularioCheckout) {
   formularioCheckout.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -346,7 +382,31 @@ if (formularioCheckout) {
       aceptaTerminos: document.getElementById("acepto-terminos")?.checked,
     };
 
+    // ===============================================
+    // PRUEBA TEMPORAL - STRIPE CON CARRITO REAL
+    // ===============================================
+
     try {
+      const urlStripe = await crearCheckoutStripe();
+
+      console.log("URL Stripe creada:", urlStripe);
+
+      // Redirigimos al usuario al Checkout oficial de Stripe
+      window.location.href = urlStripe;
+
+      // IMPORTANTE:
+      // detenemos aquí el submit para que durante esta prueba
+      // NO se cree todavía el pedido en MariaDB.
+      return;
+
+      // ===============================================
+      // CREACIÓN DEL PEDIDO
+      // -----------------------------------------------
+      // Este código queda temporalmente sin ejecutarse
+      // por el return anterior.
+      // Lo conectaremos correctamente después.
+      // ===============================================
+
       const respuesta = await fetchConCsrf(`${API_URL}/pedido`, {
         method: "POST",
         headers: {

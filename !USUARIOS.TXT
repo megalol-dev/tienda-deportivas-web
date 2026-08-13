@@ -56,12 +56,21 @@ Email:          alex@gmail.com
 Contraseña:     a1234567
 
 
+Nombre:         lolo
+Email:          lolo@gmail.com 
+Contraseña:     a1234567
+
+
+
+
+
+
 
 // Clientes ////////////////////////////////////////////////////////
 
 Nombre:         Luis
-Correo:         luisito@gmail.com
-Contraseña:     b1234567
+Correo:         luis@gmail.com
+Contraseña:     a1234567
 
 Nombre:         Pepe
 Correo:         pepito@gmail.com
@@ -74,4 +83,9 @@ Contraseña:     a1234567
 
 Nombre:         Manu    
 Correo:         manu@gmail.com
+Contraseña:     b1234567
+
+
+Nombre:         Berta    
+Correo:         berta@gmail.com
 Contraseña:     b1234567

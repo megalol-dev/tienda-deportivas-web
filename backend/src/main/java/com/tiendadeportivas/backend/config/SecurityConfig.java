@@ -150,6 +150,16 @@ public class SecurityConfig {
                                                 .hasRole("CLIENTE")
 
                                                 // =================================================
+                                                // STRIPE - CHECKOUT DEL CLIENTE
+                                                // -------------------------------------------------
+                                                // Solamente un CLIENTE autenticado puede iniciar
+                                                // el pago de su carrito mediante Stripe.
+                                                // =================================================
+
+                                                .requestMatchers("/api/stripe/checkout/carrito")
+                                                .hasRole("CLIENTE")
+
+                                                // =================================================
                                                 // RESTO DE ENDPOINTS
                                                 // -------------------------------------------------
                                                 // Tienda, login, registro, catálogo, etc.

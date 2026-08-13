@@ -6,6 +6,13 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
+
+import com.tiendadeportivas.backend.model.CarritoItem;
+import com.tiendadeportivas.backend.model.Producto;
+
 @Service
 public class StripeService {
 
@@ -58,5 +65,239 @@ public class StripeService {
         // =====================================================
 
         return Session.create(params);
+    }
+
+    // =====================================================
+    // CREAR CHECKOUT DESDE EL CARRITO REAL
+    // -----------------------------------------------------
+    // Los precios NO llegan desde el frontend.
+    //
+    // Se obtienen directamente de los productos guardados
+    // en MariaDB para evitar manipulaciones del precio.
+    // =====================================================
+
+    public Session crearSesionCheckoutCarrito(
+            List<CarritoItem> carrito) throws StripeException {
+
+        // =================================================
+        // VALIDAR CARRITO
+        // =================================================
+
+        if (carrito == null || carrito.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "No se puede iniciar un pago con el carrito vacío.");
+        }
+
+        // =================================================
+        // CALCULAR SUBTOTAL REAL DEL CARRITO
+        // -------------------------------------------------
+        // Los precios proceden siempre de MariaDB.
+        // Nunca confiamos en precios enviados por frontend.
+        // =================================================
+
+        BigDecimal subtotal = BigDecimal.ZERO;
+
+        for (CarritoItem item : carrito) {
+
+            if (item.getCantidad() <= 0) {
+                throw new IllegalArgumentException(
+                        "La cantidad de un producto debe ser mayor que 0.");
+            }
+
+            Producto producto = item.getProducto();
+
+            if (producto == null) {
+                throw new IllegalStateException(
+                        "Uno de los productos del carrito no existe.");
+            }
+
+            subtotal = subtotal.add(
+                    producto.getPrecio()
+                            .multiply(
+                                    BigDecimal.valueOf(
+                                            item.getCantidad())));
+        }
+
+        // =================================================
+        // CALCULAR IVA
+        // -------------------------------------------------
+        // Aplicamos exactamente la misma regla que utiliza
+        // PedidoService: 21 % sobre el subtotal.
+        // =================================================
+
+        BigDecimal iva = subtotal
+                .multiply(BigDecimal.valueOf(0.21))
+                .setScale(2, RoundingMode.HALF_UP);
+
+        // =================================================
+        // CALCULAR GASTOS DE ENVÍO
+        // -------------------------------------------------
+        // Pedidos de 100 € o más:
+        // envío GRATIS.
+        //
+        // Pedidos inferiores a 100 €:
+        // envío = 4,99 €.
+        // =================================================
+
+        BigDecimal envio;
+
+        if (subtotal.compareTo(BigDecimal.valueOf(100)) >= 0) {
+
+            envio = new BigDecimal("0.00");
+
+        } else {
+
+            envio = new BigDecimal("4.99");
+        }
+
+        // =================================================
+        // CREAR LA SESIÓN DE STRIPE
+        // =================================================
+
+        SessionCreateParams.Builder paramsBuilder = SessionCreateParams.builder()
+                .setMode(SessionCreateParams.Mode.PAYMENT)
+                .setSuccessUrl(
+                        "http://localhost:5500/frontend/pago-exito.html")
+                .setCancelUrl(
+                        "http://localhost:5500/frontend/pago-cancelado.html");
+
+        // =================================================
+        // CONVERTIR CADA ITEM DEL CARRITO EN UNA LÍNEA STRIPE
+        // =================================================
+
+        for (CarritoItem item : carrito) {
+
+            if (item.getCantidad() <= 0) {
+                throw new IllegalArgumentException(
+                        "La cantidad de un producto debe ser mayor que 0.");
+            }
+
+            Producto producto = item.getProducto();
+
+            if (producto == null) {
+                throw new IllegalStateException(
+                        "Uno de los productos del carrito no existe.");
+            }
+
+            // =============================================
+            // CONVERTIR EUROS A CÉNTIMOS
+            //
+            // Ejemplo:
+            // 109.99 € -> 10999
+            // =============================================
+
+            long precioEnCentimos = producto.getPrecio()
+                    .multiply(BigDecimal.valueOf(100))
+                    .setScale(0, RoundingMode.HALF_UP)
+                    .longValueExact();
+
+            // =============================================
+            // DATOS DEL PRODUCTO PARA STRIPE
+            // =============================================
+
+            SessionCreateParams.LineItem.PriceData.ProductData productoStripe = SessionCreateParams.LineItem.PriceData.ProductData
+                    .builder()
+                    .setName(
+                            producto.getMarca()
+                                    + " "
+                                    + producto.getNombre())
+                    .build();
+
+            // =============================================
+            // PRECIO REAL OBTENIDO DESDE MARIADB
+            // =============================================
+
+            SessionCreateParams.LineItem.PriceData precioStripe = SessionCreateParams.LineItem.PriceData
+                    .builder()
+                    .setCurrency("eur")
+                    .setUnitAmount(precioEnCentimos)
+                    .setProductData(productoStripe)
+                    .build();
+
+            // =============================================
+            // LÍNEA DEL CHECKOUT
+            // =============================================
+
+            SessionCreateParams.LineItem linea = SessionCreateParams.LineItem
+                    .builder()
+                    .setQuantity((long) item.getCantidad())
+                    .setPriceData(precioStripe)
+                    .build();
+
+            paramsBuilder.addLineItem(linea);
+        }
+
+        // =================================================
+        // AÑADIR IVA AL CHECKOUT
+        // =================================================
+
+        long ivaEnCentimos = iva
+                .multiply(BigDecimal.valueOf(100))
+                .setScale(0, RoundingMode.HALF_UP)
+                .longValueExact();
+
+        if (ivaEnCentimos > 0) {
+
+            SessionCreateParams.LineItem.PriceData.ProductData ivaProducto = SessionCreateParams.LineItem.PriceData.ProductData
+                    .builder()
+                    .setName("IVA (21%)")
+                    .build();
+
+            SessionCreateParams.LineItem.PriceData ivaPrecio = SessionCreateParams.LineItem.PriceData
+                    .builder()
+                    .setCurrency("eur")
+                    .setUnitAmount(ivaEnCentimos)
+                    .setProductData(ivaProducto)
+                    .build();
+
+            SessionCreateParams.LineItem ivaLinea = SessionCreateParams.LineItem
+                    .builder()
+                    .setQuantity(1L)
+                    .setPriceData(ivaPrecio)
+                    .build();
+
+            paramsBuilder.addLineItem(ivaLinea);
+        }
+
+        // =================================================
+        // AÑADIR GASTOS DE ENVÍO
+        // -------------------------------------------------
+        // Solo añadimos esta línea cuando realmente
+        // existen gastos de envío.
+        // =================================================
+
+        if (envio.compareTo(BigDecimal.ZERO) > 0) {
+
+            long envioEnCentimos = envio
+                    .multiply(BigDecimal.valueOf(100))
+                    .setScale(0, RoundingMode.HALF_UP)
+                    .longValueExact();
+
+            SessionCreateParams.LineItem.PriceData.ProductData envioProducto = SessionCreateParams.LineItem.PriceData.ProductData
+                    .builder()
+                    .setName("Gastos de envío")
+                    .build();
+
+            SessionCreateParams.LineItem.PriceData envioPrecio = SessionCreateParams.LineItem.PriceData
+                    .builder()
+                    .setCurrency("eur")
+                    .setUnitAmount(envioEnCentimos)
+                    .setProductData(envioProducto)
+                    .build();
+
+            SessionCreateParams.LineItem envioLinea = SessionCreateParams.LineItem
+                    .builder()
+                    .setQuantity(1L)
+                    .setPriceData(envioPrecio)
+                    .build();
+
+            paramsBuilder.addLineItem(envioLinea);
+        }
+
+        // =================================================
+        // CREAR SESIÓN EN STRIPE
+        // =================================================
+
+        return Session.create(paramsBuilder.build());
     }
 }
