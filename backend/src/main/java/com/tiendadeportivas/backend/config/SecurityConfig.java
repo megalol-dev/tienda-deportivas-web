@@ -54,7 +54,8 @@ public class SecurityConfig {
 
                                 .csrf(csrf -> csrf
                                                 .csrfTokenRepository(
-                                                                CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                                                                CookieCsrfTokenRepository.withHttpOnlyFalse())
+                                                .ignoringRequestMatchers("/api/stripe/checkout"))
 
                                 .authorizeHttpRequests(auth -> auth
 

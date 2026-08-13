@@ -1,140 +1,340 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.1.0</version>
-		<relativePath/> <!-- lookup parent from repository -->
-	</parent>
-	<groupId>com.tiendadeportivas</groupId>
-	<artifactId>backend</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>backend</name>
-	<description/>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
-	<properties>
-		<java.version>21</java.version>
-	</properties>
-	<dependencies>
-		<!-- Spring Data JPA -->
-		<dependency>	
-    		<groupId>org.springframework.boot</groupId>
-    		<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
 
-		<!-- Driver MariaDB -->
-		<dependency>
-    		<groupId>org.mariadb.jdbc</groupId>
-    		<artifactId>mariadb-java-client</artifactId>
-		</dependency>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                        https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-validation</artifactId>
-		</dependency>
+    <modelVersion>4.0.0</modelVersion>
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
+    <!-- =====================================================
+         SPRING BOOT
+         Gestiona automáticamente versiones compatibles
+         de las dependencias de Spring.
+         ===================================================== -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.0</version>
+        <relativePath/>
+    </parent>
 
-		<dependency>
-    		<groupId>org.springframework.boot</groupId>
-    		<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<scope>runtime</scope>
-			<optional>true</optional>
-		</dependency>
+    <!-- =====================================================
+         INFORMACIÓN DEL PROYECTO
+         ===================================================== -->
+    <groupId>com.tiendadeportivas</groupId>
+    <artifactId>backend</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
 
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
-		</dependency>
+    <name>backend</name>
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-validation-test</artifactId>
-			<scope>test</scope>
-		</dependency>
+    <description>
+        Backend de UrbanSneakers desarrollado con Spring Boot
+    </description>
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-		
-	</dependencies>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<excludes>
-						<exclude>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</exclude>
-					</excludes>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>default-compile</id>
-						<phase>compile</phase>
-						<goals>
-							<goal>compile</goal>
-						</goals>
-						<configuration>
-							<annotationProcessorPaths>
-								<path>
-									<groupId>org.projectlombok</groupId>
-									<artifactId>lombok</artifactId>
-								</path>
-							</annotationProcessorPaths>
-						</configuration>
-					</execution>
-					<execution>
-						<id>default-testCompile</id>
-						<phase>test-compile</phase>
-						<goals>
-							<goal>testCompile</goal>
-						</goals>
-						<configuration>
-							<annotationProcessorPaths>
-								<path>
-									<groupId>org.projectlombok</groupId>
-									<artifactId>lombok</artifactId>
-								</path>
-							</annotationProcessorPaths>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
+    <!-- =====================================================
+         CONFIGURACIÓN DE JAVA
+         ===================================================== -->
+    <properties>
+        <java.version>21</java.version>
+    </properties>
+
+
+    <!-- =====================================================
+         DEPENDENCIAS
+         ===================================================== -->
+    <dependencies>
+
+
+        <!-- =================================================
+             SPRING DATA JPA
+
+             Permite trabajar con la base de datos mediante
+             entidades, repositorios y Hibernate.
+
+             Lo utilizamos para:
+             - Usuarios
+             - Productos
+             - Carritos
+             - Pedidos
+             - Historial de pedidos
+             ================================================= -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+
+        <!-- =================================================
+             MARIADB
+
+             Driver que permite a Java/Spring conectarse
+             con nuestra base de datos MariaDB.
+             ================================================= -->
+        <dependency>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+        </dependency>
+
+
+        <!-- =================================================
+             VALIDATION
+
+             Permite validar los datos recibidos por el backend
+             mediante anotaciones como:
+
+             @NotBlank
+             @Email
+             @Size
+             @Min
+             @Max
+             @Valid
+
+             Fundamental para validar DTOs y formularios.
+             ================================================= -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+
+        <!-- =================================================
+             SPRING WEB
+
+             Permite crear nuestra API REST.
+
+             Incluye lo necesario para utilizar:
+             @RestController
+             @GetMapping
+             @PostMapping
+             @PutMapping
+             @DeleteMapping
+
+             También proporciona el servidor web integrado.
+             ================================================= -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+
+        <!-- =================================================
+             SPRING SECURITY
+
+             Gestiona la seguridad del backend.
+
+             Lo utilizamos para:
+             - Login
+             - Autenticación
+             - Contraseñas
+             - Sesiones
+             - Roles
+             - Protección de endpoints
+             ================================================= -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+
+        <!-- =================================================
+             STRIPE JAVA
+
+             SDK oficial de Stripe para Java.
+
+             Permitirá que nuestro backend Spring se comunique
+             con Stripe para:
+
+             - Crear sesiones de pago
+             - Gestionar Stripe Checkout
+             - Consultar pagos
+             - Procesar webhooks
+             - Confirmar que un pedido ha sido pagado
+             ================================================= -->
+        <dependency>
+            <groupId>com.stripe</groupId>
+            <artifactId>stripe-java</artifactId>
+            <version>33.2.0</version>
+        </dependency>
+
+
+        <!-- =================================================
+             SPRING BOOT DEVTOOLS
+
+             Herramientas útiles durante el desarrollo.
+
+             Permite, entre otras cosas, reiniciar
+             automáticamente Spring cuando modificamos código.
+
+             Solo se utiliza durante desarrollo.
+             ================================================= -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+
+
+        <!-- =================================================
+             LOMBOK
+
+             Reduce código repetitivo en las clases Java.
+
+             Permite utilizar anotaciones como:
+             @Getter
+             @Setter
+             @Data
+             @NoArgsConstructor
+             @AllArgsConstructor
+             ================================================= -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+
+        <!-- =================================================
+             VALIDATION TEST
+
+             Herramientas específicas para probar las
+             validaciones de Spring.
+             Solo se carga durante los tests.
+             ================================================= -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+
+        <!-- =================================================
+             SPRING BOOT TEST
+
+             Herramientas generales para realizar tests.
+
+             Incluye soporte para JUnit y las utilidades
+             principales de testing de Spring Boot.
+             ================================================= -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+
+    <!-- =====================================================
+         CONFIGURACIÓN DE COMPILACIÓN
+         ===================================================== -->
+    <build>
+
+        <plugins>
+
+
+            <!-- =================================================
+                 SPRING BOOT MAVEN PLUGIN
+
+                 Permite compilar y empaquetar nuestra aplicación
+                 Spring Boot como una aplicación ejecutable.
+                 ================================================= -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+
+                <configuration>
+
+                    <!--
+                        Lombok solo se necesita para compilar.
+                        No necesitamos incluirlo dentro del JAR final.
+                    -->
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+
+                </configuration>
+            </plugin>
+
+
+            <!-- =================================================
+                 MAVEN COMPILER PLUGIN
+
+                 Configura Lombok como procesador de anotaciones
+                 durante la compilación de Java y de los tests.
+                 ================================================= -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+
+                <executions>
+
+
+                    <!-- Compilación del código principal -->
+                    <execution>
+
+                        <id>default-compile</id>
+
+                        <phase>compile</phase>
+
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+
+                        <configuration>
+
+                            <annotationProcessorPaths>
+
+                                <path>
+                                    <groupId>org.projectlombok</groupId>
+                                    <artifactId>lombok</artifactId>
+                                </path>
+
+                            </annotationProcessorPaths>
+
+                        </configuration>
+
+                    </execution>
+
+
+                    <!-- Compilación de los tests -->
+                    <execution>
+
+                        <id>default-testCompile</id>
+
+                        <phase>test-compile</phase>
+
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+
+                        <configuration>
+
+                            <annotationProcessorPaths>
+
+                                <path>
+                                    <groupId>org.projectlombok</groupId>
+                                    <artifactId>lombok</artifactId>
+                                </path>
+
+                            </annotationProcessorPaths>
+
+                        </configuration>
+
+                    </execution>
+
+                </executions>
+
+            </plugin>
+
+        </plugins>
+
+    </build>
 
 </project>

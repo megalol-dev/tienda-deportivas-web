@@ -25,6 +25,7 @@ import com.tiendadeportivas.backend.repository.PedidoItemRepository;
 import com.tiendadeportivas.backend.model.PedidoItem;
 import com.tiendadeportivas.backend.model.PedidoClienteRespuesta;
 import com.tiendadeportivas.backend.model.PedidoItemClienteRespuesta;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -46,165 +47,165 @@ public class PedidoService {
             PedidoRepository pedidoRepository,
             PedidoItemRepository pedidoItemRepository,
             UsuarioRepository usuarioRepository,
-            HistorialPedidoRepository historialPedidoRepository) {
+                    HistorialPedidoRepository historialPedidoRepository) {
 
-        this.carritoService = carritoService;
-        this.pedidoRepository = pedidoRepository;
-        this.pedidoItemRepository = pedidoItemRepository;
-        this.usuarioRepository = usuarioRepository;
-        this.historialPedidoRepository = historialPedidoRepository;
+            this.carritoService = carritoService;
+            this.pedidoRepository = pedidoRepository;
+            this.pedidoItemRepository = pedidoItemRepository;
+            this.usuarioRepository = usuarioRepository;
+            this.historialPedidoRepository = historialPedidoRepository;
     }
 
+    @Transactional
     public PedidoResumen crearPedido(PedidoRequest pedido) {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null
-                || !authentication.isAuthenticated()
-                || "anonymousUser".equals(authentication.getPrincipal())) {
+            if (authentication == null
+                            || !authentication.isAuthenticated()
+                            || "anonymousUser".equals(authentication.getPrincipal())) {
 
-            throw new SecurityException(
-                    "Debes iniciar sesión para realizar un pedido.");
-        }
+                    throw new SecurityException(
+                                    "Debes iniciar sesión para realizar un pedido.");
+            }
 
-        String emailUsuario = authentication.getName();
+            String emailUsuario = authentication.getName();
 
-        Usuario usuario = usuarioRepository
-                .findByEmail(emailUsuario)
-                .orElseThrow(() -> new SecurityException(
-                        "No se ha encontrado el usuario autenticado."));
+            Usuario usuario = usuarioRepository
+                            .findByEmail(emailUsuario)
+                            .orElseThrow(() -> new SecurityException(
+                                            "No se ha encontrado el usuario autenticado."));
 
-        List<CarritoItem> carrito = carritoService.obtenerItemsEntidad(emailUsuario);
-        
+            List<CarritoItem> carrito = carritoService.obtenerItemsEntidad(emailUsuario);
 
-        // No permitimos crear pedidos con el carrito vacío
-        if (carrito.isEmpty()) {
-            throw new IllegalStateException(
-                    "No se puede crear un pedido con el carrito vacío.");
-        }
+            // No permitimos crear pedidos con el carrito vacío
+            if (carrito.isEmpty()) {
+                    throw new IllegalStateException(
+                                    "No se puede crear un pedido con el carrito vacío.");
+            }
 
-        BigDecimal subtotal = BigDecimal.ZERO;
+            BigDecimal subtotal = BigDecimal.ZERO;
 
-      
-        // Calculamos el subtotal
-        for (CarritoItem item : carrito) {
+            // Calculamos el subtotal
+            for (CarritoItem item : carrito) {
 
-                // Validamos la cantidad
-                if (item.getCantidad() <= 0) {
-                        throw new IllegalArgumentException(
-                                        "La cantidad de un producto debe ser mayor que 0.");
-                }
+                    // Validamos la cantidad
+                    if (item.getCantidad() <= 0) {
+                            throw new IllegalArgumentException(
+                                            "La cantidad de un producto debe ser mayor que 0.");
+                    }
 
-                Producto producto = item.getProducto();
+                    Producto producto = item.getProducto();
 
-                subtotal = subtotal.add(
-                                producto.getPrecio()
-                                                .multiply(
-                                                                BigDecimal.valueOf(
-                                                                                item.getCantidad())));
-        }
+                    subtotal = subtotal.add(
+                                    producto.getPrecio()
+                                                    .multiply(
+                                                                    BigDecimal.valueOf(
+                                                                                    item.getCantidad())));
+            }
 
-        // IVA
-        BigDecimal iva = subtotal
-                .multiply(BigDecimal.valueOf(0.21))
-                .setScale(2, RoundingMode.HALF_UP);
+            // IVA
+            BigDecimal iva = subtotal
+                            .multiply(BigDecimal.valueOf(0.21))
+                            .setScale(2, RoundingMode.HALF_UP);
 
-        // Envío
-        BigDecimal envio;
+            // Envío
+            BigDecimal envio;
 
-        if (subtotal.compareTo(BigDecimal.valueOf(100)) >= 0) {
-            envio = new BigDecimal("0.00");
-        } else {
-            envio = new BigDecimal("4.99");
-        }
+            if (subtotal.compareTo(BigDecimal.valueOf(100)) >= 0) {
+                    envio = new BigDecimal("0.00");
+            } else {
+                    envio = new BigDecimal("4.99");
+            }
 
-        // Total
-        BigDecimal total = subtotal
-                .add(iva)
-                .add(envio)
-                .setScale(2, RoundingMode.HALF_UP);
+            // Total
+            BigDecimal total = subtotal
+                            .add(iva)
+                            .add(envio)
+                            .setScale(2, RoundingMode.HALF_UP);
 
-        // ID del pedido
-        String idPedido = "PED-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+            // ID del pedido
+            String idPedido = "PED-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
-        // Creamos la entidad Pedido
-        Pedido pedidoEntidad = new Pedido();
-        pedidoEntidad.setFechaPedido(LocalDateTime.now());
-        pedidoEntidad.setEstado(EstadoPedido.PENDIENTE);
-        pedidoEntidad.setUsuario(usuario);
+            // Creamos la entidad Pedido
+            Pedido pedidoEntidad = new Pedido();
+            pedidoEntidad.setFechaPedido(LocalDateTime.now());
+            pedidoEntidad.setEstado(EstadoPedido.PENDIENTE);
+            pedidoEntidad.setUsuario(usuario);
 
-        pedidoEntidad.setIdPedido(idPedido);
-        pedidoEntidad.setNombre(pedido.getNombre());
-        pedidoEntidad.setApellidos(pedido.getApellidos());
-        pedidoEntidad.setEmail(pedido.getEmail());
-        pedidoEntidad.setTelefono(pedido.getTelefono());
-        pedidoEntidad.setDireccion(pedido.getDireccion());
-        pedidoEntidad.setCiudad(pedido.getCiudad());
-        pedidoEntidad.setProvincia(pedido.getProvincia());
-        pedidoEntidad.setCp(pedido.getCp());
-        pedidoEntidad.setPais(pedido.getPais());
+            pedidoEntidad.setIdPedido(idPedido);
+            pedidoEntidad.setNombre(pedido.getNombre());
+            pedidoEntidad.setApellidos(pedido.getApellidos());
+            pedidoEntidad.setEmail(pedido.getEmail());
+            pedidoEntidad.setTelefono(pedido.getTelefono());
+            pedidoEntidad.setDireccion(pedido.getDireccion());
+            pedidoEntidad.setCiudad(pedido.getCiudad());
+            pedidoEntidad.setProvincia(pedido.getProvincia());
+            pedidoEntidad.setCp(pedido.getCp());
+            pedidoEntidad.setPais(pedido.getPais());
 
-        pedidoEntidad.setSubtotal(subtotal);
-        pedidoEntidad.setIva(iva);
-        pedidoEntidad.setEnvio(envio);
-        pedidoEntidad.setTotal(total);
+            pedidoEntidad.setSubtotal(subtotal);
+            pedidoEntidad.setIva(iva);
+            pedidoEntidad.setEnvio(envio);
+            pedidoEntidad.setTotal(total);
 
-        // Guardamos el pedido
-        pedidoRepository.save(pedidoEntidad);
+            // Guardamos el pedido
+            pedidoRepository.save(pedidoEntidad);
 
-        // Guardamos cada producto del pedido
-        for (CarritoItem item : carrito) {
+            // Guardamos cada producto del pedido
+            for (CarritoItem item : carrito) {
 
-                PedidoItem pedidoItem = new PedidoItem();
+                    PedidoItem pedidoItem = new PedidoItem();
 
-                pedidoItem.setPedido(pedidoEntidad);
+                    pedidoItem.setPedido(pedidoEntidad);
 
-                pedidoItem.setProductoId(
-                                item.getProducto()
-                                                .getId()
-                                                .intValue());
+                    pedidoItem.setProductoId(
+                                    item.getProducto()
+                                                    .getId()
+                                                    .intValue());
 
-                pedidoItem.setCantidad(item.getCantidad());
-                pedidoItem.setColor(item.getColor());
-                pedidoItem.setTalla(
-                                String.valueOf(item.getTalla()));
+                    pedidoItem.setCantidad(item.getCantidad());
+                    pedidoItem.setColor(item.getColor());
+                    pedidoItem.setTalla(
+                                    String.valueOf(item.getTalla()));
 
-                // Obtenemos directamente el producto relacionado
-                // con el item persistente del carrito.
+                    // Obtenemos directamente el producto relacionado
+                    // con el item persistente del carrito.
 
-                Producto producto = item.getProducto();
+                    Producto producto = item.getProducto();
 
-                pedidoItem.setNombreProducto(
-                                producto.getNombre());
+                    pedidoItem.setNombreProducto(
+                                    producto.getNombre());
 
-                pedidoItem.setPrecioUnitario(
-                                producto.getPrecio());
+                    pedidoItem.setPrecioUnitario(
+                                    producto.getPrecio());
 
-                pedidoItem.setSubtotalLinea(
-                                producto.getPrecio()
-                                                .multiply(
-                                                                BigDecimal.valueOf(
-                                                                                item.getCantidad())));
+                    pedidoItem.setSubtotalLinea(
+                                    producto.getPrecio()
+                                                    .multiply(
+                                                                    BigDecimal.valueOf(
+                                                                                    item.getCantidad())));
 
-                pedidoItemRepository.save(pedidoItem);
-        }
+                    pedidoItemRepository.save(pedidoItem);
+            }
 
-        // Creamos el resumen que devolveremos al frontend
-        PedidoResumen resumen = new PedidoResumen();
+            // Creamos el resumen que devolveremos al frontend
+            PedidoResumen resumen = new PedidoResumen();
 
-        resumen.setIdPedido(idPedido);
-        resumen.setSubtotal(subtotal.doubleValue());
-        resumen.setIva(iva.doubleValue());
-        resumen.setEnvio(envio.doubleValue());
-        resumen.setTotal(total.doubleValue());
+            resumen.setIdPedido(idPedido);
+            resumen.setSubtotal(subtotal.doubleValue());
+            resumen.setIva(iva.doubleValue());
+            resumen.setEnvio(envio.doubleValue());
+            resumen.setTotal(total.doubleValue());
 
-        // Vaciamos únicamente el carrito
-        // del usuario que acaba de realizar el pedido.
-        carritoService.vaciarCarrito(emailUsuario);
+            // Vaciamos únicamente el carrito
+            // del usuario que acaba de realizar el pedido.
+            carritoService.vaciarCarrito(emailUsuario);
 
-        return resumen;
+            return resumen;
     }
 
+    @Transactional(readOnly = true)
     public PedidoResumen obtenerResumenPedido() {
 
         // =================================================
@@ -307,7 +308,8 @@ public class PedidoService {
     // La identidad se obtiene desde la sesión autenticada
     // y únicamente se devuelven sus propios pedidos.
     // =====================================================
-
+    
+    @Transactional(readOnly = true)
     public List<PedidoClienteRespuesta> obtenerPedidosCliente(
             String emailUsuarioAutenticado) {
 
