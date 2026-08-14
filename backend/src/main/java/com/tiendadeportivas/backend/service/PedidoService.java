@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.tiendadeportivas.backend.model.CarritoItem;
 import com.tiendadeportivas.backend.model.EstadoPedido;
+import com.tiendadeportivas.backend.model.EstadoPago;
 import com.tiendadeportivas.backend.model.HistorialPedido;
 import com.tiendadeportivas.backend.model.Producto;
 import com.tiendadeportivas.backend.model.RolUsuario;
@@ -129,8 +130,16 @@ public class PedidoService {
 
             // Creamos la entidad Pedido
             Pedido pedidoEntidad = new Pedido();
+
             pedidoEntidad.setFechaPedido(LocalDateTime.now());
+
+            // Estado general del pedido
             pedidoEntidad.setEstado(EstadoPedido.PENDIENTE);
+
+            // Estado inicial del pago.
+            // Todavía Stripe no ha confirmado ningún cobro.
+            pedidoEntidad.setEstadoPago(EstadoPago.PENDIENTE);
+
             pedidoEntidad.setUsuario(usuario);
 
             pedidoEntidad.setIdPedido(idPedido);
@@ -374,89 +383,234 @@ public class PedidoService {
 
     public Pedido cambiarEstadoPedido(
             Long pedidoId,
-            EstadoPedido nuevoEstado) {
+                    EstadoPedido nuevoEstado) {
 
-        // =========================================
-        // BUSCAR PEDIDO
-        // =========================================
+            // =========================================
+            // BUSCAR PEDIDO
+            // =========================================
 
-        Pedido pedido = pedidoRepository
-                .findById(pedidoId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "El pedido no existe."));
+            Pedido pedido = pedidoRepository
+                            .findById(pedidoId)
+                            .orElseThrow(() -> new IllegalArgumentException(
+                                            "El pedido no existe."));
 
-        // Guardamos el estado actual antes de modificarlo
-        EstadoPedido estadoAnterior = pedido.getEstado();
+            // Guardamos el estado actual antes de modificarlo
+            EstadoPedido estadoAnterior = pedido.getEstado();
 
-        // =========================================
-        // OBTENER USUARIO AUTENTICADO
-        // =========================================
+            // =========================================
+            // OBTENER USUARIO AUTENTICADO
+            // =========================================
 
-        Authentication authentication = SecurityContextHolder
-                .getContext()
-                .getAuthentication();
+            Authentication authentication = SecurityContextHolder
+                            .getContext()
+                            .getAuthentication();
 
-        if (authentication == null
-                || !authentication.isAuthenticated()
-                || "anonymousUser".equals(authentication.getPrincipal())) {
+            if (authentication == null
+                            || !authentication.isAuthenticated()
+                            || "anonymousUser".equals(authentication.getPrincipal())) {
 
-            throw new SecurityException(
-                    "No hay ningún usuario autenticado.");
-        }
+                    throw new SecurityException(
+                                    "No hay ningún usuario autenticado.");
+            }
 
-        Usuario usuario = usuarioRepository
-                .findByEmail(authentication.getName())
-                .orElseThrow(() -> new SecurityException(
-                        "Usuario autenticado no encontrado."));
+            Usuario usuario = usuarioRepository
+                            .findByEmail(authentication.getName())
+                            .orElseThrow(() -> new SecurityException(
+                                            "Usuario autenticado no encontrado."));
 
-        // =========================================
-        // COMPROBAR PERMISOS
-        // =========================================
+            // =========================================
+            // COMPROBAR PERMISOS
+            // =========================================
 
-        if (usuario.getRol() != RolUsuario.ADMIN
-                && usuario.getRol() != RolUsuario.JEFE
-                && usuario.getRol() != RolUsuario.TRABAJADOR) {
+            if (usuario.getRol() != RolUsuario.ADMIN
+                            && usuario.getRol() != RolUsuario.JEFE
+                            && usuario.getRol() != RolUsuario.TRABAJADOR) {
 
-            throw new SecurityException(
-                    "No tienes permisos para modificar pedidos.");
-        }
+                    throw new SecurityException(
+                                    "No tienes permisos para modificar pedidos.");
+            }
 
-        // =========================================
-        // COMPROBAR SI REALMENTE CAMBIÓ EL ESTADO
-        // =========================================
+            // =========================================
+            // COMPROBAR SI REALMENTE CAMBIÓ EL ESTADO
+            // =========================================
 
-        if (estadoAnterior == nuevoEstado) {
+            if (estadoAnterior == nuevoEstado) {
 
-            // No existe ningún cambio real.
-            // No modificamos el pedido.
-            // No generamos un registro en el historial.
+                    // No existe ningún cambio real.
+                    // No modificamos el pedido.
+                    // No generamos un registro en el historial.
+
+                    return pedido;
+            }
+
+            // =========================================
+            // CAMBIAR ESTADO
+            // =========================================
+
+            pedido.setEstado(nuevoEstado);
+
+            Pedido pedidoActualizado = pedidoRepository.save(pedido);
+
+            // =========================================
+            // GUARDAR HISTORIAL
+            // =========================================
+
+            HistorialPedido historial = new HistorialPedido();
+
+            historial.setPedido(pedido);
+            historial.setUsuario(usuario);
+            historial.setEstadoAnterior(estadoAnterior);
+            historial.setEstadoNuevo(nuevoEstado);
+            historial.setFechaCambio(LocalDateTime.now());
+
+            historialPedidoRepository.save(historial);
+
+            return pedidoActualizado;
+
+    }
+
+    // =====================================================
+    // OBTENER PEDIDO DEL USUARIO AUTENTICADO
+    // -----------------------------------------------------
+    // Se utiliza para enlazar un pedido concreto
+    // con su sesión de pago de Stripe.
+    // =====================================================
+
+    @Transactional(readOnly = true)
+    public Pedido obtenerPedidoPorIdPedido(
+                    String idPedido,
+                    String emailUsuario) {
+
+            // =================================================
+            // BUSCAR USUARIO
+            // =================================================
+
+            Usuario usuario = usuarioRepository
+                            .findByEmail(emailUsuario)
+                            .orElseThrow(() -> new SecurityException(
+                                            "Usuario autenticado no encontrado."));
+
+            // =================================================
+            // BUSCAR PEDIDO
+            // =================================================
+
+            Pedido pedido = pedidoRepository
+                            .findByIdPedido(idPedido)
+                            .orElseThrow(() -> new IllegalArgumentException(
+                                            "El pedido no existe."));
+
+            // =================================================
+            // COMPROBAR QUE EL PEDIDO PERTENECE AL USUARIO
+            // =================================================
+
+            if (pedido.getUsuario() == null
+                            || !pedido.getUsuario().getId().equals(usuario.getId())) {
+
+                    throw new SecurityException(
+                                    "No tienes permiso para acceder a este pedido.");
+            }
 
             return pedido;
-        }
+    }
 
-        // =========================================
-        // CAMBIAR ESTADO
-        // =========================================
+    // =====================================================
+    // GUARDAR IDENTIFICADOR DE SESIÓN DE STRIPE
+    // -----------------------------------------------------
+    // Relaciona nuestro pedido con la Checkout Session
+    // creada por Stripe.
+    // =====================================================
 
-        pedido.setEstado(nuevoEstado);
+    @Transactional
+    public void guardarStripeSessionId(
+                    Pedido pedido,
+                    String stripeSessionId) {
 
-        Pedido pedidoActualizado = pedidoRepository.save(pedido);
+            if (pedido == null) {
+                    throw new IllegalArgumentException(
+                                    "El pedido no puede ser nulo.");
+            }
 
-        // =========================================
-        // GUARDAR HISTORIAL
-        // =========================================
+            if (stripeSessionId == null || stripeSessionId.isBlank()) {
+                    throw new IllegalArgumentException(
+                                    "El identificador de Stripe no puede estar vacío.");
+            }
 
-        HistorialPedido historial = new HistorialPedido();
+            pedido.setStripeSessionId(stripeSessionId);
 
-        historial.setPedido(pedido);
-        historial.setUsuario(usuario);
-        historial.setEstadoAnterior(estadoAnterior);
-        historial.setEstadoNuevo(nuevoEstado);
-        historial.setFechaCambio(LocalDateTime.now());
+            pedidoRepository.save(pedido);
+    }
 
-        historialPedidoRepository.save(historial);
+    // =====================================================
+    // CONFIRMAR PAGO DESDE STRIPE
+    // -----------------------------------------------------
+    // Este método será llamado cuando Stripe confirme
+    // mediante webhook que el pago se ha completado.
+    //
+    // No depende del navegador del cliente.
+    // =====================================================
 
-        return pedidoActualizado;
+    @Transactional
+    public void confirmarPagoStripe(
+                    String stripeSessionId,
+                    String idPedido) {
 
+            // =================================================
+            // VALIDAR DATOS RECIBIDOS
+            // =================================================
+
+            if (stripeSessionId == null || stripeSessionId.isBlank()) {
+                    throw new IllegalArgumentException(
+                                    "El identificador de Stripe no puede estar vacío.");
+            }
+
+            if (idPedido == null || idPedido.isBlank()) {
+                    throw new IllegalArgumentException(
+                                    "El identificador del pedido no puede estar vacío.");
+            }
+
+            // =================================================
+            // BUSCAR PEDIDO
+            // =================================================
+
+            Pedido pedido = pedidoRepository
+                            .findByIdPedido(idPedido)
+                            .orElseThrow(() -> new IllegalArgumentException(
+                                            "No existe el pedido asociado al pago de Stripe."));
+
+            // =================================================
+            // COMPROBAR QUE LA SESIÓN DE STRIPE COINCIDE
+            // -------------------------------------------------
+            // No aceptamos confirmar PED-XXXX utilizando una
+            // sesión de Stripe perteneciente a otro pedido.
+            // =================================================
+
+            if (pedido.getStripeSessionId() == null
+                            || !pedido.getStripeSessionId().equals(stripeSessionId)) {
+
+                    throw new IllegalStateException(
+                                    "La sesión de Stripe no coincide con el pedido.");
+            }
+
+            // =================================================
+            // EVITAR PROCESAR DOS VECES EL MISMO WEBHOOK
+            // -------------------------------------------------
+            // Stripe puede reenviar eventos.
+            //
+            // Si ya está pagado, simplemente terminamos.
+            // Esto hace la operación idempotente.
+            // =================================================
+
+            if (pedido.getEstadoPago() == EstadoPago.PAGADO) {
+                    return;
+            }
+
+            // =================================================
+            // CONFIRMAR PAGO
+            // =================================================
+
+            pedido.setEstadoPago(EstadoPago.PAGADO);
+            pedido.setEstado(EstadoPedido.PAGADO);
+
+            pedidoRepository.save(pedido);
     }
 }

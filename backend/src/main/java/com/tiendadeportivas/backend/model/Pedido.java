@@ -43,6 +43,21 @@ public class Pedido {
     @Enumerated(EnumType.STRING)
     private EstadoPedido estado;
 
+    // =====================================================
+    // ESTADO DEL PAGO
+    // =====================================================
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado_pago", length = 30)
+    private EstadoPago estadoPago = EstadoPago.PENDIENTE;
+
+    // =====================================================
+    // IDENTIFICADOR DE STRIPE
+    // =====================================================
+
+    @Column(name = "stripe_session_id", length = 255)
+    private String stripeSessionId;
+
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PedidoItem> items = new ArrayList<>();
 
@@ -184,6 +199,22 @@ public class Pedido {
 
     public void setEstado(EstadoPedido estado) {
         this.estado = estado;
+    }
+
+    public EstadoPago getEstadoPago() {
+        return estadoPago;
+    }
+
+    public void setEstadoPago(EstadoPago estadoPago) {
+        this.estadoPago = estadoPago;
+    }
+
+    public String getStripeSessionId() {
+        return stripeSessionId;
+    }
+
+    public void setStripeSessionId(String stripeSessionId) {
+        this.stripeSessionId = stripeSessionId;
     }
 
     public List<PedidoItem> getItems() {

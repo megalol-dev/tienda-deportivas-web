@@ -55,7 +55,21 @@ public class SecurityConfig {
                                 .csrf(csrf -> csrf
                                                 .csrfTokenRepository(
                                                                 CookieCsrfTokenRepository.withHttpOnlyFalse())
-                                                .ignoringRequestMatchers("/api/stripe/checkout"))
+
+                                                // =============================================
+                                                // WEBHOOK DE STRIPE
+                                                // ---------------------------------------------
+                                                // Stripe llama directamente a este endpoint.
+                                                // No utiliza nuestra sesión ni nuestro token
+                                                // CSRF.
+                                                //
+                                                // La seguridad del webhook NO dependerá de CSRF:
+                                                // verificaremos la firma criptográfica enviada
+                                                // por Stripe.
+                                                // =============================================
+
+                                                .ignoringRequestMatchers(
+                                                                "/api/stripe/webhook"))
 
                                 .authorizeHttpRequests(auth -> auth
 
@@ -149,14 +163,32 @@ public class SecurityConfig {
                                                 .requestMatchers("/pedido/**", "/pedido")
                                                 .hasRole("CLIENTE")
 
-                                                // =================================================
-                                                // STRIPE - CHECKOUT DEL CLIENTE
-                                                // -------------------------------------------------
+                                                
                                                 // Solamente un CLIENTE autenticado puede iniciar
                                                 // el pago de su carrito mediante Stripe.
                                                 // =================================================
 
-                                                .requestMatchers("/api/stripe/checkout/carrito")
+                                                // =================================================
+                                                // STRIPE - WEBHOOK
+                                                // -------------------------------------------------
+                                                // Stripe necesita acceder a este endpoint sin
+                                                // iniciar sesión en nuestra tienda.
+                                                //
+                                                // Su autenticidad se comprobará mediante la firma
+                                                // Stripe-Signature.
+                                                // =================================================
+
+                                                .requestMatchers("/api/stripe/webhook")
+                                                .permitAll()
+
+                                                // =================================================
+                                                // STRIPE - CHECKOUT DEL CLIENTE
+                                                // -------------------------------------------------
+                                                // Solo un CLIENTE autenticado puede iniciar
+                                                // una sesión de pago.
+                                                // =================================================
+
+                                                .requestMatchers("/api/stripe/checkout/**")
                                                 .hasRole("CLIENTE")
 
                                                 // =================================================

@@ -76,7 +76,7 @@ Nombre:         Pepe
 Correo:         pepito@gmail.com
 Contraseña:     a1234567
 
-Nombre:         Pepe
+Nombre:         Arturo
 Correo:         arturo@gmail.com
 Contraseña:     a1234567
 

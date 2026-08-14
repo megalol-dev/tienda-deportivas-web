@@ -1,0 +1,5 @@
+Tarjeta: 4242 4242 4242 4242
+Caducidad: cualquier fecha futura, por ejemplo 12/30
+CVC: cualquier 3 dígitos, por ejemplo 123
+Nombre: cualquiera, por ejemplo Luis Prueba
+País: España

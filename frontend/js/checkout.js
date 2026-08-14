@@ -320,13 +320,17 @@ function validarFormularioCheckout() {
 // ===============================================
 
 // ===============================================
-// CREAR CHECKOUT DE STRIPE DESDE EL CARRITO REAL
+// CREAR CHECKOUT DE STRIPE DESDE UN PEDIDO
+// -----------------------------------------------
+// El pedido ya ha sido guardado en MariaDB.
+// Stripe recibe su idPedido y construye el pago
+// utilizando los datos almacenados en backend.
 // ===============================================
 
-async function crearCheckoutStripe() {
+async function crearCheckoutStripe(idPedido) {
 
   const respuesta = await fetchConCsrf(
-    `${API_URL}/api/stripe/checkout/carrito`,
+    `${API_URL}/api/stripe/checkout/pedido?idPedido=${encodeURIComponent(idPedido)}`,
     {
       method: "POST",
     },
@@ -382,29 +386,9 @@ if (formularioCheckout) {
       aceptaTerminos: document.getElementById("acepto-terminos")?.checked,
     };
 
-    // ===============================================
-    // PRUEBA TEMPORAL - STRIPE CON CARRITO REAL
-    // ===============================================
-
     try {
-      const urlStripe = await crearCheckoutStripe();
-
-      console.log("URL Stripe creada:", urlStripe);
-
-      // Redirigimos al usuario al Checkout oficial de Stripe
-      window.location.href = urlStripe;
-
-      // IMPORTANTE:
-      // detenemos aquí el submit para que durante esta prueba
-      // NO se cree todavía el pedido en MariaDB.
-      return;
-
       // ===============================================
-      // CREACIÓN DEL PEDIDO
-      // -----------------------------------------------
-      // Este código queda temporalmente sin ejecutarse
-      // por el return anterior.
-      // Lo conectaremos correctamente después.
+      // CREACIÓN DEL PEDIDO EN MARIADB
       // ===============================================
 
       const respuesta = await fetchConCsrf(`${API_URL}/pedido`, {
@@ -430,37 +414,25 @@ if (formularioCheckout) {
 
       const resumen = await respuesta.json();
 
-      mostrarToast(`Pedido realizado: ${resumen.idPedido}`, "success");
+      // ===============================================
+      // CREAR SESIÓN DE PAGO PARA ESTE PEDIDO
+      // -----------------------------------------------
+      // El backend utilizará resumen.idPedido para
+      // recuperar el pedido recién guardado en MariaDB.
+      // ===============================================
 
-      confirmIdEl.textContent = resumen.idPedido;
+      const urlStripe = await crearCheckoutStripe(resumen.idPedido);
 
-      resumenSubtotalEl.textContent = `${resumen.subtotal.toFixed(2).replace(".", ",")} €`;
+      console.log("Pedido creado:", resumen.idPedido);
 
-      resumenIvaEl.textContent = `${resumen.iva.toFixed(2).replace(".", ",")} €`;
+      console.log("URL Stripe creada:", urlStripe);
 
-      resumenEnvioEl.textContent = `${resumen.envio.toFixed(2).replace(".", ",")} €`;
+      // ===============================================
+      // REDIRIGIR A STRIPE
+      // ===============================================
 
-      resumenTotalEl.textContent = `${resumen.total.toFixed(2).replace(".", ",")} €`;
+      window.location.href = urlStripe;
 
-      if (confirmIdEl && confirmacionSection) {
-        confirmacionSection.classList.remove("oculto");
-      }
-
-      await cargarCarritoDesdeBackend();
-
-      renderizarResumenPedido();
-
-      formularioCheckout.reset();
-
-      if (checkoutContainer) {
-        checkoutContainer.classList.add("oculto");
-
-        checkoutContainer.style.display = "none";
-      }
-
-      if (sectionCheckout) {
-        sectionCheckout.classList.remove("oculto");
-      }
     } catch (error) {
       console.error("Error al crear el pedido:", error);
 
@@ -469,12 +441,15 @@ if (formularioCheckout) {
   });
 }
 
-// ---------- BOTONES: CANCELAR Y VOLVER ----------
+// ======================================================
+// BOTONES: CANCELAR Y VOLVER
+// ======================================================
 
 if (btnCancelarCheckout) {
   btnCancelarCheckout.addEventListener("click", () => {
     cerrarCheckout();
     desbloquearNavegacionCheckout();
+
     if (typeof volverInicio === "function") {
       volverInicio();
     }
@@ -486,10 +461,125 @@ if (btnConfirmVolver) {
     if (confirmacionSection) {
       confirmacionSection.classList.add("oculto");
     }
+
     cerrarCheckout();
     desbloquearNavegacionCheckout();
+
     if (typeof volverInicio === "function") {
       volverInicio();
     }
   });
 }
+
+
+// ======================================================
+// REGRESO DESDE STRIPE
+// ------------------------------------------------------
+// Stripe devuelve al usuario a la tienda con:
+//
+// ?pago=exito&idPedido=PED-XXXXXXXX
+//
+// o:
+//
+// ?pago=cancelado&idPedido=PED-XXXXXXXX
+// ======================================================
+
+document.addEventListener("DOMContentLoaded", async () => {
+
+  const parametros = new URLSearchParams(window.location.search);
+
+  const estadoPago = parametros.get("pago");
+  const idPedido = parametros.get("idPedido");
+
+  // Si no venimos de Stripe, no hacemos nada.
+  if (!estadoPago) {
+    return;
+  }
+
+
+  // ====================================================
+  // PAGO REALIZADO CORRECTAMENTE
+  // ====================================================
+
+  if (estadoPago === "exito") {
+    bloquearNavegacionCheckout();
+
+    // Ocultamos el formulario del checkout
+    if (checkoutContainer) {
+      checkoutContainer.classList.add("oculto");
+      checkoutContainer.style.display = "none";
+    }
+
+    // Mostramos la sección general del checkout
+    if (sectionCheckout) {
+      sectionCheckout.classList.remove("oculto");
+
+      sectionCheckout.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+
+    // Mostramos la confirmación
+    if (confirmacionSection) {
+      confirmacionSection.classList.remove("oculto");
+    }
+
+    // Mostramos el número de pedido
+    if (confirmIdEl && idPedido) {
+      confirmIdEl.textContent = idPedido;
+    }
+
+    // ==================================================
+    // ACTUALIZAR CARRITO
+    // --------------------------------------------------
+    // Recargamos el carrito desde MariaDB
+    // al regresar desde Stripe.
+    // ==================================================
+
+    if (typeof cargarCarritoDesdeBackend === "function") {
+      await cargarCarritoDesdeBackend();
+    }
+
+    if (typeof renderizarCarrito === "function") {
+      renderizarCarrito();
+    }
+
+    if (typeof mostrarToast === "function") {
+      mostrarToast(
+        `Pago realizado correctamente${idPedido ? ": " + idPedido : ""}`,
+        "success",
+      );
+    }
+  }
+
+
+  // ====================================================
+  // PAGO CANCELADO
+  // ====================================================
+
+  if (estadoPago === "cancelado") {
+
+    if (typeof mostrarToast === "function") {
+      mostrarToast(
+        "El pago ha sido cancelado. Tu pedido no ha sido cobrado.",
+        "error",
+      );
+    }
+  }
+
+
+  // ====================================================
+  // LIMPIAR URL
+  // ----------------------------------------------------
+  // Eliminamos los parámetros para que al actualizar
+  // con F5 no vuelva a aparecer la confirmación.
+  // ====================================================
+
+  window.history.replaceState(
+    {},
+    document.title,
+    window.location.pathname,
+  );
+});
+

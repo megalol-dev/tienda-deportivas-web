@@ -8,15 +8,29 @@ Iniciar spring, recuerda esta en la ruta -> cd backend ->
 
 Iniciar xaamp -> 
 Panel de control de xaamp , activa apache + sqlite
+--------------------------------------------------------------------------------
+Iniciar la web tienda y todas sus dependencias en orden para evitar errores
+--------------------------------------------------------------------------------
 
-
-Inciar la tienda -> 
 Paso 1 -> 
-Primero arranca la web con live server 
+Iniciar spring, recuerda esta en la ruta -> cd backend ->
+.\mvnw.cmd spring-boot:run
 
 Paso 2 -> 
+Iniciar xaamp ->
+Panel de control de xaamp , activa apache + sqlite
+
+Paso 3 -> 
+Inciar la tienda -> 
+Primero arranca la web con live server 
+
+Paso 4 -> 
 Incia la web en el siguiente URL para que cuadre spring y la web
 http://localhost:5500/frontend/tienda.html
 
-Paso 3 -> 
+Paso 5 -> 
 Cierra live server y trabaja en la URL http://localhost:5500/frontend/tienda.html
+
+Paso 6-> 
+4. Iniciar Stripe CLI: Abre una terminal como power shell y escribe lo siguiente para que stripe pueda funcionar en modo local. 
+C:\stripe\stripe.exe listen --forward-to localhost:8080/api/stripe/webhook
