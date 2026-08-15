@@ -358,11 +358,10 @@ function renderizarPedidos(pedidos) {
 
 function crearOpcionesEstado(estadoActual) {
   const estados = [
-    "PENDIENTE",
-    "PAGADO",
     "PREPARANDO",
     "ENVIADO",
     "ENTREGADO",
+    "DEVUELTO",
     "CANCELADO",
   ];
 

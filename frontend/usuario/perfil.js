@@ -295,7 +295,7 @@ function mostrarPedidos(pedidos) {
     // ESTADO
     // ===============================================
 
-    const estado = formatearEstadoPedido(pedido.estado);
+   const estado = formatearEstadoPedido(pedido.estado);
 
     // ===============================================
     // HTML PRINCIPAL DEL PEDIDO
@@ -499,17 +499,36 @@ function formatearPrecio(precio) {
 // FORMATEAR ESTADO DEL PEDIDO
 // =====================================================
 
-function formatearEstadoPedido(estado) {
+// =====================================================
+// FORMATEAR ESTADO DEL PAGO
+// -----------------------------------------------------
+// En el área del cliente mostramos únicamente
+// el estado económico del pedido.
+//
+// El estado logístico (PREPARANDO, ENVIADO, etc.)
+// pertenece al panel de gestión.
+// =====================================================
+
+// =====================================================
+// FORMATEAR ESTADO DEL PEDIDO
+// -----------------------------------------------------
+// En el área del cliente mostramos el estado logístico
+// de su pedido.
+//
+// El estado del pago se gestiona internamente y no
+// necesita mostrarse al cliente.
+// =====================================================
+
+function formatearEstadoPedido(estadoPedido) {
   const estados = {
-    PENDIENTE: "Pendiente",
-    PAGADO: "Pagado",
     PREPARANDO: "Preparando",
     ENVIADO: "Enviado",
     ENTREGADO: "Entregado",
+    DEVUELTO: "Devuelto",
     CANCELADO: "Cancelado",
   };
 
-  return estados[estado] || estado || "-";
+  return estados[estadoPedido] || estadoPedido || "-";
 }
 
 // =====================================================

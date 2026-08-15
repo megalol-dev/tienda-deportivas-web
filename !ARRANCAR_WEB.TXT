@@ -5,20 +5,17 @@ limpiar spring ->
 Iniciar spring, recuerda esta en la ruta -> cd backend ->
 .\mvnw.cmd spring-boot:run
 
-
-Iniciar xaamp -> 
-Panel de control de xaamp , activa apache + sqlite
 --------------------------------------------------------------------------------
 Iniciar la web tienda y todas sus dependencias en orden para evitar errores
 --------------------------------------------------------------------------------
-
 Paso 1 -> 
+Iniciar xaamp -> 
+Panel de control de xaamp , activa apache + sqlite
+
+Paso 2 -> 
 Iniciar spring, recuerda esta en la ruta -> cd backend ->
 .\mvnw.cmd spring-boot:run
 
-Paso 2 -> 
-Iniciar xaamp ->
-Panel de control de xaamp , activa apache + sqlite
 
 Paso 3 -> 
 Inciar la tienda -> 
