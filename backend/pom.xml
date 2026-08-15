@@ -225,6 +225,18 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- =================================================
+        OPENPDF
+
+        Permite generar las facturas de los pedidos
+        directamente desde el backend en formato PDF.
+         ================================================= -->
+        <dependency>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf</artifactId>
+            <version>2.0.3</version>
+        </dependency>
+
     </dependencies>
 
 

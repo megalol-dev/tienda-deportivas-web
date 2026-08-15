@@ -295,7 +295,7 @@ function mostrarPedidos(pedidos) {
     // ESTADO
     // ===============================================
 
-   const estado = formatearEstadoPedido(pedido.estado);
+    const estado = formatearEstadoPedido(pedido.estado);
 
     // ===============================================
     // HTML PRINCIPAL DEL PEDIDO
@@ -315,9 +315,18 @@ function mostrarPedidos(pedidos) {
 
       </div>
 
-      <div class="pedido-datos">
+      <div class="pedido-datos-cabecera">
 
         <h4>Datos de envío</h4>
+
+        <button
+            type="button"
+            class="btn-descargar-factura"
+            data-id-pedido="${pedido.idPedido}">
+            Descargar factura
+        </button>
+
+      </div>
 
         <p>
           <strong>Destinatario:</strong>
@@ -379,11 +388,102 @@ function mostrarPedidos(pedidos) {
         contenedorProductos.appendChild(producto);
       });
     }
+    // ===============================================
+    // DESCARGAR FACTURA
+    // ===============================================
+
+    const btnFactura = tarjetaPedido.querySelector(".btn-descargar-factura");
+
+    if (btnFactura) {
+      btnFactura.addEventListener("click", () => {
+        descargarFactura(pedido.idPedido);
+      });
+    }
 
     listaPedidos.appendChild(tarjetaPedido);
   });
 }
 
+// =====================================================
+// DESCARGAR FACTURA
+// -----------------------------------------------------
+// Solicita al backend el PDF correspondiente al pedido.
+//
+// El backend comprueba que el pedido pertenece al
+// usuario autenticado antes de devolver la factura.
+// =====================================================
+
+async function descargarFactura(idPedido) {
+  try {
+    const respuesta = await fetch(
+      `http://localhost:8080/cliente/perfil/pedidos/${encodeURIComponent(idPedido)}/factura`,
+      {
+        method: "GET",
+        credentials: "include",
+      },
+    );
+
+    // =================================================
+    // SESIÓN NO VÁLIDA
+    // =================================================
+
+    if (respuesta.status === 401 || respuesta.status === 403) {
+      window.location.href = "../tienda.html";
+
+      return;
+    }
+
+    // =================================================
+    // ERROR
+    // =================================================
+
+    if (!respuesta.ok) {
+      throw new Error(
+        "No se pudo descargar la factura.",
+      );
+    }
+
+    // =================================================
+    // CONVERTIR RESPUESTA EN PDF
+    // =================================================
+
+    const pdf = await respuesta.blob();
+
+    const url = URL.createObjectURL(pdf);
+
+    // =================================================
+    // CREAR DESCARGA TEMPORAL
+    // =================================================
+
+    const enlace = document.createElement("a");
+
+    enlace.href = url;
+
+    enlace.download =
+      `factura-${idPedido}.pdf`;
+
+    document.body.appendChild(enlace);
+
+    enlace.click();
+
+    enlace.remove();
+
+    // =================================================
+    // LIBERAR MEMORIA
+    // =================================================
+
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error(
+      "Error descargando la factura:",
+      error,
+    );
+
+    alert(
+      "No se ha podido descargar la factura.",
+    );
+  }
+}
 // =====================================================
 // CREAR PRODUCTO DEL PEDIDO
 // =====================================================

@@ -2781,6 +2781,68 @@ body.modal-sesion-abierto {
     font-weight: bold;
 }
 
+/* =====================================================
+   CABECERA DATOS DE ENVÍO + FACTURA
+   ===================================================== */
+
+.pedido-datos-cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    width: 100%;
+
+    margin-bottom: 12px;
+}
+
+.pedido-datos-cabecera h4 {
+    margin: 0;
+}
+
+.btn-descargar-factura {
+    padding: 8px 14px;
+
+    border: none;
+    border-radius: 8px;
+
+    font-size: 0.9rem;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    flex-shrink: 0;
+
+    transition:
+        transform 0.15s ease,
+        opacity 0.15s ease;
+}
+
+.btn-descargar-factura:hover {
+    transform: translateY(-1px);
+    opacity: 0.9;
+}
+
+.btn-descargar-factura:active {
+    transform: translateY(0);
+}
+
+
+/* =====================================================
+   RESPONSIVE FACTURA
+   ===================================================== */
+
+@media (max-width: 600px) {
+
+    .pedido-datos-cabecera {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .btn-descargar-factura {
+        width: 100%;
+    }
+}
+
     /* =======================================================
    RESPONSIVE / MEDIA QUERIES
    ======================================================= */

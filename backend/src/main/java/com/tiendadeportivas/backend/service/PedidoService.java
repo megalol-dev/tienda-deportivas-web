@@ -32,6 +32,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 
+
+
 @Service
 public class PedidoService {
 
@@ -40,19 +42,22 @@ public class PedidoService {
         private final PedidoItemRepository pedidoItemRepository;
         private final UsuarioRepository usuarioRepository;
         private final HistorialPedidoRepository historialPedidoRepository;
+        private final FacturaService facturaService;
 
         public PedidoService(
                         CarritoService carritoService,
                         PedidoRepository pedidoRepository,
                         PedidoItemRepository pedidoItemRepository,
                         UsuarioRepository usuarioRepository,
-                        HistorialPedidoRepository historialPedidoRepository) {
+                        HistorialPedidoRepository historialPedidoRepository,
+                        FacturaService facturaService) {
 
                 this.carritoService = carritoService;
                 this.pedidoRepository = pedidoRepository;
                 this.pedidoItemRepository = pedidoItemRepository;
                 this.usuarioRepository = usuarioRepository;
                 this.historialPedidoRepository = historialPedidoRepository;
+                this.facturaService = facturaService;
         }
 
         @Transactional
@@ -670,6 +675,22 @@ public class PedidoService {
                 pedido.setEstado(EstadoPedido.PREPARANDO);
 
                 pedidoRepository.save(pedido);
+
+                // =================================================
+                // CREAR FACTURA
+                // =================================================
+
+                facturaService.crearFactura(pedido);
+
+                // =================================================
+                // VACIAR CARRITO DESPUÉS DEL PAGO
+                // =================================================
+
+                if (pedido.getUsuario() != null) {
+
+                        carritoService.vaciarCarrito(
+                                        pedido.getUsuario().getEmail());
+                }
 
                 // =================================================
                 // VACIAR CARRITO DESPUÉS DEL PAGO
