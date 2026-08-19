@@ -499,8 +499,18 @@ La cobertura automatizada es deliberadamente un área de mejora; no se presenta 
 - Centralizar logs, métricas y trazabilidad de webhooks.
 - Publicar una demo en HTTPS con secretos gestionados por la plataforma.
 
-## Autor
+# 📫 Autor y Contacto
 
-Proyecto personal desarrollado como demostración práctica de desarrollo web full stack con Java y Spring Boot.
+📧 Email: **escuderopolojoseluis@gmail.com**
 
-<!-- Añade aquí tu nombre, LinkedIn, portfolio y correo profesional antes de publicar el repositorio. -->
+🌐 Portfolio: https://megalol-dev.github.io/
+
+💼 LinkedIn: https://linkedin.com/in/jose-luis-escudero-polo
+
+📺 YouTube: https://www.youtube.com/@Megalol-dev
+
+---
+
+## 📜 Licencia
+
+Proyecto desarrollado con fines de portfolio. Proyecto privado sin autorización para el comercio
