@@ -507,7 +507,7 @@ La cobertura automatizada es deliberadamente un área de mejora; no se presenta 
 
 💼 LinkedIn: https://linkedin.com/in/jose-luis-escudero-polo
 
-📺 YouTube: https://www.youtube.com/@Megalol-dev
+📺 YouTube: https://youtu.be/QqcfqjKi-Zk
 
 ---
 
