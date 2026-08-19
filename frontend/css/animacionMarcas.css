@@ -1,0 +1,52 @@
+/* =====================================================
+   ANIMACION DE LA MARCA ACTIVA
+   Colorea cada letra y mantiene un contorno negro legible.
+   ===================================================== */
+
+#titulo-marca {
+    display: flex;
+    flex-wrap: wrap;
+    font-family: "Comic Sans MS", "Trebuchet MS", cursive;
+    font-size: clamp(2rem, 3vw, 3rem);
+    font-weight: 900;
+    line-height: 1.1;
+}
+
+#titulo-marca span {
+    color: var(--rosa-animacion);
+    -webkit-text-stroke: 3px var(--negro);
+    paint-order: stroke fill;
+    animation: color-letra-marca 6s ease-in-out infinite;
+    animation-delay: calc(var(--i) * 0.12s);
+}
+
+@keyframes color-letra-marca {
+    0%,
+    100% {
+        color: var(--rosa-animacion);
+    }
+
+    20% {
+        color: var(--naranja-animacion);
+    }
+
+    40% {
+        color: var(--azul-animacion);
+    }
+
+    60% {
+        color: var(--amarillo-animacion);
+    }
+
+    80% {
+        color: var(--verde-animacion);
+    }
+}
+
+/* Mantiene el título estable si el usuario reduce las animaciones. */
+@media (prefers-reduced-motion: reduce) {
+    #titulo-marca span {
+        color: var(--rosa-animacion);
+        animation: none;
+    }
+}

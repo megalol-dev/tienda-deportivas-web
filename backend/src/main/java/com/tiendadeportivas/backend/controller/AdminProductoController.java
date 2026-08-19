@@ -1,3 +1,4 @@
+// Expone la gestión administrativa de productos.
 package com.tiendadeportivas.backend.controller;
 
 import java.util.List;
@@ -18,24 +19,19 @@ public class AdminProductoController {
 
     private final ProductoService productoService;
 
+    // Crea una instancia de AdminProductoController.
     public AdminProductoController(ProductoService productoService) {
         this.productoService = productoService;
     }
 
-    // =====================================================
-    // LISTAR TODOS LOS PRODUCTOS
-    // =====================================================
-
+    // Devuelve los productos disponibles.
     @GetMapping
     public List<Producto> obtenerProductos() {
 
         return productoService.obtenerTodosLosProductos();
     }
 
-    // =====================================================
-    // CREAR PRODUCTO
-    // =====================================================
-
+    // Valida y guarda un producto.
     @PostMapping
     public ResponseEntity<Producto> crearProducto(
             @Valid @RequestBody ProductoRequest request) {
@@ -47,10 +43,7 @@ public class AdminProductoController {
                 .body(productoCreado);
     }
 
-    // =====================================================
-    // EDITAR PRODUCTO
-    // =====================================================
-
+    // Valida y actualiza un producto.
     @PutMapping("/{id}")
     public ResponseEntity<Producto> editarProducto(
             @PathVariable Long id,

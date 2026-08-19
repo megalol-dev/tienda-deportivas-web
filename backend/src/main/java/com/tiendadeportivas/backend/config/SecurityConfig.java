@@ -1,3 +1,4 @@
+// Configura autenticación, permisos, CSRF y CORS.
 package com.tiendadeportivas.backend.config;
 
 import java.util.List;
@@ -24,15 +25,18 @@ public class SecurityConfig {
 
         private final CustomUserDetailsService customUserDetailsService;
 
+        // Crea una instancia de SecurityConfig.
         public SecurityConfig(CustomUserDetailsService customUserDetailsService) {
                 this.customUserDetailsService = customUserDetailsService;
         }
 
+        // Crea el codificador de contraseñas.
         @Bean
         public PasswordEncoder passwordEncoder() {
                 return new BCryptPasswordEncoder();
         }
 
+        // Crea el gestor de autenticación.
         @Bean
         public AuthenticationManager authenticationManager(
                         PasswordEncoder passwordEncoder) {
@@ -44,6 +48,7 @@ public class SecurityConfig {
                 return new ProviderManager(provider);
         }
 
+        // Define la seguridad de las rutas HTTP.
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http)
                         throws Exception {
@@ -56,29 +61,10 @@ public class SecurityConfig {
                                                 .csrfTokenRepository(
                                                                 CookieCsrfTokenRepository.withHttpOnlyFalse())
 
-                                                // =============================================
-                                                // WEBHOOK DE STRIPE
-                                                // ---------------------------------------------
-                                                // Stripe llama directamente a este endpoint.
-                                                // No utiliza nuestra sesión ni nuestro token
-                                                // CSRF.
-                                                //
-                                                // La seguridad del webhook NO dependerá de CSRF:
-                                                // verificaremos la firma criptográfica enviada
-                                                // por Stripe.
-                                                // =============================================
-
                                                 .ignoringRequestMatchers(
                                                                 "/api/stripe/webhook"))
 
                                 .authorizeHttpRequests(auth -> auth
-
-                                                // =================================================
-                                                // GESTIÓN DE PEDIDOS
-                                                // -------------------------------------------------
-                                                // TRABAJADOR, JEFE y ADMIN pueden consultar
-                                                // pedidos y modificar su estado.
-                                                // =================================================
 
                                                 .requestMatchers("/admin/pedidos/**")
                                                 .hasAnyRole(
@@ -86,38 +72,16 @@ public class SecurityConfig {
                                                                 "JEFE",
                                                                 "ADMIN")
 
-                                                // =================================================
-                                                // GESTIÓN DE PRODUCTOS
-                                                // -------------------------------------------------
-                                                // TRABAJADOR, JEFE y ADMIN pueden consultar,
-                                                // crear y modificar productos.
-                                                // =================================================
-
                                                 .requestMatchers("/admin/productos/**")
                                                 .hasAnyRole(
                                                                 "TRABAJADOR",
                                                                 "JEFE",
                                                                 "ADMIN")
 
-                                                // =================================================
-                                                // GESTIÓN DE EMPLEADOS
-                                                // -------------------------------------------------
-                                                // Solamente JEFE y ADMIN pueden acceder
-                                                // a la gestión del personal.
-                                                // =================================================
-
                                                 .requestMatchers("/admin/usuarios/**")
                                                 .hasAnyRole(
                                                                 "JEFE",
                                                                 "ADMIN")
-
-                                                // =================================================
-                                                // SEGURIDAD GENERAL DEL ÁREA ADMIN
-                                                // -------------------------------------------------
-                                                // Cualquier futuro endpoint /admin que olvidemos
-                                                // configurar explícitamente seguirá necesitando
-                                                // pertenecer al personal.
-                                                // =================================================
 
                                                 .requestMatchers("/admin/**")
                                                 .hasAnyRole(
@@ -125,78 +89,20 @@ public class SecurityConfig {
                                                                 "JEFE",
                                                                 "ADMIN")
 
-                                                // =================================================
-                                                // ÁREA PRIVADA DEL CLIENTE
-                                                // -------------------------------------------------
-                                                // Todos los endpoints relacionados con el perfil
-                                                // personal del cliente requieren:
-                                                // • Sesión iniciada.
-                                                // • Rol CLIENTE.
-                                                // =================================================
-
                                                 .requestMatchers("/cliente/**")
                                                 .hasRole("CLIENTE")
-
-                                                // =================================================
-                                                // CARRITO DEL CLIENTE
-                                                // -------------------------------------------------
-                                                // El carrito solo puede utilizarse si existe una
-                                                // sesión iniciada con rol CLIENTE.
-                                                //
-                                                // Esto protege:
-                                                // GET /carrito
-                                                // POST /carrito
-                                                // DELETE /carrito
-                                                // DELETE /carrito/todo
-                                                // =================================================
 
                                                 .requestMatchers("/carrito/**", "/carrito")
                                                 .hasRole("CLIENTE")
 
-                                                // =================================================
-                                                // REALIZACIÓN DE PEDIDOS
-                                                // -------------------------------------------------
-                                                // Solamente un cliente autenticado puede consultar
-                                                // el resumen de compra o confirmar un pedido.
-                                                // =================================================
-
                                                 .requestMatchers("/pedido/**", "/pedido")
                                                 .hasRole("CLIENTE")
-
-                                                
-                                                // Solamente un CLIENTE autenticado puede iniciar
-                                                // el pago de su carrito mediante Stripe.
-                                                // =================================================
-
-                                                // =================================================
-                                                // STRIPE - WEBHOOK
-                                                // -------------------------------------------------
-                                                // Stripe necesita acceder a este endpoint sin
-                                                // iniciar sesión en nuestra tienda.
-                                                //
-                                                // Su autenticidad se comprobará mediante la firma
-                                                // Stripe-Signature.
-                                                // =================================================
 
                                                 .requestMatchers("/api/stripe/webhook")
                                                 .permitAll()
 
-                                                // =================================================
-                                                // STRIPE - CHECKOUT DEL CLIENTE
-                                                // -------------------------------------------------
-                                                // Solo un CLIENTE autenticado puede iniciar
-                                                // una sesión de pago.
-                                                // =================================================
-
                                                 .requestMatchers("/api/stripe/checkout/**")
                                                 .hasRole("CLIENTE")
-
-                                                // =================================================
-                                                // RESTO DE ENDPOINTS
-                                                // -------------------------------------------------
-                                                // Tienda, login, registro, catálogo, etc.
-                                                // continúan funcionando con normalidad.
-                                                // =================================================
 
                                                 .anyRequest()
                                                 .permitAll());
@@ -204,6 +110,7 @@ public class SecurityConfig {
                 return http.build();
         }
 
+        // Permite las peticiones del frontend local.
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
 

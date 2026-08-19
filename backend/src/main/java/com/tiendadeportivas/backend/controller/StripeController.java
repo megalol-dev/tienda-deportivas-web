@@ -1,3 +1,4 @@
+// Crea sesiones de pago de Stripe.
 package com.tiendadeportivas.backend.controller;
 
 import java.util.Map;
@@ -32,10 +33,7 @@ public class StripeController {
     private final CarritoService carritoService;
     private final PedidoService pedidoService;
 
-    // =====================================================
-    // CONSTRUCTOR
-    // =====================================================
-
+    // Crea una instancia de StripeController.
     public StripeController(
             StripeService stripeService,
             CarritoService carritoService,
@@ -46,10 +44,7 @@ public class StripeController {
         this.pedidoService = pedidoService;
     }
 
-    // =====================================================
-    // CREAR SESIÓN DE CHECKOUT
-    // =====================================================
-
+    // Crea un Checkout para un producto.
     @PostMapping("/checkout")
     public ResponseEntity<?> crearCheckout(
             @RequestParam String nombre,
@@ -58,14 +53,11 @@ public class StripeController {
 
         try {
 
-            // Pedimos al servicio que cree una sesión en Stripe
             Session session = stripeService.crearSesionCheckout(
                     nombre,
                     precio,
                     cantidad);
 
-            // Stripe nos devuelve una URL de pago.
-            // Se la devolvemos al frontend.
             return ResponseEntity.ok(
                     Map.of("url", session.getUrl()));
 
@@ -79,19 +71,12 @@ public class StripeController {
         }
     }
 
-    // =====================================================
-    // CREAR CHECKOUT DESDE EL CARRITO DEL USUARIO
-    // =====================================================
-
+    // Crea un Checkout con el carrito autenticado.
     @PostMapping("/checkout/carrito")
     @Transactional
     public ResponseEntity<?> crearCheckoutCarrito() {
 
         try {
-
-            // =============================================
-            // OBTENER USUARIO AUTENTICADO
-            // =============================================
 
             Authentication authentication = SecurityContextHolder
                     .getContext()
@@ -109,10 +94,6 @@ public class StripeController {
             }
 
             String emailUsuario = authentication.getName();
-
-            // =============================================
-            // OBTENER CARRITO REAL DESDE MARIADB
-            // =============================================
 
             List<CarritoItem> carrito = carritoService.obtenerItemsEntidad(emailUsuario);
 
@@ -125,15 +106,7 @@ public class StripeController {
                                 "No se puede pagar un carrito vacío."));
             }
 
-            // =============================================
-            // CREAR CHECKOUT EN STRIPE
-            // =============================================
-
             Session session = stripeService.crearSesionCheckoutCarrito(carrito);
-
-            // =============================================
-            // DEVOLVER URL AL FRONTEND
-            // =============================================
 
             return ResponseEntity.ok(
                     Map.of("url", session.getUrl()));
@@ -148,30 +121,13 @@ public class StripeController {
         }
     }
 
-    // =====================================================
-    // CREAR CHECKOUT DESDE UN PEDIDO YA GUARDADO
-    // -----------------------------------------------------
-    // El pedido ya contiene:
-    // - productos
-    // - cantidades
-    // - precios
-    // - IVA
-    // - gastos de envío
-    // - total
-    //
-    // Stripe cobra exactamente ese pedido.
-    // =====================================================
-
+    // Crea un Checkout para un pedido guardado.
     @PostMapping("/checkout/pedido")
     @Transactional
     public ResponseEntity<?> crearCheckoutPedido(
             @RequestParam String idPedido) {
 
         try {
-
-            // =============================================
-            // OBTENER USUARIO AUTENTICADO
-            // =============================================
 
             Authentication authentication = SecurityContextHolder
                     .getContext()
@@ -190,34 +146,15 @@ public class StripeController {
 
             String emailUsuario = authentication.getName();
 
-            // =============================================
-            // OBTENER PEDIDO DEL USUARIO
-            // -------------------------------------------------
-            // PedidoService también comprueba que el pedido
-            // pertenece realmente al usuario autenticado.
-            // =============================================
-
             Pedido pedido = pedidoService.obtenerPedidoPorIdPedido(
                     idPedido,
                     emailUsuario);
 
-            // =============================================
-            // CREAR CHECKOUT DESDE EL PEDIDO
-            // =============================================
-
             Session session = stripeService.crearSesionCheckoutPedido(pedido);
-
-            // =============================================
-            // GUARDAR ID DE STRIPE EN NUESTRO PEDIDO
-            // =============================================
 
             pedidoService.guardarStripeSessionId(
                     pedido,
                     session.getId());
-
-            // =============================================
-            // DEVOLVER URL DE STRIPE AL FRONTEND
-            // =============================================
 
             return ResponseEntity.ok(
                     Map.of(

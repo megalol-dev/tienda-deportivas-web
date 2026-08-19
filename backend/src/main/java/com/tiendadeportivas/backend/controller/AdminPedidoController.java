@@ -1,3 +1,4 @@
+// Expone la gestión administrativa de pedidos.
 package com.tiendadeportivas.backend.controller;
 
 import java.util.List;
@@ -17,24 +18,19 @@ public class AdminPedidoController {
 
     private final PedidoService pedidoService;
 
+    // Crea una instancia de AdminPedidoController.
     public AdminPedidoController(PedidoService pedidoService) {
         this.pedidoService = pedidoService;
     }
 
-    // =========================================
-    // LISTAR PEDIDOS
-    // =========================================
-
+    // Devuelve los pedidos visibles para el usuario.
     @GetMapping
     public List<PedidoAdminResumen> obtenerPedidos() {
 
         return pedidoService.obtenerResumenPedidosAdmin();
     }
 
-    // =========================================
-    // CAMBIAR ESTADO
-    // =========================================
-
+    // Actualiza el estado de un pedido.
     @PatchMapping("/{id}/estado")
     public Pedido cambiarEstado(
             @PathVariable Long id,

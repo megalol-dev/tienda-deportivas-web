@@ -1,3 +1,8 @@
+AVISO DIDÁCTICO:
+Estos datos de tarjeta de prueba se guardan aquí únicamente para facilitar el
+manejo y las pruebas de Stripe en el entorno local. En una aplicación real nunca
+deben almacenarse ni publicarse datos bancarios dentro del proyecto.
+
 Tarjeta: 4242 4242 4242 4242
 Caducidad: cualquier fecha futura, por ejemplo 12/30
 CVC: cualquier 3 dígitos, por ejemplo 123

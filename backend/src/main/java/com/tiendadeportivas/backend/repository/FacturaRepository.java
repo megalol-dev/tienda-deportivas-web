@@ -1,3 +1,4 @@
+// Accede a las facturas almacenadas.
 package com.tiendadeportivas.backend.repository;
 
 import java.util.Optional;
@@ -11,16 +12,10 @@ import com.tiendadeportivas.backend.model.Factura;
 public interface FacturaRepository
         extends JpaRepository<Factura, Long> {
 
-    // =====================================================
-    // BUSCAR FACTURA POR PEDIDO
-    // =====================================================
-
+    // Busca la factura asociada a un pedido.
     Optional<Factura> findByPedidoId(Long pedidoId);
 
-    // =====================================================
-    // BUSCAR FACTURA POR NÚMERO
-    // =====================================================
-
+    // Busca una factura por su número.
     Optional<Factura> findByNumeroFactura(
             String numeroFactura);
 }

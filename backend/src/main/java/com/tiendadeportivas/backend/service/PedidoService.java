@@ -1,3 +1,4 @@
+// Aplica la lógica de pedidos, estados y pagos.
 package com.tiendadeportivas.backend.service;
 
 import java.util.UUID;
@@ -32,8 +33,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 
-
-
 @Service
 public class PedidoService {
 
@@ -44,6 +43,7 @@ public class PedidoService {
         private final HistorialPedidoRepository historialPedidoRepository;
         private final FacturaService facturaService;
 
+        // Crea una instancia de PedidoService.
         public PedidoService(
                         CarritoService carritoService,
                         PedidoRepository pedidoRepository,
@@ -60,6 +60,7 @@ public class PedidoService {
                 this.facturaService = facturaService;
         }
 
+        // Crea un pedido con el carrito autenticado.
         @Transactional
         public PedidoResumen crearPedido(PedidoRequest pedido) {
 
@@ -82,7 +83,6 @@ public class PedidoService {
 
                 List<CarritoItem> carrito = carritoService.obtenerItemsEntidad(emailUsuario);
 
-                // No permitimos crear pedidos con el carrito vacío
                 if (carrito.isEmpty()) {
                         throw new IllegalStateException(
                                         "No se puede crear un pedido con el carrito vacío.");
@@ -90,10 +90,8 @@ public class PedidoService {
 
                 BigDecimal subtotal = BigDecimal.ZERO;
 
-                // Calculamos el subtotal
                 for (CarritoItem item : carrito) {
 
-                        // Validamos la cantidad
                         if (item.getCantidad() <= 0) {
                                 throw new IllegalArgumentException(
                                                 "La cantidad de un producto debe ser mayor que 0.");
@@ -108,12 +106,10 @@ public class PedidoService {
                                                                                         item.getCantidad())));
                 }
 
-                // IVA
                 BigDecimal iva = subtotal
                                 .multiply(BigDecimal.valueOf(0.21))
                                 .setScale(2, RoundingMode.HALF_UP);
 
-                // Envío
                 BigDecimal envio;
 
                 if (subtotal.compareTo(BigDecimal.valueOf(100)) >= 0) {
@@ -122,25 +118,19 @@ public class PedidoService {
                         envio = new BigDecimal("4.99");
                 }
 
-                // Total
                 BigDecimal total = subtotal
                                 .add(iva)
                                 .add(envio)
                                 .setScale(2, RoundingMode.HALF_UP);
 
-                // ID del pedido
                 String idPedido = "PED-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
-                // Creamos la entidad Pedido
                 Pedido pedidoEntidad = new Pedido();
 
                 pedidoEntidad.setFechaPedido(LocalDateTime.now());
 
-                // Estado general del pedido
                 pedidoEntidad.setEstado(EstadoPedido.PENDIENTE);
 
-                // Estado inicial del pago.
-                // Todavía Stripe no ha confirmado ningún cobro.
                 pedidoEntidad.setEstadoPago(EstadoPago.PENDIENTE);
 
                 pedidoEntidad.setUsuario(usuario);
@@ -161,10 +151,8 @@ public class PedidoService {
                 pedidoEntidad.setEnvio(envio);
                 pedidoEntidad.setTotal(total);
 
-                // Guardamos el pedido
                 pedidoRepository.save(pedidoEntidad);
 
-                // Guardamos cada producto del pedido
                 for (CarritoItem item : carrito) {
 
                         PedidoItem pedidoItem = new PedidoItem();
@@ -180,9 +168,6 @@ public class PedidoService {
                         pedidoItem.setColor(item.getColor());
                         pedidoItem.setTalla(
                                         String.valueOf(item.getTalla()));
-
-                        // Obtenemos directamente el producto relacionado
-                        // con el item persistente del carrito.
 
                         Producto producto = item.getProducto();
 
@@ -201,7 +186,6 @@ public class PedidoService {
                         pedidoItemRepository.save(pedidoItem);
                 }
 
-                // Creamos el resumen que devolveremos al frontend
                 PedidoResumen resumen = new PedidoResumen();
 
                 resumen.setIdPedido(idPedido);
@@ -213,12 +197,9 @@ public class PedidoService {
                 return resumen;
         }
 
+        // Calcula el resumen del carrito actual.
         @Transactional(readOnly = true)
         public PedidoResumen obtenerResumenPedido() {
-
-                // =================================================
-                // OBTENER USUARIO AUTENTICADO
-                // =================================================
 
                 Authentication authentication = SecurityContextHolder
                                 .getContext()
@@ -233,10 +214,6 @@ public class PedidoService {
                 }
 
                 String emailUsuario = authentication.getName();
-
-                // =================================================
-                // OBTENER SU CARRITO
-                // =================================================
 
                 List<CarritoItem> carrito = carritoService.obtenerItemsEntidad(
                                 emailUsuario);
@@ -254,12 +231,10 @@ public class PedidoService {
                                                                                         item.getCantidad())));
                 }
 
-                // IVA
                 BigDecimal iva = subtotal
                                 .multiply(BigDecimal.valueOf(0.21))
                                 .setScale(2, RoundingMode.HALF_UP);
 
-                // Envío
                 BigDecimal envio;
 
                 if (subtotal.compareTo(BigDecimal.ZERO) == 0
@@ -272,7 +247,6 @@ public class PedidoService {
                         envio = new BigDecimal("4.99");
                 }
 
-                // Total
                 BigDecimal total = subtotal
                                 .add(iva)
                                 .add(envio)
@@ -288,11 +262,13 @@ public class PedidoService {
                 return resumen;
         }
 
+        // Devuelve todos los pedidos almacenados.
         public List<Pedido> obtenerTodosLosPedidos() {
 
                 return pedidoRepository.findAll();
         }
 
+        // Resume los pedidos para el panel.
         public List<PedidoAdminResumen> obtenerResumenPedidosAdmin() {
 
                 return pedidoRepository.findAll()
@@ -308,39 +284,19 @@ public class PedidoService {
                                 .toList();
         }
 
-        // =====================================================
-        // OBTENER PEDIDOS DEL CLIENTE AUTENTICADO
-        // -----------------------------------------------------
-        // El cliente no envía ningún ID.
-        //
-        // La identidad se obtiene desde la sesión autenticada
-        // y únicamente se devuelven sus propios pedidos.
-        // =====================================================
-
+        // Devuelve los pedidos de un cliente.
         @Transactional(readOnly = true)
         public List<PedidoClienteRespuesta> obtenerPedidosCliente(
                         String emailUsuarioAutenticado) {
-
-                // =================================================
-                // BUSCAR USUARIO AUTENTICADO
-                // =================================================
 
                 Usuario usuario = usuarioRepository
                                 .findByEmail(emailUsuarioAutenticado)
                                 .orElseThrow(() -> new SecurityException(
                                                 "Usuario autenticado no encontrado."));
 
-                // =================================================
-                // RECUPERAR SUS PEDIDOS
-                // =================================================
-
                 List<Pedido> pedidos = pedidoRepository
                                 .findByUsuarioIdOrderByFechaPedidoDesc(
                                                 usuario.getId());
-
-                // =================================================
-                // CONVERTIR ENTIDADES A DTO
-                // =================================================
 
                 return pedidos
                                 .stream()
@@ -361,7 +317,7 @@ public class PedidoService {
                                         return new PedidoClienteRespuesta(
                                                         pedido.getIdPedido(),
                                                         pedido.getFechaPedido(),
-                                                        pedido.getEstado(), // 
+                                                        pedido.getEstado(), // Estado mostrado al cliente.
                                                         pedido.getNombre(),
                                                         pedido.getApellidos(),
                                                         pedido.getEmail(),
@@ -380,25 +336,17 @@ public class PedidoService {
                                 .toList();
         }
 
+        // Valida y guarda un cambio de estado.
         public Pedido cambiarEstadoPedido(
                         Long pedidoId,
                         EstadoPedido nuevoEstado) {
-
-                // =========================================
-                // BUSCAR PEDIDO
-                // =========================================
 
                 Pedido pedido = pedidoRepository
                                 .findById(pedidoId)
                                 .orElseThrow(() -> new IllegalArgumentException(
                                                 "El pedido no existe."));
 
-                // Guardamos el estado actual antes de modificarlo
                 EstadoPedido estadoAnterior = pedido.getEstado();
-
-                // =========================================
-                // OBTENER USUARIO AUTENTICADO
-                // =========================================
 
                 Authentication authentication = SecurityContextHolder
                                 .getContext()
@@ -417,10 +365,6 @@ public class PedidoService {
                                 .orElseThrow(() -> new SecurityException(
                                                 "Usuario autenticado no encontrado."));
 
-                // =========================================
-                // COMPROBAR PERMISOS
-                // =========================================
-
                 if (usuario.getRol() != RolUsuario.ADMIN
                                 && usuario.getRol() != RolUsuario.JEFE
                                 && usuario.getRol() != RolUsuario.TRABAJADOR) {
@@ -429,25 +373,10 @@ public class PedidoService {
                                         "No tienes permisos para modificar pedidos.");
                 }
 
-                // =========================================
-                // COMPROBAR SI REALMENTE CAMBIÓ EL ESTADO
-                // =========================================
-
                 if (estadoAnterior == nuevoEstado) {
-
-                        // No existe ningún cambio real.
-                        // No modificamos el pedido.
-                        // No generamos un registro en el historial.
 
                         return pedido;
                 }
-
-                // =========================================
-                // COMPROBAR QUE EL PEDIDO ESTÁ PAGADO
-                // -----------------------------------------
-                // Los gestores únicamente trabajan con
-                // pedidos cuyo pago ya ha sido confirmado.
-                // =========================================
 
                 if (pedido.getEstadoPago() != EstadoPago.PAGADO) {
 
@@ -455,25 +384,13 @@ public class PedidoService {
                                         "No se puede gestionar un pedido que no está pagado.");
                 }
 
-                // =========================================
-                // VALIDAR TRANSICIÓN DE ESTADO
-                // =========================================
-
                 validarTransicionEstado(
                                 estadoAnterior,
                                 nuevoEstado);
 
-                // =========================================
-                // CAMBIAR ESTADO
-                // =========================================
-
                 pedido.setEstado(nuevoEstado);
 
                 Pedido pedidoActualizado = pedidoRepository.save(pedido);
-
-                // =========================================
-                // GUARDAR HISTORIAL
-                // =========================================
 
                 HistorialPedido historial = new HistorialPedido();
 
@@ -488,18 +405,8 @@ public class PedidoService {
                 return pedidoActualizado;
 
         }
-        
-        // =====================================================
-        // VALIDAR TRANSICIÓN DEL ESTADO DEL PEDIDO
-        // -----------------------------------------------------
-        // Controla el flujo logístico permitido.
-        //
-        // PREPARANDO -> ENVIADO / CANCELADO
-        // ENVIADO -> ENTREGADO / DEVUELTO
-        //
-        // ENTREGADO, DEVUELTO y CANCELADO son estados finales.
-        // =====================================================
 
+        // Comprueba que el cambio de estado sea válido.
         private void validarTransicionEstado(
                         EstadoPedido estadoActual,
                         EstadoPedido nuevoEstado) {
@@ -532,39 +439,21 @@ public class PedidoService {
                 }
         }
 
-        // =====================================================
-        // OBTENER PEDIDO DEL USUARIO AUTENTICADO
-        // -----------------------------------------------------
-        // Se utiliza para enlazar un pedido concreto
-        // con su sesión de pago de Stripe.
-        // =====================================================
-
+        // Busca un pedido y comprueba su propietario.
         @Transactional(readOnly = true)
         public Pedido obtenerPedidoPorIdPedido(
                         String idPedido,
                         String emailUsuario) {
-
-                // =================================================
-                // BUSCAR USUARIO
-                // =================================================
 
                 Usuario usuario = usuarioRepository
                                 .findByEmail(emailUsuario)
                                 .orElseThrow(() -> new SecurityException(
                                                 "Usuario autenticado no encontrado."));
 
-                // =================================================
-                // BUSCAR PEDIDO
-                // =================================================
-
                 Pedido pedido = pedidoRepository
                                 .findByIdPedido(idPedido)
                                 .orElseThrow(() -> new IllegalArgumentException(
                                                 "El pedido no existe."));
-
-                // =================================================
-                // COMPROBAR QUE EL PEDIDO PERTENECE AL USUARIO
-                // =================================================
 
                 if (pedido.getUsuario() == null
                                 || !pedido.getUsuario().getId().equals(usuario.getId())) {
@@ -576,13 +465,7 @@ public class PedidoService {
                 return pedido;
         }
 
-        // =====================================================
-        // GUARDAR IDENTIFICADOR DE SESIÓN DE STRIPE
-        // -----------------------------------------------------
-        // Relaciona nuestro pedido con la Checkout Session
-        // creada por Stripe.
-        // =====================================================
-
+        // Asocia una sesión de Stripe al pedido.
         @Transactional
         public void guardarStripeSessionId(
                         Pedido pedido,
@@ -603,23 +486,11 @@ public class PedidoService {
                 pedidoRepository.save(pedido);
         }
 
-        // =====================================================
-        // CONFIRMAR PAGO DESDE STRIPE
-        // -----------------------------------------------------
-        // Este método será llamado cuando Stripe confirme
-        // mediante webhook que el pago se ha completado.
-        //
-        // No depende del navegador del cliente.
-        // =====================================================
-
+        // Confirma el pago y completa sus efectos asociados.
         @Transactional
         public void confirmarPagoStripe(
                         String stripeSessionId,
                         String idPedido) {
-
-                // =================================================
-                // VALIDAR DATOS RECIBIDOS
-                // =================================================
 
                 if (stripeSessionId == null || stripeSessionId.isBlank()) {
                         throw new IllegalArgumentException(
@@ -631,21 +502,10 @@ public class PedidoService {
                                         "El identificador del pedido no puede estar vacío.");
                 }
 
-                // =================================================
-                // BUSCAR PEDIDO
-                // =================================================
-
                 Pedido pedido = pedidoRepository
                                 .findByIdPedido(idPedido)
                                 .orElseThrow(() -> new IllegalArgumentException(
                                                 "No existe el pedido asociado al pago de Stripe."));
-
-                // =================================================
-                // COMPROBAR QUE LA SESIÓN DE STRIPE COINCIDE
-                // -------------------------------------------------
-                // No aceptamos confirmar PED-XXXX utilizando una
-                // sesión de Stripe perteneciente a otro pedido.
-                // =================================================
 
                 if (pedido.getStripeSessionId() == null
                                 || !pedido.getStripeSessionId().equals(stripeSessionId)) {
@@ -654,50 +514,22 @@ public class PedidoService {
                                         "La sesión de Stripe no coincide con el pedido.");
                 }
 
-                // =================================================
-                // EVITAR PROCESAR DOS VECES EL MISMO WEBHOOK
-                // -------------------------------------------------
-                // Stripe puede reenviar eventos.
-                //
-                // Si ya está pagado, simplemente terminamos.
-                // Esto hace la operación idempotente.
-                // =================================================
-
                 if (pedido.getEstadoPago() == EstadoPago.PAGADO) {
                         return;
                 }
-
-                // =================================================
-                // CONFIRMAR PAGO
-                // =================================================
 
                 pedido.setEstadoPago(EstadoPago.PAGADO);
                 pedido.setEstado(EstadoPedido.PREPARANDO);
 
                 pedidoRepository.save(pedido);
 
-                // =================================================
-                // CREAR FACTURA
-                // =================================================
-
                 facturaService.crearFactura(pedido);
-
-                // =================================================
-                // VACIAR CARRITO DESPUÉS DEL PAGO
-                // =================================================
 
                 if (pedido.getUsuario() != null) {
 
                         carritoService.vaciarCarrito(
                                         pedido.getUsuario().getEmail());
                 }
-
-                // =================================================
-                // VACIAR CARRITO DESPUÉS DEL PAGO
-                // -------------------------------------------------
-                // El carrito solo se elimina cuando Stripe
-                // confirma realmente el pago mediante webhook.
-                // =================================================
 
                 if (pedido.getUsuario() != null) {
 

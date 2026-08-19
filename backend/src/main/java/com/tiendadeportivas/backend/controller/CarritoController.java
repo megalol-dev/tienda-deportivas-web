@@ -1,3 +1,4 @@
+// Expone las operaciones del carrito del cliente.
 package com.tiendadeportivas.backend.controller;
 
 import java.security.Principal;
@@ -21,16 +22,14 @@ public class CarritoController {
 
     private final CarritoService carritoService;
 
+    // Crea una instancia de CarritoController.
     public CarritoController(
             CarritoService carritoService) {
 
         this.carritoService = carritoService;
     }
 
-    // =====================================================
-    // OBTENER CARRITO
-    // =====================================================
-
+    // Devuelve el carrito del cliente.
     @GetMapping("/carrito")
     public List<CarritoItemRespuesta> obtenerCarrito(
             Principal principal) {
@@ -39,10 +38,7 @@ public class CarritoController {
                 principal.getName());
     }
 
-    // =====================================================
-    // AGREGAR PRODUCTO
-    // =====================================================
-
+    // Añade o incrementa un producto del carrito.
     @PostMapping("/carrito")
     public void agregarProducto(
             @RequestBody CarritoItemRequest item,
@@ -53,10 +49,7 @@ public class CarritoController {
                 item);
     }
 
-    // =====================================================
-    // ELIMINAR PRODUCTO
-    // =====================================================
-
+    // Elimina una variante del carrito.
     @DeleteMapping("/carrito")
     public void eliminarProducto(
             @RequestParam int idProducto,
@@ -71,10 +64,7 @@ public class CarritoController {
                 color);
     }
 
-    // =====================================================
-    // VACIAR CARRITO
-    // =====================================================
-
+    // Elimina todas las líneas del carrito.
     @DeleteMapping("/carrito/todo")
     public void vaciarCarrito(
             Principal principal) {

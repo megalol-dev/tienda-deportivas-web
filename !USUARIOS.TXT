@@ -1,3 +1,8 @@
+AVISO DIDÁCTICO:
+Estos usuarios y credenciales de prueba se guardan aquí únicamente para facilitar
+el manejo y las pruebas de la aplicación en el entorno local. En una aplicación
+real nunca deben almacenarse ni publicarse credenciales dentro del proyecto.
+
 // Usuarios de prueba de la aplicación
 ------------------------------------------------------------------------------------------
 Exiten 4 roles

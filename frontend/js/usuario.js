@@ -1,18 +1,7 @@
-// =====================================================
-// ESTADO DEL USUARIO EN LA TIENDA
-// -----------------------------------------------------
-// • Comprueba si existe una sesión.
-// • Muestra el nombre del usuario.
-// • Cambia Login/Registro por Cerrar sesión.
-// • Permite cerrar la sesión de Spring Security.
-// =====================================================
-
+// Gestiona la sesión mostrada en la tienda.
 document.addEventListener("DOMContentLoaded", comprobarUsuario);
 
-// =====================================================
-// COMPROBAR USUARIO ACTUAL
-// =====================================================
-
+// Actualiza la cabecera según la sesión.
 async function comprobarUsuario() {
   const nombreUsuario = document.getElementById("nombre-usuario");
   const btnAuth = document.getElementById("btn-auth");
@@ -28,35 +17,23 @@ async function comprobarUsuario() {
       credentials: "include",
     });
 
-    // =============================================
-    // NO HAY SESIÓN
-    // =============================================
-
     if (!respuesta.ok) {
       mostrarUsuarioAnonimo(nombreUsuario, btnAuth);
       return;
     }
 
-    // =============================================
-    // HAY SESIÓN
-    // =============================================
-
     const usuario = await respuesta.json();
 
     nombreUsuario.textContent = usuario.nombre;
 
-    // MOSTRAR ACCESO AL PERFIL
     btnPerfil.hidden = false;
 
     btnAuth.textContent = "Cerrar sesión";
 
-    // Quitamos el enlace al login
     btnAuth.href = "#";
 
-    // Indicamos qué comportamiento tiene ahora
     btnAuth.dataset.accion = "logout";
 
-    // Evitamos posibles listeners duplicados
     btnAuth.removeEventListener("click", cerrarSesion);
     btnAuth.addEventListener("click", cerrarSesion);
   } catch (error) {
@@ -66,14 +43,10 @@ async function comprobarUsuario() {
   }
 }
 
-// =====================================================
-// MOSTRAR ESTADO ANÓNIMO
-// =====================================================
-
+// Restaura la cabecera para un visitante.
 function mostrarUsuarioAnonimo(nombreUsuario, btnAuth) {
   const btnPerfil = document.getElementById("btn-perfil");
 
-  // Ocultamos el acceso al perfil
   if (btnPerfil) {
     btnPerfil.hidden = true;
   }
@@ -82,26 +55,18 @@ function mostrarUsuarioAnonimo(nombreUsuario, btnAuth) {
 
   btnAuth.textContent = "Registrarse / Iniciar sesión";
 
-  // Eliminamos el comportamiento anterior de cerrar sesión
   btnAuth.removeEventListener("click", cerrarSesion);
 
-  // Restauramos el enlace normal al login
   btnAuth.href = "usuario/login.html";
 
   btnAuth.dataset.accion = "login";
 }
 
-// =====================================================
-// CERRAR SESIÓN
-// =====================================================
-
+// Cierra la sesión desde la tienda.
 async function cerrarSesion(event) {
   event.preventDefault();
 
   try {
-    // =============================================
-    // OBTENER CSRF
-    // =============================================
 
     const respuestaCsrf = await fetch("http://localhost:8080/auth/csrf", {
       method: "GET",
@@ -113,10 +78,6 @@ async function cerrarSesion(event) {
     }
 
     const csrf = await respuestaCsrf.json();
-
-    // =============================================
-    // LOGOUT
-    // =============================================
 
     const respuesta = await fetch("http://localhost:8080/auth/logout", {
       method: "POST",
@@ -134,23 +95,9 @@ async function cerrarSesion(event) {
 
     console.log("Sesión cerrada correctamente.");
 
-    // =============================================
-    // LIMPIAR CARRITO VISUAL
-    // -------------------------------------------------
-    // El carrito real permanece almacenado en Spring
-    // asociado al usuario.
-    //
-    // Solo eliminamos del navegador los productos que
-    // pertenecían a la sesión que acaba de cerrarse.
-    // =============================================
-
     if (typeof limpiarCarritoFrontend === "function") {
       limpiarCarritoFrontend();
     }
-
-    // =============================================
-    // VOLVER AL ESTADO INICIAL
-    // =============================================
 
     const nombreUsuario = document.getElementById("nombre-usuario");
 

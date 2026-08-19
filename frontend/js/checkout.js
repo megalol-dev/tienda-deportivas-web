@@ -1,12 +1,4 @@
-// ===============================================
-// CHECKOUT / GESTIÓN DE PEDIDOS
-// - navegación del checkout
-// - resumen del pedido
-// - validación del formulario
-// - envío del pedido al backend
-// - confirmación del pedido
-// ===============================================
-
+// Gestiona el checkout y el regreso desde Stripe.
 const sectionCheckout = document.getElementById("checkout");
 const checkoutContainer = document.querySelector(".checkout-container");
 const resumenLineas = document.getElementById("resumen-lineas");
@@ -20,47 +12,39 @@ const confirmacionSection = document.getElementById("checkout-confirmacion");
 const confirmIdEl = document.getElementById("confirm-id");
 const btnConfirmVolver = document.getElementById("confirm-volver");
 
-// ======================================================
-//  BLOQUEO / DESBLOQUEO DE NAVEGACIÓN DURANTE CHECKOUT
-// ======================================================
-
+// Oculta el catálogo durante el checkout.
 function bloquearNavegacionCheckout() {
-  // Ocultar secciones de marcas (home)
+
   document.querySelectorAll(".seccion-deportivas").forEach((sec) => {
     sec.classList.add("oculto");
   });
 
-  // Ocultar vista de marca si estaba abierta
   const vistaMarca = document.getElementById("vista-marca");
   if (vistaMarca) vistaMarca.classList.add("oculto");
 
-  // Desactivar todos los enlaces del header (Usuario, Carrito, etc.)
   document.querySelectorAll("header a").forEach((a) => {
     a.style.pointerEvents = "none";
     a.style.opacity = "0.4";
   });
 }
 
+// Restaura el catálogo tras el checkout.
 function desbloquearNavegacionCheckout() {
-  // Mostrar secciones de marcas (home)
+
   document.querySelectorAll(".seccion-deportivas").forEach((sec) => {
     sec.classList.remove("oculto");
   });
 
-  // Reactivar enlaces del header
   document.querySelectorAll("header a").forEach((a) => {
     a.style.pointerEvents = "auto";
     a.style.opacity = "1";
   });
 }
 
-// ---------- ABRIR / CERRAR CHECKOUT ----------
-
-// Se llama desde el botón "Pagar ahora" (carrito.js)
+// Abre el formulario y el resumen de compra.
 function abrirCheckout() {
   bloquearNavegacionCheckout();
 
-  // Cerramos modal del carrito si está abierto
   try {
     if (typeof modalCarrito !== "undefined") {
       modalCarrito.classList.remove("modal-visible");
@@ -72,13 +56,11 @@ function abrirCheckout() {
     );
   }
 
-  // Aseguramos que el formulario/resumen esté visible
   if (checkoutContainer) {
     checkoutContainer.classList.remove("oculto");
-    checkoutContainer.style.display = ""; // por si quedó en none
+    checkoutContainer.style.display = ""; // Garantiza que sea visible.
   }
 
-  // Y la confirmación oculta al entrar
   if (confirmacionSection) {
     confirmacionSection.classList.add("oculto");
   }
@@ -92,24 +74,21 @@ function abrirCheckout() {
   }
 }
 
-// Cerrar checkout y dejarlo listo para la próxima vez
+// Cierra y reinicia la vista del checkout.
 function cerrarCheckout() {
   if (sectionCheckout) {
     sectionCheckout.classList.add("oculto");
   }
   if (checkoutContainer) {
     checkoutContainer.classList.remove("oculto");
-    checkoutContainer.style.display = ""; // restauramos el display
+    checkoutContainer.style.display = ""; // Restaura su visualización.
   }
   if (confirmacionSection) {
     confirmacionSection.classList.add("oculto");
   }
 }
 
-// ===============================================
-// RENDERIZADO DEL RESUMEN DEL PEDIDO
-// ===============================================
-
+// Renderiza los productos del resumen.
 function renderizarResumenPedido() {
   if (
     !resumenLineas ||
@@ -177,6 +156,7 @@ function renderizarResumenPedido() {
   });
 }
 
+// Carga los importes calculados por el backend.
 async function cargarResumenBackend() {
   try {
     const respuesta = await fetch(`${API_URL}/pedido/resumen`, {
@@ -201,11 +181,11 @@ async function cargarResumenBackend() {
   }
 }
 
-// ---------- VALIDACIÓN DEL FORMULARIO ----------
-
+// Valida los datos de envío del checkout.
 function validarFormularioCheckout() {
   if (!formularioCheckout) return false;
 
+  // Muestra el error de un campo y lo enfoca.
   function mostrarErrorCampo(input, mensaje) {
     if (typeof mostrarToast === "function") {
       mostrarToast(mensaje, "error");
@@ -230,17 +210,14 @@ function validarFormularioCheckout() {
   const paisSelect = document.getElementById("pais-c");
   const acepto = document.getElementById("acepto-terminos");
 
-  // Nombre
   if (!nombre || !nombre.value.trim()) {
     return mostrarErrorCampo(nombre, 'El campo "Nombre" es obligatorio.');
   }
 
-  // Apellidos
   if (!apellidos || !apellidos.value.trim()) {
     return mostrarErrorCampo(apellidos, 'El campo "Apellidos" es obligatorio.');
   }
 
-  // Email
   const emailVal = email ? email.value.trim() : "";
   if (!emailVal) {
     return mostrarErrorCampo(
@@ -256,7 +233,6 @@ function validarFormularioCheckout() {
     );
   }
 
-  // Teléfono
   const telVal = telefono ? telefono.value.trim() : "";
   if (!telVal) {
     return mostrarErrorCampo(telefono, 'El campo "Teléfono" es obligatorio.');
@@ -269,22 +245,18 @@ function validarFormularioCheckout() {
     );
   }
 
-  // Dirección
   if (!dir1 || !dir1.value.trim()) {
     return mostrarErrorCampo(dir1, 'El campo "Dirección" es obligatorio.');
   }
 
-  // Ciudad
   if (!ciudad || !ciudad.value.trim()) {
     return mostrarErrorCampo(ciudad, 'El campo "Ciudad" es obligatorio.');
   }
 
-  // Provincia
   if (!provincia || !provincia.value.trim()) {
     return mostrarErrorCampo(provincia, 'El campo "Provincia" es obligatorio.');
   }
 
-  // Código postal
   const cp = cpInput ? cpInput.value.trim() : "";
   if (!cp) {
     return mostrarErrorCampo(
@@ -299,12 +271,10 @@ function validarFormularioCheckout() {
     );
   }
 
-  // País
   if (!paisSelect || !paisSelect.value) {
     return mostrarErrorCampo(paisSelect, "Selecciona un país para el envío.");
   }
 
-  // Aceptación de términos
   if (!acepto || !acepto.checked) {
     return mostrarErrorCampo(
       acepto,
@@ -315,18 +285,7 @@ function validarFormularioCheckout() {
   return true;
 }
 
-// ===============================================
-// ENVÍO DEL PEDIDO AL BACKEND
-// ===============================================
-
-// ===============================================
-// CREAR CHECKOUT DE STRIPE DESDE UN PEDIDO
-// -----------------------------------------------
-// El pedido ya ha sido guardado en MariaDB.
-// Stripe recibe su idPedido y construye el pago
-// utilizando los datos almacenados en backend.
-// ===============================================
-
+// Solicita la URL de pago de un pedido.
 async function crearCheckoutStripe(idPedido) {
 
   const respuesta = await fetchConCsrf(
@@ -387,9 +346,6 @@ if (formularioCheckout) {
     };
 
     try {
-      // ===============================================
-      // CREACIÓN DEL PEDIDO EN MARIADB
-      // ===============================================
 
       const respuesta = await fetchConCsrf(`${API_URL}/pedido`, {
         method: "POST",
@@ -414,22 +370,11 @@ if (formularioCheckout) {
 
       const resumen = await respuesta.json();
 
-      // ===============================================
-      // CREAR SESIÓN DE PAGO PARA ESTE PEDIDO
-      // -----------------------------------------------
-      // El backend utilizará resumen.idPedido para
-      // recuperar el pedido recién guardado en MariaDB.
-      // ===============================================
-
       const urlStripe = await crearCheckoutStripe(resumen.idPedido);
 
       console.log("Pedido creado:", resumen.idPedido);
 
       console.log("URL Stripe creada:", urlStripe);
-
-      // ===============================================
-      // REDIRIGIR A STRIPE
-      // ===============================================
 
       window.location.href = urlStripe;
 
@@ -440,10 +385,6 @@ if (formularioCheckout) {
     }
   });
 }
-
-// ======================================================
-// BOTONES: CANCELAR Y VOLVER
-// ======================================================
 
 if (btnCancelarCheckout) {
   btnCancelarCheckout.addEventListener("click", () => {
@@ -471,19 +412,6 @@ if (btnConfirmVolver) {
   });
 }
 
-
-// ======================================================
-// REGRESO DESDE STRIPE
-// ------------------------------------------------------
-// Stripe devuelve al usuario a la tienda con:
-//
-// ?pago=exito&idPedido=PED-XXXXXXXX
-//
-// o:
-//
-// ?pago=cancelado&idPedido=PED-XXXXXXXX
-// ======================================================
-
 document.addEventListener("DOMContentLoaded", async () => {
 
   const parametros = new URLSearchParams(window.location.search);
@@ -491,26 +419,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   const estadoPago = parametros.get("pago");
   const idPedido = parametros.get("idPedido");
 
-  // Si no venimos de Stripe, no hacemos nada.
   if (!estadoPago) {
     return;
   }
 
-
-  // ====================================================
-  // PAGO REALIZADO CORRECTAMENTE
-  // ====================================================
-
   if (estadoPago === "exito") {
     bloquearNavegacionCheckout();
 
-    // Ocultamos el formulario del checkout
     if (checkoutContainer) {
       checkoutContainer.classList.add("oculto");
       checkoutContainer.style.display = "none";
     }
 
-    // Mostramos la sección general del checkout
     if (sectionCheckout) {
       sectionCheckout.classList.remove("oculto");
 
@@ -520,22 +440,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
-    // Mostramos la confirmación
     if (confirmacionSection) {
       confirmacionSection.classList.remove("oculto");
     }
 
-    // Mostramos el número de pedido
     if (confirmIdEl && idPedido) {
       confirmIdEl.textContent = idPedido;
     }
-
-    // ==================================================
-    // ACTUALIZAR CARRITO
-    // --------------------------------------------------
-    // Recargamos el carrito desde MariaDB
-    // al regresar desde Stripe.
-    // ==================================================
 
     if (typeof cargarCarritoDesdeBackend === "function") {
       await cargarCarritoDesdeBackend();
@@ -553,11 +464,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-
-  // ====================================================
-  // PAGO CANCELADO
-  // ====================================================
-
   if (estadoPago === "cancelado") {
 
     if (typeof mostrarToast === "function") {
@@ -567,14 +473,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
     }
   }
-
-
-  // ====================================================
-  // LIMPIAR URL
-  // ----------------------------------------------------
-  // Eliminamos los parámetros para que al actualizar
-  // con F5 no vuelva a aparecer la confirmación.
-  // ====================================================
 
   window.history.replaceState(
     {},

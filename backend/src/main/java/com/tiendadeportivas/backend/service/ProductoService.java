@@ -1,3 +1,4 @@
+// Aplica la lógica de gestión del catálogo.
 package com.tiendadeportivas.backend.service;
 
 import java.util.List;
@@ -12,62 +13,30 @@ import java.util.ArrayList;
 @Service
 public class ProductoService {
 
-    // =====================================================
-    // REPOSITORIO
-    // =====================================================
-
     private final ProductoRepository productoRepository;
 
-    // =====================================================
-    // CONSTRUCTOR
-    // =====================================================
-
+    // Crea una instancia de ProductoService.
     public ProductoService(ProductoRepository productoRepository) {
         this.productoRepository = productoRepository;
     }
 
-    // =====================================================
-    // OBTENER PRODUCTOS ACTIVOS
-    // -----------------------------------------------------
-    // La tienda pública solamente mostrará productos
-    // que tengan activo = true.
-    //
-    // Los productos ya no se leen desde catalogo.json.
-    // Ahora se obtienen directamente desde MySQL.
-    // =====================================================
-
+    // Devuelve los productos disponibles.
     public List<Producto> obtenerProductos() {
 
         return productoRepository.findByActivoTrueOrderByIdAsc();
     }
 
-    // =====================================================
-    // OBTENER TODOS LOS PRODUCTOS - ADMINISTRACIÓN
-    // -----------------------------------------------------
-    // Devuelve tanto productos activos como inactivos.
-    // =====================================================
-
+    // Devuelve todos los productos al panel.
     public List<Producto> obtenerTodosLosProductos() {
 
         return productoRepository.findAll();
     }
 
-    // =====================================================
-    // CREAR PRODUCTO
-    // =====================================================
-
+    // Valida y guarda un producto.
     public Producto crearProducto(
             ProductoRequest request) {
 
-        // =================================================
-        // VALIDACIONES ESPECÍFICAS
-        // =================================================
-
         validarDatosProducto(request);
-
-        // =================================================
-        // CREAR ENTIDAD
-        // =================================================
 
         Producto producto = new Producto();
 
@@ -96,32 +65,17 @@ public class ProductoService {
         return productoRepository.save(producto);
     }
 
-    // =====================================================
-    // EDITAR PRODUCTO
-    // =====================================================
-
+    // Valida y actualiza un producto.
     public Producto editarProducto(
             Long id,
             ProductoRequest request) {
 
-        // =================================================
-        // VALIDACIONES ESPECÍFICAS
-        // =================================================
-
         validarDatosProducto(request);
-
-        // =================================================
-        // BUSCAR PRODUCTO
-        // =================================================
 
         Producto producto = productoRepository
                 .findById(id)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Producto no encontrado con ID: " + id));
-
-        // =================================================
-        // ACTUALIZAR DATOS
-        // =================================================
 
         producto.setMarca(
                 request.getMarca().trim());
@@ -148,21 +102,9 @@ public class ProductoService {
         return productoRepository.save(producto);
     }
 
-    // =====================================================
-    // VALIDAR DATOS ESPECÍFICOS DEL PRODUCTO
-    // -----------------------------------------------------
-    // Complementa las validaciones de ProductoRequest.
-    //
-    // Aquí comprobamos especialmente los elementos
-    // internos de las listas de tallas y colores.
-    // =====================================================
-
+    // Comprueba los datos y variantes del producto.
     private void validarDatosProducto(
             ProductoRequest request) {
-
-        // =================================================
-        // TALLAS
-        // =================================================
 
         if (request.getTallas() == null
                 || request.getTallas().isEmpty()) {
@@ -181,10 +123,6 @@ public class ProductoService {
                         "Las tallas deben estar entre 1 y 100.");
             }
         }
-
-        // =================================================
-        // COLORES
-        // =================================================
 
         if (request.getColores() == null
                 || request.getColores().isEmpty()) {
@@ -209,6 +147,5 @@ public class ProductoService {
             }
         }
     }
-
 
 }

@@ -1,3 +1,4 @@
+// Define los estados posibles de un pedido.
 package com.tiendadeportivas.backend.model;
 
 public enum EstadoPedido {

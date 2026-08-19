@@ -1,39 +1,12 @@
-// ===============================================
-//  CARRITO URBANSNEAKERS
-//  - estado del carrito
-//  - localStorage
-//  - badge del header
-//  - modal del carrito
-//  - toasts
-// ===============================================
-
-// ===============================================
-// CONFIGURACIÓN DEL BACKEND
-// ===============================================
-
-// Dirección del servidor Spring Boot.
-// En producción únicamente habrá que cambiar esta constante.
-// const API_URL = "http://localhost:8080";
-
-// ===============================================
-// ESTADO DEL CARRITO
-// ===============================================
-
-// Productos añadidos al carrito.
+// Gestiona el estado y la interfaz del carrito.
 let carrito = [];
 
-// Totales calculados automáticamente.
 let totalProductos = 0;
 let totalPrecio = 0;
 
-// ===============================================
-// SISTEMA DE TOASTS
-// ===============================================
+const TOAST_DURATION_MS = 3000;
 
-// Tiempo que permanece visible un aviso.
-const TOAST_DURATION_MS = 2000;
-
-// Crea (si no existe) y devuelve el contenedor
+// Obtiene o crea el contenedor de avisos.
 function getToastContainer() {
   let container = document.getElementById("toast-container");
   if (!container) {
@@ -46,35 +19,22 @@ function getToastContainer() {
   return container;
 }
 
-// Muestra un toast con mensaje y variante (success|error)
+// Muestra una notificación temporal.
 function mostrarToast(mensaje, variante = "success") {
   const container = getToastContainer();
   const toast = document.createElement("div");
   toast.className = `toast ${variante}`;
-
-  // Icono dependiendo del tipo de mensaje
-  const icono = variante === "error" ? "❌" : "✅";
-  toast.innerHTML = `<span class="icon">${icono}</span> ${mensaje}`;
+  toast.textContent = mensaje;
   container.appendChild(toast);
   setTimeout(() => {
     toast.remove();
-  }, TOAST_DURATION_MS + 3000);
+  }, TOAST_DURATION_MS + 300);
 }
 
-// ===============================================
-// SINCRONIZACIÓN CON EL BACKEND
-// ===============================================
-
-// Obtiene el carrito almacenado en Spring Boot.
-//
-// Spring devuelve únicamente los datos necesarios:
-// idProducto, talla, color y cantidad.
-//
-// Después completamos cada elemento utilizando
-// la información oficial del catálogo.
+// Sincroniza el carrito con el backend.
 async function cargarCarritoDesdeBackend() {
   try {
-    // Esperamos a que catalogo.js termine de cargar los productos.
+
     await catalogoPromise;
 
     const respuesta = await fetch(`${API_URL}/carrito`, {
@@ -94,8 +54,6 @@ async function cargarCarritoDesdeBackend() {
           (prod) => prod.id === itemBackend.idProducto,
         );
 
-        // Si el producto ya no existe en el catálogo,
-        // no se muestra en el carrito.
         if (!producto) {
           return null;
         }
@@ -126,28 +84,17 @@ async function cargarCarritoDesdeBackend() {
   }
 }
 
-// Actualiza todos los elementos visuales que dependen
-// del estado actual del carrito.
+// Actualiza las vistas dependientes del carrito.
 function actualizarInterfazCarrito() {
   recalcularTotales();
   actualizarBadge();
 
-  // Solo intentamos renderizar el modal si sus elementos existen.
   if (listaCarrito && totalCarritoEl) {
     renderizarCarritoModal();
   }
 }
 
-// ===============================================
-// LIMPIAR CARRITO DEL FRONTEND
-// ------------------------------------------------
-// Se utiliza al cerrar sesión.
-//
-// NO borra el carrito real del usuario en Spring.
-// Solo elimina de la pantalla los datos que quedaron
-// cargados en memoria del usuario anterior.
-// ===============================================
-
+// Limpia el carrito visible del navegador.
 function limpiarCarritoFrontend() {
   carrito = [];
 
@@ -156,12 +103,12 @@ function limpiarCarritoFrontend() {
 
   actualizarInterfazCarrito();
 
-  // Cerramos el modal del carrito si estaba abierto.
   if (typeof cerrarModalCarrito === "function") {
     cerrarModalCarrito();
   }
 }
 
+// Recalcula unidades e importe del carrito.
 function recalcularTotales() {
   totalProductos = carrito.reduce(
     (acumulado, item) => acumulado + item.cantidad,
@@ -174,10 +121,7 @@ function recalcularTotales() {
   );
 }
 
-// ===============================================
-// ACTUALIZACIÓN DEL HEADER
-// ===============================================
-
+// Actualiza el contador del carrito.
 function actualizarBadge() {
   const badge = document.getElementById("badge");
   if (!badge) return;
@@ -185,18 +129,13 @@ function actualizarBadge() {
   badge.textContent = unidades;
 }
 
-// ===============================================
-// MODAL - SESIÓN NECESARIA PARA COMPRAR
-// ===============================================
-
 const modalSesionCarrito = document.getElementById("modal-sesion-carrito");
 
 const btnCancelarModalSesion = document.getElementById(
   "btn-cancelar-modal-sesion",
 );
 
-// Abre el aviso que informa al usuario de que
-// necesita iniciar sesión para utilizar el carrito.
+// Muestra el aviso de sesión necesaria.
 function abrirModalSesionCarrito() {
   if (!modalSesionCarrito) return;
 
@@ -205,7 +144,7 @@ function abrirModalSesionCarrito() {
   document.body.classList.add("modal-sesion-abierto");
 }
 
-// Cierra el aviso y devuelve al usuario a la tienda.
+// Oculta el aviso de sesión necesaria.
 function cerrarModalSesionCarrito() {
   if (!modalSesionCarrito) return;
 
@@ -214,12 +153,10 @@ function cerrarModalSesionCarrito() {
   document.body.classList.remove("modal-sesion-abierto");
 }
 
-// Botón Cancelar.
 if (btnCancelarModalSesion) {
   btnCancelarModalSesion.addEventListener("click", cerrarModalSesionCarrito);
 }
 
-// Permitir cerrar también pulsando ESC.
 document.addEventListener("keydown", (event) => {
   if (
     event.key === "Escape" &&
@@ -230,45 +167,19 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-// ===============================================
-// GESTIÓN DEL CARRITO
-// ===============================================
-
-// Envía a Spring el producto seleccionado.
-//
-// Antes de añadir:
-// 1. Comprueba que exista una sesión activa.
-// 2. Comprueba que el producto exista.
-// 3. Obtiene talla y color.
-// 4. Envía el producto a Spring.
-// 5. Recarga el carrito desde el backend.
-//
-// El backend sigue siendo la autoridad real sobre
-// si el usuario puede utilizar el carrito.
-// ===============================================
-
+// Añade una variante al carrito del cliente.
 async function agregarAlCarrito(idProducto) {
-  // ===========================================
-  // COMPROBAR SESIÓN
-  // ===========================================
 
   const sesionActiva = await comprobarSesionCarrito();
 
   if (!sesionActiva) {
-    // Eliminamos cualquier carrito antiguo
-    // que pudiera quedar cargado visualmente.
+
     limpiarCarritoFrontend();
 
-    // Mostramos el modal indicando que
-    // es necesario iniciar sesión.
     abrirModalSesionCarrito();
 
     return;
   }
-
-  // ===========================================
-  // BUSCAR PRODUCTO
-  // ===========================================
 
   const producto = catalogo.find((prod) => prod.id === idProducto);
 
@@ -277,10 +188,6 @@ async function agregarAlCarrito(idProducto) {
 
     return;
   }
-
-  // ===========================================
-  // OBTENER TALLA Y COLOR
-  // ===========================================
 
   const selectTalla = document.getElementById(`talla-${idProducto}`);
 
@@ -294,10 +201,6 @@ async function agregarAlCarrito(idProducto) {
 
     return;
   }
-
-  // ===========================================
-  // AÑADIR PRODUCTO EN SPRING
-  // ===========================================
 
   try {
     const respuesta = await fetchConCsrf(`${API_URL}/carrito`, {
@@ -315,27 +218,11 @@ async function agregarAlCarrito(idProducto) {
       }),
     });
 
-    // =======================================
-    // SPRING RECHAZÓ LA OPERACIÓN
-    // =======================================
-
     if (!respuesta.ok) {
       throw new Error("El servidor no pudo añadir el producto.");
     }
 
-    // =======================================
-    // ACTUALIZAR CARRITO
-    // =======================================
-
-    // No modificamos el array manualmente.
-    // Volvemos a pedir a Spring el carrito real
-    // perteneciente al usuario autenticado.
-
     await cargarCarritoDesdeBackend();
-
-    // =======================================
-    // AVISO DE ÉXITO
-    // =======================================
 
     mostrarToast(`🛒 Añadido: ${producto.nombre}`, "success");
   } catch (error) {
@@ -345,10 +232,6 @@ async function agregarAlCarrito(idProducto) {
   }
 }
 
-// ===============================================
-// ELEMENTOS DEL MODAL
-// ===============================================
-
 const btnCarrito = document.getElementById("btn-carrito");
 const modalCarrito = document.getElementById("modal-carrito");
 const modalOverlay = modalCarrito.querySelector(".modal-overlay");
@@ -356,21 +239,20 @@ const btnCerrarCarrito = document.getElementById("btn-cerrar-carrito");
 const listaCarrito = document.getElementById("carrito-items");
 const totalCarritoEl = document.getElementById("carrito-total");
 const btnVaciar = document.getElementById("btn-vaciar");
-const btnPagar = document.getElementById("btn-pagar"); // llama a abrirCheckout()
+const btnPagar = document.getElementById("btn-pagar"); // Abre el checkout.
 
-// ===============================================
-// FUNCIONES DEL MODAL
-// ===============================================
-
+// Abre el modal del carrito.
 function abrirModalCarrito() {
   renderizarCarritoModal();
   modalCarrito.classList.add("modal-visible");
 }
 
+// Cierra el modal del carrito.
 function cerrarModalCarrito() {
   modalCarrito.classList.remove("modal-visible");
 }
 
+// Renderiza las líneas del carrito.
 function renderizarCarritoModal() {
   if (!carrito.length) {
     listaCarrito.innerHTML = `
@@ -437,10 +319,7 @@ function renderizarCarritoModal() {
   totalCarritoEl.textContent = `${total.toFixed(2).replace(".", ",")} €`;
 }
 
-// ===============================================
-// COMPROBAR SESIÓN PARA UTILIZAR EL CARRITO
-// ===============================================
-
+// Comprueba si hay un cliente autenticado.
 async function comprobarSesionCarrito() {
   try {
     const respuesta = await fetch(`${API_URL}/auth/me`, {
@@ -456,28 +335,14 @@ async function comprobarSesionCarrito() {
   }
 }
 
-// ===============================================
-// EVENTOS
-// ===============================================
-
 if (btnCarrito) {
   btnCarrito.addEventListener("click", async (event) => {
     event.preventDefault();
 
-    // =======================================
-    // COMPROBAR SESIÓN
-    // =======================================
-
     const sesionActiva = await comprobarSesionCarrito();
 
-    // =======================================
-    // SIN SESIÓN
-    // =======================================
-
     if (!sesionActiva) {
-      // Por seguridad visual eliminamos
-      // cualquier carrito antiguo que pudiera
-      // quedar cargado en memoria.
+
       limpiarCarritoFrontend();
 
       abrirModalSesionCarrito();
@@ -485,12 +350,6 @@ if (btnCarrito) {
       return;
     }
 
-    // =======================================
-    // CON SESIÓN
-    // =======================================
-
-    // Volvemos a consultar Spring antes de
-    // mostrar el carrito.
     await cargarCarritoDesdeBackend();
 
     abrirModalCarrito();
@@ -536,7 +395,6 @@ if (listaCarrito) {
         throw new Error("El servidor no pudo eliminar el producto.");
       }
 
-      // Spring elimina y después volvemos a leer su estado.
       await cargarCarritoDesdeBackend();
 
       mostrarToast("Producto eliminado del carrito.", "success");
@@ -574,30 +432,22 @@ if (btnPagar) {
   btnPagar.addEventListener("click", (e) => {
     e.preventDefault();
 
-    // Si el carrito está vacío o el total de unidades es 0, mostramos aviso
     if (!carrito.length || totalProductos === 0) {
       if (typeof mostrarToast === "function") {
         mostrarToast("No puedes hacer un pedido con 0 productos.", "error");
       } else {
         alert("No puedes hacer un pedido con 0 productos.");
       }
-      return; // no abrimos el checkout
+      return; // Mantiene cerrado el checkout.
     }
 
-    // Si hay productos, continuamos al checkout
     if (typeof abrirCheckout === "function") {
       abrirCheckout();
     }
   });
 }
 
-// ===============================================
-// INICIALIZAR CARRITO
-// ------------------------------------------------
-// Solo cargamos un carrito cuando existe una
-// sesión autenticada.
-// ===============================================
-
+// Carga el carrito al iniciar la página.
 async function inicializarCarrito() {
   const sesionActiva = await comprobarSesionCarrito();
 

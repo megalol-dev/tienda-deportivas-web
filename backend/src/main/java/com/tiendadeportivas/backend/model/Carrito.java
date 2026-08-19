@@ -1,3 +1,4 @@
+// Representa el carrito persistente de un usuario.
 package com.tiendadeportivas.backend.model;
 
 import java.util.ArrayList;
@@ -22,59 +23,55 @@ public class Carrito {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // =====================================================
-    // USUARIO PROPIETARIO
-    // -----------------------------------------------------
-    // Cada usuario tiene un único carrito.
-    // =====================================================
-
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id", nullable = false, unique = true)
     private Usuario usuario;
 
-    // =====================================================
-    // ITEMS
-    // -----------------------------------------------------
-    // Si eliminamos un item del carrito, también se
-    // elimina físicamente de carrito_items.
-    // =====================================================
-
     @OneToMany(mappedBy = "carrito", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CarritoItem> items = new ArrayList<>();
 
+    // Crea una instancia de Carrito.
     public Carrito() {
     }
 
+    // Devuelve el identificador.
     public Long getId() {
         return id;
     }
 
+    // Devuelve el valor de usuario.
     public Usuario getUsuario() {
         return usuario;
     }
 
+    // Actualiza el valor de usuario.
     public void setUsuario(Usuario usuario) {
         this.usuario = usuario;
     }
 
+    // Devuelve el valor de items.
     public List<CarritoItem> getItems() {
         return items;
     }
 
+    // Actualiza el valor de items.
     public void setItems(List<CarritoItem> items) {
         this.items = items;
     }
 
+    // Añade una línea y enlaza su propietario.
     public void agregarItem(CarritoItem item) {
         items.add(item);
         item.setCarrito(this);
     }
 
+    // Elimina una línea del carrito.
     public void eliminarItem(CarritoItem item) {
         items.remove(item);
         item.setCarrito(null);
     }
 
+    // Elimina todas las líneas del carrito.
     public void vaciar() {
         items.clear();
     }

@@ -1,22 +1,8 @@
-// =====================================================
-// PANEL DE ADMINISTRACIÓN
-// -----------------------------------------------------
-// Comprueba:
-// • Que exista una sesión.
-// • Que el usuario tenga un rol autorizado.
-// • Muestra nombre y rol.
-// • Gestiona pedidos.
-// • Gestiona productos.
-// • Permite cerrar sesión.
-// =====================================================
-
+// Gestiona pedidos, productos y empleados del panel.
 let usuarioActual = null;
 
 document.addEventListener("DOMContentLoaded", comprobarAccesoPanel);
-
-// =====================================================
-// ELEMENTOS GENERALES DEL PANEL
-// =====================================================
+document.addEventListener("DOMContentLoaded", inicializarDesplazamientoEmpleados);
 
 const btnLogout = document.getElementById("btn-logout-panel");
 const btnGestionPedidos = document.getElementById("btn-gestion-pedidos");
@@ -28,21 +14,17 @@ const seccionUsuarios = document.getElementById("seccion-usuarios");
 const camposPasswordEmpleado = document.getElementById(
   "campos-password-empleado",
 );
+const avisoOrientacionSalida = document.getElementById(
+  "aviso-orientacion-salida",
+);
 
-// =====================================================
-// COMPROBAR ACCESO
-// =====================================================
-
+// Comprueba el rol y prepara el panel.
 async function comprobarAccesoPanel() {
   try {
     const respuesta = await fetch(`${API_URL}/auth/me`, {
       method: "GET",
       credentials: "include",
     });
-
-    // =============================================
-    // NO HAY SESIÓN
-    // =============================================
 
     if (!respuesta.ok) {
       window.location.href = "../usuario/login.html";
@@ -53,10 +35,6 @@ async function comprobarAccesoPanel() {
     const usuario = await respuesta.json();
     usuarioActual = usuario;
 
-    // =============================================
-    // COMPROBAR ROL
-    // =============================================
-
     const rolesPermitidos = ["TRABAJADOR", "JEFE", "ADMIN"];
 
     if (!rolesPermitidos.includes(usuario.rol)) {
@@ -65,9 +43,7 @@ async function comprobarAccesoPanel() {
       return;
     }
 
-    // =============================================
-    // MOSTRAR INFORMACIÓN
-    // =============================================
+    document.body.classList.add("panel-gestion-autorizado");
 
     const nombrePanel = document.getElementById("nombre-panel");
     const rolPanel = document.getElementById("rol-panel");
@@ -80,13 +56,6 @@ async function comprobarAccesoPanel() {
       rolPanel.textContent = usuario.rol;
     }
 
-    // =============================================
-    // PERMISOS PARA GESTIÓN DE EMPLEADOS
-    // ---------------------------------------------
-    // Solamente JEFE y ADMIN pueden acceder
-    // a la gestión del personal.
-    // =============================================
-
     if (btnGestionUsuarios) {
       if (usuario.rol === "JEFE" || usuario.rol === "ADMIN") {
         btnGestionUsuarios.classList.remove("oculto");
@@ -94,13 +63,6 @@ async function comprobarAccesoPanel() {
         btnGestionUsuarios.classList.add("oculto");
       }
     }
-
-    // =============================================
-    // PERMISOS PARA CREAR EMPLEADOS
-    // ---------------------------------------------
-    // Solamente JEFE y ADMIN pueden ver el botón
-    // para crear nuevos empleados.
-    // =============================================
 
     const contenedorNuevoEmpleado = document.getElementById(
       "contenedor-nuevo-empleado",
@@ -122,14 +84,11 @@ async function comprobarAccesoPanel() {
   }
 }
 
-// =====================================================
-// LOGOUT
-// =====================================================
-
 if (btnLogout) {
   btnLogout.addEventListener("click", cerrarSesionPanel);
 }
 
+// Cierra la sesión desde el panel.
 async function cerrarSesionPanel() {
   try {
     const respuesta = await fetchConCsrf(`${API_URL}/auth/logout`, {
@@ -140,20 +99,43 @@ async function cerrarSesionPanel() {
       throw new Error("No se pudo cerrar la sesión.");
     }
 
-    window.location.href = "../usuario/login.html";
+    prepararSalidaResponsivePanel();
   } catch (error) {
     console.error("Error cerrando sesión:", error);
   }
 }
 
-// =====================================================
-// MODAL DE MENSAJES DEL PANEL
-// -----------------------------------------------------
-// Modal reutilizable para:
-// • Pedidos
-// • Productos
-// • Usuarios
-// =====================================================
+// Espera a que el móvil vuelva a vertical antes de salir del panel.
+function prepararSalidaResponsivePanel() {
+  const esMovilHorizontal = window.matchMedia(
+    "(max-width: 1024px) and (max-height: 600px) and (orientation: landscape)",
+  ).matches;
+
+  if (!esMovilHorizontal || !avisoOrientacionSalida) {
+    window.location.href = "../usuario/login.html";
+
+    return;
+  }
+
+  avisoOrientacionSalida.classList.add("activo");
+
+  const redirigirAlVolverAVertical = () => {
+    if (!window.matchMedia("(orientation: portrait)").matches) {
+      return;
+    }
+
+    window.removeEventListener("resize", redirigirAlVolverAVertical);
+    window.removeEventListener(
+      "orientationchange",
+      redirigirAlVolverAVertical,
+    );
+
+    window.location.href = "../usuario/login.html";
+  };
+
+  window.addEventListener("resize", redirigirAlVolverAVertical);
+  window.addEventListener("orientationchange", redirigirAlVolverAVertical);
+}
 
 const modalPanel = document.getElementById("modal-panel");
 
@@ -163,10 +145,7 @@ const modalPanelMensaje = document.getElementById("modal-panel-mensaje");
 
 const btnCerrarModalPanel = document.getElementById("btn-cerrar-modal-panel");
 
-// =====================================================
-// MOSTRAR MODAL
-// =====================================================
-
+// Muestra un mensaje en el panel.
 function mostrarModalPanel(titulo, mensaje) {
   if (!modalPanel || !modalPanelTitulo || !modalPanelMensaje) {
     return;
@@ -179,10 +158,7 @@ function mostrarModalPanel(titulo, mensaje) {
   modalPanel.classList.remove("oculto");
 }
 
-// =====================================================
-// CERRAR MODAL
-// =====================================================
-
+// Cierra el mensaje del panel.
 function cerrarModalPanel() {
   if (!modalPanel) {
     return;
@@ -195,26 +171,13 @@ if (btnCerrarModalPanel) {
   btnCerrarModalPanel.addEventListener("click", cerrarModalPanel);
 }
 
-// =====================================================
-// =====================================================
-// GESTIÓN DE PEDIDOS
-// =====================================================
-// =====================================================
-
 const tablaPedidosBody = document.getElementById("tabla-pedidos-body");
-
-// =====================================================
-// BOTÓN GESTIÓN DE PEDIDOS
-// =====================================================
 
 if (btnGestionPedidos) {
   btnGestionPedidos.addEventListener("click", mostrarGestionPedidos);
 }
 
-// =====================================================
-// MOSTRAR GESTIÓN DE PEDIDOS
-// =====================================================
-
+// Muestra la gestión de pedidos.
 async function mostrarGestionPedidos() {
   if (!seccionPedidos) {
     return;
@@ -238,10 +201,7 @@ async function mostrarGestionPedidos() {
   });
 }
 
-// =====================================================
-// CARGAR PEDIDOS
-// =====================================================
-
+// Carga los pedidos disponibles.
 async function cargarPedidos() {
   try {
     const respuesta = await fetch(`${API_URL}/admin/pedidos`, {
@@ -263,20 +223,13 @@ async function cargarPedidos() {
   }
 }
 
-// =====================================================
-// RENDERIZAR PEDIDOS
-// =====================================================
-
+// Renderiza la tabla o lista de pedidos.
 function renderizarPedidos(pedidos) {
   if (!tablaPedidosBody) {
     return;
   }
 
   tablaPedidosBody.innerHTML = "";
-
-  // =============================================
-  // NO EXISTEN PEDIDOS
-  // =============================================
 
   if (!Array.isArray(pedidos) || pedidos.length === 0) {
     tablaPedidosBody.innerHTML = `
@@ -289,10 +242,6 @@ function renderizarPedidos(pedidos) {
 
     return;
   }
-
-  // =============================================
-  // MOSTRAR PEDIDOS
-  // =============================================
 
   pedidos.forEach((pedido) => {
     const fila = document.createElement("tr");
@@ -352,10 +301,7 @@ function renderizarPedidos(pedidos) {
   });
 }
 
-// =====================================================
-// OPCIONES DE ESTADO
-// =====================================================
-
+// Crea las transiciones de estado permitidas.
 function crearOpcionesEstado(estadoActual) {
   const estados = [
     "PREPARANDO",
@@ -381,10 +327,6 @@ function crearOpcionesEstado(estadoActual) {
     .join("");
 }
 
-// =====================================================
-// BOTÓN GUARDAR ESTADO
-// =====================================================
-
 if (tablaPedidosBody) {
   tablaPedidosBody.addEventListener("click", async (event) => {
     const boton = event.target.closest(".btn-guardar-estado");
@@ -405,10 +347,7 @@ if (tablaPedidosBody) {
   });
 }
 
-// =====================================================
-// CAMBIAR ESTADO DEL PEDIDO
-// =====================================================
-
+// Guarda el nuevo estado de un pedido.
 async function cambiarEstadoPedido(pedidoId, nuevoEstado) {
   try {
     const respuesta = await fetchConCsrf(
@@ -445,12 +384,6 @@ async function cambiarEstadoPedido(pedidoId, nuevoEstado) {
   }
 }
 
-// =====================================================
-// =====================================================
-// GESTIÓN DE PRODUCTOS
-// =====================================================
-// =====================================================
-
 const tablaProductosBody = document.getElementById("tabla-productos-body");
 
 const btnNuevoProducto = document.getElementById("btn-nuevo-producto");
@@ -460,10 +393,6 @@ const formularioProductoContenedor = document.getElementById(
 );
 
 const btnCancelarProducto = document.getElementById("btn-cancelar-producto");
-
-// =====================================================
-// ELEMENTOS DEL FORMULARIO DE PRODUCTOS
-// =====================================================
 
 const formProducto = document.getElementById("form-producto");
 
@@ -495,33 +424,17 @@ const tituloFormularioProducto = document.getElementById(
   "titulo-formulario-producto",
 );
 
-// =====================================================
-// PRODUCTOS CARGADOS
-// -----------------------------------------------------
-// Guardamos temporalmente los productos recibidos
-// para poder localizar el producto que queremos editar.
-// =====================================================
-
 let productosCargados = [];
-
-// =====================================================
-// BOTÓN GESTIÓN DE PRODUCTOS
-// =====================================================
 
 if (btnGestionProductos) {
   btnGestionProductos.addEventListener("click", mostrarGestionProductos);
 }
 
-// =====================================================
-// MOSTRAR GESTIÓN DE PRODUCTOS
-// =====================================================
-
+// Muestra la gestión de productos.
 async function mostrarGestionProductos() {
   if (!seccionProductos) {
     return;
   }
-
-  // Ocultamos pedidos.
 
   if (seccionPedidos) {
     seccionPedidos.classList.add("oculto");
@@ -530,8 +443,6 @@ async function mostrarGestionProductos() {
   if (seccionUsuarios) {
     seccionUsuarios.classList.add("oculto");
   }
-
-  // Mostramos productos.
 
   seccionProductos.classList.remove("oculto");
 
@@ -543,10 +454,7 @@ async function mostrarGestionProductos() {
   });
 }
 
-// =====================================================
-// CARGAR PRODUCTOS
-// =====================================================
-
+// Carga los productos del panel.
 async function cargarProductos() {
   try {
     const respuesta = await fetch(`${API_URL}/admin/productos`, {
@@ -570,20 +478,13 @@ async function cargarProductos() {
   }
 }
 
-// =====================================================
-// RENDERIZAR PRODUCTOS
-// =====================================================
-
+// Renderiza la tabla de productos.
 function renderizarProductos(productos) {
   if (!tablaProductosBody) {
     return;
   }
 
   tablaProductosBody.innerHTML = "";
-
-  // =============================================
-  // NO EXISTEN PRODUCTOS
-  // =============================================
 
   if (!Array.isArray(productos) || productos.length === 0) {
     tablaProductosBody.innerHTML = `
@@ -596,10 +497,6 @@ function renderizarProductos(productos) {
 
     return;
   }
-
-  // =============================================
-  // MOSTRAR PRODUCTOS
-  // =============================================
 
   productos.forEach((producto) => {
     const fila = document.createElement("tr");
@@ -664,47 +561,29 @@ function renderizarProductos(productos) {
   });
 }
 
-// =====================================================
-// BOTÓN CREAR NUEVO PRODUCTO
-// =====================================================
-
 if (btnNuevoProducto) {
   btnNuevoProducto.addEventListener("click", prepararNuevoProducto);
 }
 
-// =====================================================
-// PREPARAR NUEVO PRODUCTO
-// =====================================================
-
+// Prepara el formulario de creación de producto.
 function prepararNuevoProducto() {
   if (!formProducto || !formularioProductoContenedor) {
     return;
   }
 
-  // Limpiamos todos los campos.
-
   formProducto.reset();
-
-  // Un producto nuevo todavía no tiene ID.
 
   if (productoId) {
     productoId.value = "";
   }
 
-  // Cambiamos el título.
-
   if (tituloFormularioProducto) {
     tituloFormularioProducto.textContent = "Crear producto";
   }
 
-  // Los productos nuevos estarán activos
-  // por defecto.
-
   if (productoActivo) {
     productoActivo.value = "true";
   }
-
-  // Mostramos el formulario.
 
   formularioProductoContenedor.classList.remove("oculto");
 
@@ -713,10 +592,6 @@ function prepararNuevoProducto() {
     block: "start",
   });
 }
-
-// =====================================================
-// BOTÓN EDITAR PRODUCTO
-// =====================================================
 
 if (tablaProductosBody) {
   tablaProductosBody.addEventListener("click", (event) => {
@@ -732,10 +607,7 @@ if (tablaProductosBody) {
   });
 }
 
-// =====================================================
-// PREPARAR EDICIÓN DE PRODUCTO
-// =====================================================
-
+// Carga un producto en el formulario de edición.
 function prepararEdicionProducto(id) {
   const producto = productosCargados.find(
     (producto) => String(producto.id) === String(id),
@@ -751,10 +623,6 @@ function prepararEdicionProducto(id) {
     return;
   }
 
-  // =============================================
-  // RELLENAR FORMULARIO
-  // =============================================
-
   productoId.value = producto.id;
   productoMarca.value = producto.marca;
   productoNombre.value = producto.nombre;
@@ -766,20 +634,12 @@ function prepararEdicionProducto(id) {
   productoColores.value = Array.isArray(producto.colores)
     ? producto.colores.join(", ")
     : "";
-  
+
   productoActivo.value = String(producto.activo);
-  
-  // =============================================
-  // CAMBIAR TÍTULO
-  // =============================================
 
   if (tituloFormularioProducto) {
     tituloFormularioProducto.textContent = "Editar producto";
   }
-
-  // =============================================
-  // MOSTRAR FORMULARIO
-  // =============================================
 
   if (formularioProductoContenedor) {
     formularioProductoContenedor.classList.remove("oculto");
@@ -791,24 +651,11 @@ function prepararEdicionProducto(id) {
   }
 }
 
-// =====================================================
-// GUARDAR PRODUCTO
-// -----------------------------------------------------
-// Si tiene ID:
-//      PUT -> modificar producto.
-//
-// Si no tiene ID:
-//      POST -> crear producto.
-// =====================================================
-
 if (formProducto) {
   formProducto.addEventListener("submit", guardarProducto);
 }
 
-// =====================================================
-// MOSTRAR ERROR EN UN CAMPO DE PRODUCTO
-// =====================================================
-
+// Muestra un error del formulario de producto.
 function mostrarErrorCampoProducto(input, elementoError, mensaje) {
   if (!input || !elementoError) {
     return;
@@ -819,11 +666,7 @@ function mostrarErrorCampoProducto(input, elementoError, mensaje) {
   input.classList.add("campo-invalido");
 }
 
-
-// =====================================================
-// LIMPIAR ERROR DE UN CAMPO DE PRODUCTO
-// =====================================================
-
+// Limpia un error del formulario de producto.
 function limpiarErrorCampoProducto(input, elementoError) {
   if (!input || !elementoError) {
     return;
@@ -834,6 +677,7 @@ function limpiarErrorCampoProducto(input, elementoError) {
   input.classList.remove("campo-invalido");
 }
 
+// Valida la marca del producto.
 function validarCampoMarcaProducto() {
   const marca = productoMarca.value.trim();
 
@@ -852,6 +696,7 @@ function validarCampoMarcaProducto() {
   return true;
 }
 
+// Valida el nombre del producto.
 function validarCampoNombreProducto() {
   const nombre = productoNombre.value.trim();
 
@@ -870,6 +715,7 @@ function validarCampoNombreProducto() {
   return true;
 }
 
+// Valida el precio del producto.
 function validarCampoPrecioProducto() {
   const precio = Number(productoPrecio.value);
 
@@ -893,6 +739,7 @@ function validarCampoPrecioProducto() {
   return true;
 }
 
+// Valida las tallas del producto.
 function validarCampoTallasProducto() {
   const textosTallas = productoTallas.value
     .split(",")
@@ -935,7 +782,7 @@ function validarCampoTallasProducto() {
   return true;
 }
 
-
+// Valida los colores del producto.
 function validarCampoColoresProducto() {
   const colores = productoColores.value.split(",").map((color) => color.trim());
 
@@ -963,11 +810,6 @@ function validarCampoColoresProducto() {
 
   return true;
 }
-
-
-// =====================================================
-// VALIDACIÓN AL SALIR DE CADA CAMPO
-// =====================================================
 
 if (productoMarca) {
   productoMarca.addEventListener(
@@ -1004,34 +846,19 @@ if (productoColores) {
   );
 }
 
-// =====================================================
-// VALIDAR DATOS DEL PRODUCTO
-// =====================================================
-
+// Valida el formulario completo del producto.
 function validarProducto() {
   const marca = productoMarca.value.trim();
   const nombre = productoNombre.value.trim();
   const precio = Number(productoPrecio.value);
 
-  // =============================================
-  // MARCA
-  // =============================================
-
   if (marca.length < 2 || marca.length > 100) {
     return "La marca debe tener entre 2 y 100 caracteres.";
   }
 
-  // =============================================
-  // NOMBRE
-  // =============================================
-
   if (nombre.length < 2 || nombre.length > 150) {
     return "El nombre debe tener entre 2 y 150 caracteres.";
   }
-
-  // =============================================
-  // PRECIO
-  // =============================================
 
   if (
     !Number.isFinite(precio) ||
@@ -1040,10 +867,6 @@ function validarProducto() {
   ) {
     return "El precio debe estar entre 0,01 € y 99.999.999,99 €.";
   }
-
-  // =============================================
-  // TALLAS
-  // =============================================
 
   const textosTallas = productoTallas.value
     .split(",")
@@ -1070,10 +893,6 @@ function validarProducto() {
     return "Las tallas deben estar entre 1 y 100.";
   }
 
-  // =============================================
-  // COLORES
-  // =============================================
-
   const colores = productoColores.value
     .split(",")
     .map((color) => color.trim());
@@ -1092,6 +911,7 @@ function validarProducto() {
   return null;
 }
 
+// Crea o actualiza un producto.
 async function guardarProducto(event) {
   event.preventDefault();
 
@@ -1104,27 +924,16 @@ async function guardarProducto(event) {
   }
 
   try {
-    // =============================================
-    // CONVERTIR TALLAS
-    // =============================================
 
     const tallas = productoTallas.value
       .split(",")
       .map((talla) => Number(talla.trim()))
       .filter((talla) => !Number.isNaN(talla));
 
-    // =============================================
-    // CONVERTIR COLORES
-    // =============================================
-
     const colores = productoColores.value
       .split(",")
       .map((color) => color.trim())
       .filter((color) => color !== "");
-
-    // =============================================
-    // DATOS DEL PRODUCTO
-    // =============================================
 
     const datosProducto = {
       marca: productoMarca.value.trim(),
@@ -1140,17 +949,9 @@ async function guardarProducto(event) {
       activo: productoActivo.value === "true",
     };
 
-    // =============================================
-    // COMPROBAR SI CREAMOS O EDITAMOS
-    // =============================================
-
     const id = productoId.value;
 
     let respuesta;
-
-    // =============================================
-    // EDITAR PRODUCTO
-    // =============================================
 
     if (id) {
       respuesta = await fetchConCsrf(`${API_URL}/admin/productos/${id}`, {
@@ -1164,9 +965,6 @@ async function guardarProducto(event) {
       });
     }
 
-    // =============================================
-    // CREAR PRODUCTO
-    // =============================================
     else {
       respuesta = await fetchConCsrf(`${API_URL}/admin/productos`, {
         method: "POST",
@@ -1179,10 +977,6 @@ async function guardarProducto(event) {
       });
     }
 
-    // =============================================
-    // COMPROBAR RESPUESTA
-    // =============================================
-
     if (!respuesta.ok) {
       let mensaje = "No se pudo guardar el producto.";
 
@@ -1193,7 +987,7 @@ async function guardarProducto(event) {
           mensaje = error.message;
         }
       } catch {
-        // Conservamos el mensaje genérico.
+
       }
 
       mostrarModalPanel("Datos incorrectos", mensaje);
@@ -1205,15 +999,7 @@ async function guardarProducto(event) {
 
     console.log("Producto guardado:", productoGuardado);
 
-    // =============================================
-    // RECARGAR TABLA
-    // =============================================
-
     await cargarProductos();
-
-    // =============================================
-    // OCULTAR Y LIMPIAR FORMULARIO
-    // =============================================
 
     if (formularioProductoContenedor) {
       formularioProductoContenedor.classList.add("oculto");
@@ -1222,10 +1008,6 @@ async function guardarProducto(event) {
     formProducto.reset();
 
     productoId.value = "";
-
-    // =============================================
-    // MOSTRAR MODAL
-    // =============================================
 
     if (id) {
       mostrarModalPanel(
@@ -1243,23 +1025,17 @@ async function guardarProducto(event) {
   }
 }
 
-// =====================================================
-// CANCELAR FORMULARIO DE PRODUCTOS
-// =====================================================
-
 if (btnCancelarProducto) {
   btnCancelarProducto.addEventListener("click", cerrarFormularioProducto);
 }
 
+// Cierra y reinicia el formulario de producto.
 function cerrarFormularioProducto() {
   if (!formularioProductoContenedor) {
     return;
   }
 
   formularioProductoContenedor.classList.add("oculto");
-
-  // Dejamos el formulario limpio para
-  // la próxima operación.
 
   if (formProducto) {
     formProducto.reset();
@@ -1270,15 +1046,16 @@ function cerrarFormularioProducto() {
   }
 }
 
-// =====================================================
-// GESTIÓN DE EMPLEADOS
-// =====================================================
-
-// =====================================================
-// ELEMENTOS DE LA SECCIÓN
-// =====================================================
-
 const tablaUsuariosBody = document.getElementById("tabla-usuarios-body");
+const contenedorTablaEmpleados = document.querySelector(
+  "#seccion-usuarios .tabla-pedidos-contenedor",
+);
+const controlDesplazamientoEmpleados = document.getElementById(
+  "control-desplazamiento-empleados",
+);
+const botonesDesplazamientoEmpleados = document.querySelectorAll(
+  ".btn-desplazamiento-empleados",
+);
 const btnNuevoEmpleado = document.getElementById("btn-nuevo-empleado");
 const formularioEmpleadoContenedor = document.getElementById(
   "formulario-empleado-contenedor",
@@ -1293,7 +1070,6 @@ const empleadoConfirmarPassword = document.getElementById(
   "empleado-confirmar-password",
 );
 
-// MENSAJES DE ERROR DEL FORMULARIO DE EMPLEADOS
 const errorEmpleadoNombre = document.getElementById(
   "error-empleado-nombre",
 );
@@ -1316,33 +1092,68 @@ const tituloFormularioEmpleado = document.getElementById(
 const btnGuardarEmpleado = document.getElementById("btn-guardar-empleado");
 const btnCancelarEmpleado = document.getElementById("btn-cancelar-empleado");
 
-// =====================================================
-// EMPLEADOS CARGADOS
-// -----------------------------------------------------
-// Guardamos los empleados recibidos del servidor
-// para poder recuperar sus datos al pulsar Editar.
-// =====================================================
-
 let empleadosCargados = [];
-
-// =====================================================
-// BOTÓN GESTIÓN DE EMPLEADOS
-// =====================================================
 
 if (btnGestionUsuarios) {
   btnGestionUsuarios.addEventListener("click", mostrarGestionUsuarios);
 }
 
-// =====================================================
-// MOSTRAR GESTIÓN DE EMPLEADOS
-// =====================================================
+// Sincroniza el control inferior con la posición horizontal de la tabla.
+function actualizarControlDesplazamientoEmpleados() {
+  if (!contenedorTablaEmpleados || !controlDesplazamientoEmpleados) {
+    return;
+  }
 
+  const desplazamientoMaximo = Math.max(
+    0,
+    contenedorTablaEmpleados.scrollWidth - contenedorTablaEmpleados.clientWidth,
+  );
+
+  controlDesplazamientoEmpleados.max = String(desplazamientoMaximo);
+  controlDesplazamientoEmpleados.value = String(
+    Math.min(contenedorTablaEmpleados.scrollLeft, desplazamientoMaximo),
+  );
+}
+
+// Activa el deslizador y los botones de desplazamiento de empleados.
+function inicializarDesplazamientoEmpleados() {
+  if (!contenedorTablaEmpleados || !controlDesplazamientoEmpleados) {
+    return;
+  }
+
+  controlDesplazamientoEmpleados.addEventListener("input", () => {
+    contenedorTablaEmpleados.scrollLeft = Number(
+      controlDesplazamientoEmpleados.value,
+    );
+  });
+
+  contenedorTablaEmpleados.addEventListener(
+    "scroll",
+    actualizarControlDesplazamientoEmpleados,
+    { passive: true },
+  );
+
+  botonesDesplazamientoEmpleados.forEach((boton) => {
+    boton.addEventListener("click", () => {
+      const direccion = Number(boton.dataset.direccion);
+      const distancia = Math.max(200, contenedorTablaEmpleados.clientWidth * 0.75);
+
+      contenedorTablaEmpleados.scrollBy({
+        left: direccion * distancia,
+        behavior: "smooth",
+      });
+    });
+  });
+
+  window.addEventListener("resize", actualizarControlDesplazamientoEmpleados);
+  actualizarControlDesplazamientoEmpleados();
+}
+
+// Muestra la gestión de empleados.
 async function mostrarGestionUsuarios() {
   if (!seccionUsuarios) {
     return;
   }
-
-  // Ocultamos las otras secciones.
 
   if (seccionPedidos) {
     seccionPedidos.classList.add("oculto");
@@ -1352,13 +1163,11 @@ async function mostrarGestionUsuarios() {
     seccionProductos.classList.add("oculto");
   }
 
-  // Mostramos empleados.
-
   seccionUsuarios.classList.remove("oculto");
 
-  // Obtenemos los empleados reales desde MySQL.
-
   await cargarEmpleados();
+
+  requestAnimationFrame(actualizarControlDesplazamientoEmpleados);
 
   seccionUsuarios.scrollIntoView({
     behavior: "smooth",
@@ -1366,10 +1175,7 @@ async function mostrarGestionUsuarios() {
   });
 }
 
-// =====================================================
-// CARGAR EMPLEADOS
-// =====================================================
-
+// Carga los empleados del panel.
 async function cargarEmpleados() {
   try {
     const respuesta = await fetch(`${API_URL}/admin/usuarios`, {
@@ -1393,20 +1199,13 @@ async function cargarEmpleados() {
   }
 }
 
-// =====================================================
-// RENDERIZAR EMPLEADOS
-// =====================================================
-
+// Renderiza la tabla de empleados.
 function renderizarEmpleados(empleados) {
   if (!tablaUsuariosBody) {
     return;
   }
 
   tablaUsuariosBody.innerHTML = "";
-
-  // =============================================
-  // NO HAY EMPLEADOS
-  // =============================================
 
   if (!Array.isArray(empleados) || empleados.length === 0) {
     tablaUsuariosBody.innerHTML = `
@@ -1420,20 +1219,11 @@ function renderizarEmpleados(empleados) {
     return;
   }
 
-  // =============================================
-  // MOSTRAR EMPLEADOS
-  // =============================================
-
   empleados.forEach((empleado) => {
     const fila = document.createElement("tr");
 
     const esUsuarioActual = usuarioActual && empleado.id === usuarioActual.id;
 
-    // Un JEFE solamente puede editar TRABAJADORES.
-    //
-    // No puede editar:
-    // • ADMIN
-    // • otros JEFES
     const esEmpleadoProtegidoParaJefe =
       usuarioActual &&
       usuarioActual.rol === "JEFE" &&
@@ -1501,30 +1291,19 @@ function renderizarEmpleados(empleados) {
   });
 }
 
-// =====================================================
-// CREAR NUEVO EMPLEADO
-// =====================================================
-
 if (btnNuevoEmpleado) {
   btnNuevoEmpleado.addEventListener("click", prepararNuevoEmpleado);
 }
 
+// Prepara el formulario de creación de empleado.
 function prepararNuevoEmpleado() {
   if (!formEmpleado || !formularioEmpleadoContenedor) {
     return;
   }
 
-  // =============================================
-  // LIMPIAR FORMULARIO
-  // =============================================
-
   formEmpleado.reset();
 
   empleadoId.value = "";
-
-  // =============================================
-  // CONFIGURAR MODO CREAR
-  // =============================================
 
   if (tituloFormularioEmpleado) {
     tituloFormularioEmpleado.textContent = "Crear empleado";
@@ -1534,40 +1313,15 @@ function prepararNuevoEmpleado() {
     btnGuardarEmpleado.textContent = "Guardar empleado";
   }
 
-  // =============================================
-  // MOSTRAR CAMPOS DE CONTRASEÑA
-  // ---------------------------------------------
-  // Al crear un empleado sí necesitamos
-  // introducir una contraseña.
-  // =============================================
-
   if (camposPasswordEmpleado) {
     camposPasswordEmpleado.classList.remove("oculto");
   }
-
-  // =============================================
-  // CONTRASEÑA OBLIGATORIA AL CREAR
-  // =============================================
 
   empleadoPassword.required = true;
 
   empleadoConfirmarPassword.required = true;
 
-  // =============================================
-  // VALORES POR DEFECTO
-  // =============================================
-
   empleadoRol.value = "TRABAJADOR";
-
-  // =============================================
-  // JERARQUÍA DE ROLES AL CREAR
-  // ---------------------------------------------
-  // JEFE:
-  // solamente puede crear TRABAJADORES.
-  //
-  // ADMIN:
-  // puede crear TRABAJADORES y JEFES.
-  // =============================================
 
   const opcionJefe = empleadoRol.querySelector('option[value="JEFE"]');
 
@@ -1579,10 +1333,6 @@ function prepararNuevoEmpleado() {
 
   empleadoActivo.value = "true";
 
-  // =============================================
-  // MOSTRAR FORMULARIO
-  // =============================================
-
   formularioEmpleadoContenedor.classList.remove("oculto");
 
   formularioEmpleadoContenedor.scrollIntoView({
@@ -1590,10 +1340,6 @@ function prepararNuevoEmpleado() {
     block: "start",
   });
 }
-
-// =====================================================
-// BOTÓN EDITAR EMPLEADO
-// =====================================================
 
 if (tablaUsuariosBody) {
   tablaUsuariosBody.addEventListener("click", (event) => {
@@ -1609,10 +1355,7 @@ if (tablaUsuariosBody) {
   });
 }
 
-// =====================================================
-// PREPARAR EDICIÓN DE EMPLEADO
-// =====================================================
-
+// Carga un empleado en el formulario de edición.
 function prepararEdicionEmpleado(id) {
   const empleado = empleadosCargados.find((empleado) => empleado.id === id);
 
@@ -1621,22 +1364,6 @@ function prepararEdicionEmpleado(id) {
 
     return;
   }
-
-  // =============================================
-  // IMPEDIR EDICIÓN VISUAL DEL ADMIN POR UN JEFE
-  // ---------------------------------------------
-  // Esta comprobación mejora la interfaz.
-  // La protección real continúa en Spring.
-  // =============================================
-
-  // =============================================
-  // JERARQUÍA VISUAL DE EDICIÓN
-  // ---------------------------------------------
-  // Un JEFE solamente puede editar TRABAJADORES.
-  //
-  // Esto mejora la UX.
-  // La seguridad real está en Spring.
-  // =============================================
 
   if (
     usuarioActual &&
@@ -1651,20 +1378,10 @@ function prepararEdicionEmpleado(id) {
     return;
   }
 
-  // =============================================
-  // RELLENAR DATOS
-  // =============================================
-
   empleadoId.value = empleado.id;
   empleadoNombre.value = empleado.nombre;
   empleadoEmail.value = empleado.email;
   empleadoRol.value = empleado.rol;
-  // =============================================
-  // JERARQUÍA DE ROLES AL EDITAR
-  // ---------------------------------------------
-  // Un JEFE no puede ascender un trabajador
-  // al rol JEFE.
-  // =============================================
 
   const opcionJefe = empleadoRol.querySelector('option[value="JEFE"]');
 
@@ -1674,18 +1391,6 @@ function prepararEdicionEmpleado(id) {
     opcionJefe.hidden = usuarioActual?.rol === "JEFE";
   }
   empleadoActivo.value = String(empleado.activo);
-
-  // =============================================
-  // CONTRASEÑA AL EDITAR
-  // ---------------------------------------------
-  // Los campos se muestran, pero son opcionales.
-  //
-  // Vacíos:
-  //      conserva la contraseña actual.
-  //
-  // Rellenos:
-  //      cambia la contraseña.
-  // =============================================
 
   if (camposPasswordEmpleado) {
     camposPasswordEmpleado.classList.remove("oculto");
@@ -1704,10 +1409,6 @@ function prepararEdicionEmpleado(id) {
       "Déjala vacía para conservar la contraseña actual. Si introduces una nueva, debe tener entre 8 y 72 caracteres, una letra y un número.";
   }
 
-  // =============================================
-  // CAMBIAR FORMULARIO A MODO EDICIÓN
-  // =============================================
-
   if (tituloFormularioEmpleado) {
     tituloFormularioEmpleado.textContent = "Editar empleado";
   }
@@ -1715,10 +1416,6 @@ function prepararEdicionEmpleado(id) {
   if (btnGuardarEmpleado) {
     btnGuardarEmpleado.textContent = "Guardar cambios";
   }
-
-  // =============================================
-  // MOSTRAR FORMULARIO
-  // =============================================
 
   formularioEmpleadoContenedor.classList.remove("oculto");
 
@@ -1728,25 +1425,11 @@ function prepararEdicionEmpleado(id) {
   });
 }
 
-// =====================================================
-// GUARDAR EMPLEADO
-// -----------------------------------------------------
-// Sin ID:
-//      POST → crear.
-//
-// Con ID:
-//      PUT → editar.
-// =====================================================
-
 if (formEmpleado) {
   formEmpleado.addEventListener("submit", guardarEmpleado);
 }
 
-
-// =====================================================
-// MOSTRAR ERROR EN UN CAMPO DE EMPLEADO
-// =====================================================
-
+// Muestra un error del formulario de empleado.
 function mostrarErrorCampoEmpleado(input, elementoError, mensaje) {
   if (!input || !elementoError) {
     return;
@@ -1757,11 +1440,7 @@ function mostrarErrorCampoEmpleado(input, elementoError, mensaje) {
   input.classList.add("campo-invalido");
 }
 
-
-// =====================================================
-// LIMPIAR ERROR DE UN CAMPO DE EMPLEADO
-// =====================================================
-
+// Limpia un error del formulario de empleado.
 function limpiarErrorCampoEmpleado(input, elementoError) {
   if (!input || !elementoError) {
     return;
@@ -1772,6 +1451,7 @@ function limpiarErrorCampoEmpleado(input, elementoError) {
   input.classList.remove("campo-invalido");
 }
 
+// Valida el nombre del empleado.
 function validarCampoNombreEmpleado() {
   const nombre = empleadoNombre.value.trim();
 
@@ -1802,6 +1482,7 @@ function validarCampoNombreEmpleado() {
   return true;
 }
 
+// Valida el email del empleado.
 function validarCampoEmailEmpleado() {
   const email = empleadoEmail.value.trim().toLowerCase();
 
@@ -1832,6 +1513,7 @@ function validarCampoEmailEmpleado() {
   return true;
 }
 
+// Valida la contraseña del empleado.
 function validarCampoPasswordEmpleado() {
   const password = empleadoPassword.value;
 
@@ -1870,6 +1552,7 @@ function validarCampoPasswordEmpleado() {
   return true;
 }
 
+// Valida la confirmación de contraseña.
 function validarCampoConfirmarPasswordEmpleado() {
   const password = empleadoPassword.value;
   const confirmacion = empleadoConfirmarPassword.value;
@@ -1901,10 +1584,6 @@ function validarCampoConfirmarPasswordEmpleado() {
 
   return true;
 }
-
-// =====================================================
-// VALIDACIÓN AL SALIR DE CADA CAMPO DE EMPLEADO
-// =====================================================
 
 if (empleadoNombre) {
   empleadoNombre.addEventListener(
@@ -1959,18 +1638,11 @@ if (empleadoConfirmarPassword) {
   });
 }
 
-// =====================================================
-// VALIDAR DATOS DEL EMPLEADO
-// =====================================================
-
+// Valida el formulario completo del empleado.
 function validarEmpleado(esNuevo) {
   const nombre = empleadoNombre.value.trim();
 
   const email = empleadoEmail.value.trim().toLowerCase();
-
-  // =============================================
-  // NOMBRE
-  // =============================================
 
   if (nombre.length < 2 || nombre.length > 100) {
     return "El nombre debe tener entre 2 y 100 caracteres.";
@@ -1982,10 +1654,6 @@ function validarEmpleado(esNuevo) {
     return "El nombre contiene caracteres no válidos.";
   }
 
-  // =============================================
-  // EMAIL
-  // =============================================
-
   if (email.length === 0 || email.length > 150) {
     return "El email no es válido.";
   }
@@ -1996,17 +1664,8 @@ function validarEmpleado(esNuevo) {
     return "Introduce un correo electrónico válido.";
   }
 
-  // =============================================
-  // CONTRASEÑA
-  // ---------------------------------------------
-  // Solo existe al crear.
-  // =============================================
-
   const password = empleadoPassword.value;
   const confirmarPassword = empleadoConfirmarPassword.value;
-
-  // Al crear siempre exigimos contraseña.
-  // Al editar solamente la validamos si se ha escrito una nueva.
 
   if (esNuevo || password !== "" || confirmarPassword !== "") {
     if (password.length < 8 || password.length > 72) {
@@ -2026,17 +1685,9 @@ function validarEmpleado(esNuevo) {
     }
   }
 
-  // =============================================
-  // ROL
-  // =============================================
-
   if (empleadoRol.value !== "TRABAJADOR" && empleadoRol.value !== "JEFE") {
     return "El rol seleccionado no es válido.";
   }
-
-  // =============================================
-  // JERARQUÍA DE ROLES
-  // =============================================
 
   if (usuarioActual?.rol === "JEFE" && empleadoRol.value !== "TRABAJADOR") {
     return "Un jefe solamente puede gestionar trabajadores.";
@@ -2045,6 +1696,7 @@ function validarEmpleado(esNuevo) {
   return null;
 }
 
+// Crea o actualiza un empleado.
 async function guardarEmpleado(event) {
   event.preventDefault();
 
@@ -2059,9 +1711,6 @@ async function guardarEmpleado(event) {
   }
 
   try {
-    // =================================================
-    // CREAR EMPLEADO
-    // =================================================
 
     if (!id) {
       const datosEmpleado = {
@@ -2070,13 +1719,6 @@ async function guardarEmpleado(event) {
         rol: empleadoRol.value,
         activo: empleadoActivo.value === "true",
       };
-
-      // =============================================
-      // NUEVA CONTRASEÑA OPCIONAL
-      // ---------------------------------------------
-      // Solo la enviamos si el jefe ha introducido
-      // una nueva contraseña.
-      // =============================================
 
       if (empleadoPassword.value !== "") {
         datosEmpleado.password = empleadoPassword.value;
@@ -2104,7 +1746,7 @@ async function guardarEmpleado(event) {
             mensaje = error.message;
           }
         } catch {
-          // Conservamos mensaje genérico.
+
         }
 
         mostrarModalPanel("Datos incorrectos", mensaje);
@@ -2128,26 +1770,12 @@ async function guardarEmpleado(event) {
       return;
     }
 
-    // =================================================
-    // EDITAR EMPLEADO
-    // =================================================
-
     const datosEmpleado = {
       nombre: empleadoNombre.value.trim(),
       email: empleadoEmail.value.trim().toLowerCase(),
       rol: empleadoRol.value,
       activo: empleadoActivo.value === "true",
     };
-
-    // =================================================
-    // NUEVA CONTRASEÑA OPCIONAL
-    // -------------------------------------------------
-    // Si los campos están vacíos, no enviamos password
-    // y el backend conserva la contraseña actual.
-    //
-    // Si se ha escrito una nueva contraseña,
-    // enviamos ambos campos al backend.
-    // =================================================
 
     if (empleadoPassword.value !== "") {
       datosEmpleado.password = empleadoPassword.value;
@@ -2184,14 +1812,11 @@ async function guardarEmpleado(event) {
   }
 }
 
-// =====================================================
-// CANCELAR FORMULARIO
-// =====================================================
-
 if (btnCancelarEmpleado) {
   btnCancelarEmpleado.addEventListener("click", cerrarFormularioEmpleado);
 }
 
+// Cierra y reinicia el formulario de empleado.
 function cerrarFormularioEmpleado() {
   if (!formularioEmpleadoContenedor) {
     return;
@@ -2206,9 +1831,6 @@ function cerrarFormularioEmpleado() {
   if (empleadoId) {
     empleadoId.value = "";
   }
-
-  // Dejamos el formulario preparado para
-  // una futura creación.
 
   empleadoPassword.required = false;
 

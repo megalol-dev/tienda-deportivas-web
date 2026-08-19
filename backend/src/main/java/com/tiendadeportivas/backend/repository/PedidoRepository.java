@@ -1,3 +1,4 @@
+// Accede a los pedidos almacenados.
 package com.tiendadeportivas.backend.repository;
 
 import java.util.List;
@@ -9,23 +10,9 @@ import com.tiendadeportivas.backend.model.Pedido;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
-    // =====================================================
-    // PEDIDOS DE UN USUARIO
-    // -----------------------------------------------------
-    // Recupera únicamente los pedidos pertenecientes
-    // al usuario indicado y muestra primero los recientes.
-    // =====================================================
-
+    // Busca los pedidos recientes de un usuario.
     List<Pedido> findByUsuarioIdOrderByFechaPedidoDesc(Long usuarioId);
-    // =====================================================
-    // BUSCAR PEDIDO POR SU IDENTIFICADOR PÚBLICO
-    // -----------------------------------------------------
-    // Ejemplo:
-    // PED-A1B2C3D4
-    //
-    // Se utiliza para relacionar el pedido guardado
-    // en nuestra base de datos con el pago de Stripe.
-    // =====================================================
 
+    // Busca un pedido por su identificador público.
     Optional<Pedido> findByIdPedido(String idPedido);
 }

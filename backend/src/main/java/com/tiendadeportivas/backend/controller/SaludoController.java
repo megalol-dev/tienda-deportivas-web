@@ -1,3 +1,4 @@
+// Expone una respuesta simple para comprobar el servidor.
 package com.tiendadeportivas.backend.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,6 +9,7 @@ import com.tiendadeportivas.backend.model.Saludo;
 @RestController
 public class SaludoController {
 
+    // Devuelve un mensaje de comprobación.
     @GetMapping("/api/saludo")
     public Saludo saludo() {
 

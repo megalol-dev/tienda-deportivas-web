@@ -1,31 +1,5 @@
-// =====================================================
-// PRODUCTOS
-// -----------------------------------------------------
-// Este archivo gestiona:
-//
-// • La navegación entre marcas.
-// • El renderizado de los productos.
-// • La actualización de imágenes según el color.
-// • La comunicación con carrito.js mediante
-//   agregarAlCarrito().
-//
-// NO guarda datos.
-// NO gestiona el carrito.
-// Solo muestra información.
-// =====================================================
-
-// =====================================================
-// HELPERS DE IMAGEN
-// =====================================================
-
-// Convierte un color en un nombre válido para un archivo.
-//
-// Ejemplo:
-//
-// "Azul Marino"
-// ↓
-// "azulmarino"
-//
+// Renderiza los productos y sus variantes.
+// Normaliza un color para usarlo en una ruta.
 function slugifyColor(color) {
   return (color || "")
     .toLowerCase()
@@ -34,39 +8,21 @@ function slugifyColor(color) {
     .replace(/\s+/g, "");
 }
 
-// Construye la ruta de la imagen.
-//
-// Ejemplo:
-//
-// id = 4
-// color = Negro
-//
-// ↓
-//
-// img/p4_negro.png
-//
+// Construye la ruta de imagen de una variante.
 function pathImgProducto(id, color) {
   return `img/p${id}_${slugifyColor(color)}.png`;
 }
 
-// Devuelve la imagen correspondiente
+// Devuelve la imagen de una variante.
 function obtenerSrcImagenProducto(id, color) {
   return pathImgProducto(id, color);
 }
-
-// =====================================================
-// ELEMENTOS DEL DOM
-// =====================================================
 
 const seccionesMarcas = document.querySelectorAll(".seccion-deportivas");
 const vistaMarca = document.getElementById("vista-marca");
 const tituloMarca = document.getElementById("titulo-marca");
 const gridProductos = document.getElementById("grid-productos");
 const btnVolver = document.getElementById("btn-volver");
-
-// =====================================================
-// RELACIÓN ID HTML -> MARCA
-// =====================================================
 
 const mapaMarcas = {
   nike: "Nike",
@@ -75,10 +31,6 @@ const mapaMarcas = {
   reebok: "Reebok",
   "new-balance": "New Balance",
 };
-
-// =====================================================
-// EVENTOS DE LAS MARCAS
-// =====================================================
 
 seccionesMarcas.forEach((sec) => {
   const nombreMarca = mapaMarcas[sec.id];
@@ -91,10 +43,6 @@ seccionesMarcas.forEach((sec) => {
     mostrarGridMarca(nombreMarca);
   });
 });
-
-// =====================================================
-// BOTÓN AÑADIR AL CARRITO
-// =====================================================
 
 if (gridProductos) {
   gridProductos.addEventListener("click", (e) => {
@@ -110,18 +58,26 @@ if (gridProductos) {
   });
 }
 
-// =====================================================
-// BOTÓN VOLVER
-// =====================================================
-
 if (btnVolver) {
   btnVolver.addEventListener("click", volverInicio);
 }
 
-// =====================================================
-// RENDER DEL CATÁLOGO POR MARCA
-// =====================================================
+// Prepara cada letra del título para animarla de forma independiente.
+function mostrarTituloMarcaAnimado(nombreMarca) {
+  const fragmento = document.createDocumentFragment();
 
+  Array.from(`Modelos ${nombreMarca}`).forEach((letra, indice) => {
+    const caracter = document.createElement("span");
+
+    caracter.textContent = letra === " " ? "\u00a0" : letra;
+    caracter.style.setProperty("--i", indice);
+    fragmento.appendChild(caracter);
+  });
+
+  tituloMarca.replaceChildren(fragmento);
+}
+
+// Muestra los productos de una marca.
 function mostrarGridMarca(nombreMarca) {
   if (!Array.isArray(catalogo) || catalogo.length === 0) {
     console.warn("Catálogo vacío.");
@@ -131,7 +87,7 @@ function mostrarGridMarca(nombreMarca) {
 
   seccionesMarcas.forEach((sec) => sec.classList.add("oculto"));
 
-  tituloMarca.textContent = `Modelos ${nombreMarca}`;
+  mostrarTituloMarcaAnimado(nombreMarca);
 
   gridProductos.innerHTML = "";
 
@@ -204,10 +160,7 @@ function mostrarGridMarca(nombreMarca) {
   });
 }
 
-// =====================================================
-// CONFIGURAR IMAGEN DEL PRODUCTO
-// =====================================================
-
+// Configura el cambio y respaldo de imagen.
 function configurarImagen(card, prod) {
   const img = card.querySelector(`#img-${prod.id}`);
 
@@ -242,10 +195,7 @@ function configurarImagen(card, prod) {
   });
 }
 
-// =====================================================
-// VOLVER A LA PANTALLA PRINCIPAL
-// =====================================================
-
+// Regresa a la portada de marcas.
 function volverInicio() {
   vistaMarca.classList.add("oculto");
 

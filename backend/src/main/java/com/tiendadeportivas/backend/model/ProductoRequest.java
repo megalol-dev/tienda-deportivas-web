@@ -1,3 +1,4 @@
+// Transporta los datos editables de un producto.
 package com.tiendadeportivas.backend.model;
 
 import java.math.BigDecimal;
@@ -33,53 +34,66 @@ public class ProductoRequest {
 
     private boolean activo;
 
+    // Crea una instancia de ProductoRequest.
     public ProductoRequest() {
     }
 
+    // Devuelve el valor de marca.
     public String getMarca() {
         return marca;
     }
 
+    // Actualiza el valor de marca.
     public void setMarca(String marca) {
         this.marca = marca;
     }
 
+    // Devuelve el valor de nombre.
     public String getNombre() {
         return nombre;
     }
 
+    // Actualiza el valor de nombre.
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
 
+    // Devuelve el valor de precio.
     public BigDecimal getPrecio() {
         return precio;
     }
 
+    // Actualiza el valor de precio.
     public void setPrecio(BigDecimal precio) {
         this.precio = precio;
     }
 
+    // Devuelve el valor de tallas.
     public List<Integer> getTallas() {
         return tallas;
     }
 
+    // Actualiza el valor de tallas.
     public void setTallas(List<Integer> tallas) {
         this.tallas = tallas;
     }
 
+    // Devuelve el valor de colores.
     public List<String> getColores() {
         return colores;
     }
 
+    // Actualiza el valor de colores.
     public void setColores(List<String> colores) {
         this.colores = colores;
     }
 
+    // Indica si el registro está activo.
     public boolean isActivo() {
         return activo;
     }
 
+    // Actualiza el valor de activo.
     public void setActivo(boolean activo) {
         this.activo = activo;
     }

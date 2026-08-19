@@ -1,3 +1,4 @@
+// Resume un pedido para el panel administrativo.
 package com.tiendadeportivas.backend.model;
 
 import java.math.BigDecimal;
@@ -13,6 +14,7 @@ public class PedidoAdminResumen {
     private BigDecimal total;
     private EstadoPedido estado;
 
+    // Crea una instancia de PedidoAdminResumen.
     public PedidoAdminResumen(
             Long id,
             String idPedido,
@@ -31,30 +33,37 @@ public class PedidoAdminResumen {
         this.estado = estado;
     }
 
+    // Devuelve el identificador.
     public Long getId() {
         return id;
     }
 
+    // Devuelve el identificador público del pedido.
     public String getIdPedido() {
         return idPedido;
     }
 
+    // Devuelve el valor de nombre.
     public String getNombre() {
         return nombre;
     }
 
+    // Devuelve el valor de apellidos.
     public String getApellidos() {
         return apellidos;
     }
 
+    // Devuelve la fecha del pedido.
     public LocalDateTime getFechaPedido() {
         return fechaPedido;
     }
 
+    // Devuelve el valor de total.
     public BigDecimal getTotal() {
         return total;
     }
 
+    // Devuelve el valor de estado.
     public EstadoPedido getEstado() {
         return estado;
     }

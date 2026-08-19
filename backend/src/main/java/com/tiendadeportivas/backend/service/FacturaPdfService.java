@@ -1,3 +1,4 @@
+// Genera el documento PDF de una factura.
 package com.tiendadeportivas.backend.service;
 
 import java.io.ByteArrayOutputStream;
@@ -22,10 +23,7 @@ import com.tiendadeportivas.backend.model.PedidoItem;
 @Service
 public class FacturaPdfService {
 
-    // =====================================================
-    // GENERAR PDF DE FACTURA
-    // =====================================================
-
+    // Construye el PDF de la factura.
     public byte[] generarPdf(Factura factura) {
 
         if (factura == null) {
@@ -51,10 +49,6 @@ public class FacturaPdfService {
                     salida);
 
             documento.open();
-
-            // =================================================
-            // TÍTULO
-            // =================================================
 
             Font fuenteTitulo = FontFactory.getFont(
                     FontFactory.HELVETICA_BOLD,
@@ -84,10 +78,6 @@ public class FacturaPdfService {
 
             documento.add(subtitulo);
 
-            // =================================================
-            // DATOS DE FACTURA
-            // =================================================
-
             DateTimeFormatter formatoFecha = DateTimeFormatter.ofPattern(
                     "dd/MM/yyyy HH:mm");
 
@@ -109,10 +99,6 @@ public class FacturaPdfService {
                             + factura.getMetodoPago()));
 
             documento.add(new Paragraph(" "));
-
-            // =================================================
-            // DATOS DEL CLIENTE
-            // =================================================
 
             Font fuenteSeccion = FontFactory.getFont(
                     FontFactory.HELVETICA_BOLD,
@@ -150,10 +136,6 @@ public class FacturaPdfService {
                     pedido.getPais()));
 
             documento.add(new Paragraph(" "));
-
-            // =================================================
-            // PRODUCTOS
-            // =================================================
 
             documento.add(new Paragraph(
                     "Productos",
@@ -227,10 +209,6 @@ public class FacturaPdfService {
 
             documento.add(new Paragraph(" "));
 
-            // =================================================
-            // TOTALES
-            // =================================================
-
             PdfPTable tablaTotales = new PdfPTable(2);
 
             tablaTotales.setWidthPercentage(45);
@@ -261,10 +239,6 @@ public class FacturaPdfService {
             documento.add(tablaTotales);
 
             documento.add(new Paragraph(" "));
-
-            // =================================================
-            // INFORMACIÓN FINAL
-            // =================================================
 
             Paragraph pago = new Paragraph(
                     "Pago realizado mediante "
@@ -301,10 +275,7 @@ public class FacturaPdfService {
         return salida.toByteArray();
     }
 
-    // =====================================================
-    // CABECERA DE TABLA
-    // =====================================================
-
+    // Añade una cabecera de tabla al PDF.
     private void agregarCabecera(
             PdfPTable tabla,
             String texto) {
@@ -326,10 +297,7 @@ public class FacturaPdfService {
         tabla.addCell(celda);
     }
 
-    // =====================================================
-    // FILA DE TOTAL
-    // =====================================================
-
+    // Añade una fila de total al PDF.
     private void agregarTotal(
             PdfPTable tabla,
             String concepto,
@@ -348,10 +316,7 @@ public class FacturaPdfService {
         tabla.addCell(celdaCantidad);
     }
 
-    // =====================================================
-    // FORMATEAR PRECIO
-    // =====================================================
-
+    // Formatea un importe para la factura.
     private String formatearPrecio(
             BigDecimal precio) {
 

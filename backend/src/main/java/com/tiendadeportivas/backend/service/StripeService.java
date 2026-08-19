@@ -1,3 +1,4 @@
+// Construye las sesiones de Checkout de Stripe.
 package com.tiendadeportivas.backend.service;
 
 import org.springframework.stereotype.Service;
@@ -15,27 +16,19 @@ import com.tiendadeportivas.backend.model.Producto;
 import com.tiendadeportivas.backend.model.Pedido;
 import com.tiendadeportivas.backend.model.PedidoItem;
 
-
 @Service
 public class StripeService {
 
+    // Construye una sesión para un producto.
     public Session crearSesionCheckout(
             String nombreProducto,
             long precioEnCentimos,
             long cantidad) throws StripeException {
 
-        // =====================================================
-        // PRODUCTO QUE STRIPE MOSTRARÁ EN EL CHECKOUT
-        // =====================================================
-
         SessionCreateParams.LineItem.PriceData.ProductData producto = SessionCreateParams.LineItem.PriceData.ProductData
                 .builder()
                 .setName(nombreProducto)
                 .build();
-
-        // =====================================================
-        // PRECIO DEL PRODUCTO
-        // =====================================================
 
         SessionCreateParams.LineItem.PriceData precio = SessionCreateParams.LineItem.PriceData.builder()
                 .setCurrency("eur")
@@ -43,18 +36,10 @@ public class StripeService {
                 .setProductData(producto)
                 .build();
 
-        // =====================================================
-        // LÍNEA DEL CARRITO
-        // =====================================================
-
         SessionCreateParams.LineItem linea = SessionCreateParams.LineItem.builder()
                 .setQuantity(cantidad)
                 .setPriceData(precio)
                 .build();
-
-        // =====================================================
-        // CONFIGURACIÓN DEL CHECKOUT
-        // =====================================================
 
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
@@ -63,40 +48,17 @@ public class StripeService {
                 .addLineItem(linea)
                 .build();
 
-        // =====================================================
-        // STRIPE CREA LA SESIÓN DE PAGO
-        // =====================================================
-
         return Session.create(params);
     }
 
-    // =====================================================
-    // CREAR CHECKOUT DESDE EL CARRITO REAL
-    // -----------------------------------------------------
-    // Los precios NO llegan desde el frontend.
-    //
-    // Se obtienen directamente de los productos guardados
-    // en MariaDB para evitar manipulaciones del precio.
-    // =====================================================
-
+    // Construye una sesión desde el carrito.
     public Session crearSesionCheckoutCarrito(
             List<CarritoItem> carrito) throws StripeException {
-
-        // =================================================
-        // VALIDAR CARRITO
-        // =================================================
 
         if (carrito == null || carrito.isEmpty()) {
             throw new IllegalArgumentException(
                     "No se puede iniciar un pago con el carrito vacío.");
         }
-
-        // =================================================
-        // CALCULAR SUBTOTAL REAL DEL CARRITO
-        // -------------------------------------------------
-        // Los precios proceden siempre de MariaDB.
-        // Nunca confiamos en precios enviados por frontend.
-        // =================================================
 
         BigDecimal subtotal = BigDecimal.ZERO;
 
@@ -121,26 +83,9 @@ public class StripeService {
                                             item.getCantidad())));
         }
 
-        // =================================================
-        // CALCULAR IVA
-        // -------------------------------------------------
-        // Aplicamos exactamente la misma regla que utiliza
-        // PedidoService: 21 % sobre el subtotal.
-        // =================================================
-
         BigDecimal iva = subtotal
                 .multiply(BigDecimal.valueOf(0.21))
                 .setScale(2, RoundingMode.HALF_UP);
-
-        // =================================================
-        // CALCULAR GASTOS DE ENVÍO
-        // -------------------------------------------------
-        // Pedidos de 100 € o más:
-        // envío GRATIS.
-        //
-        // Pedidos inferiores a 100 €:
-        // envío = 4,99 €.
-        // =================================================
 
         BigDecimal envio;
 
@@ -153,20 +98,12 @@ public class StripeService {
             envio = new BigDecimal("4.99");
         }
 
-        // =================================================
-        // CREAR LA SESIÓN DE STRIPE
-        // =================================================
-
         SessionCreateParams.Builder paramsBuilder = SessionCreateParams.builder()
                         .setMode(SessionCreateParams.Mode.PAYMENT)
                         .setSuccessUrl(
                                         "http://localhost:5500/")
                         .setCancelUrl(
                                         "http://localhost:5500/");
-
-        // =================================================
-        // CONVERTIR CADA ITEM DEL CARRITO EN UNA LÍNEA STRIPE
-        // =================================================
 
         for (CarritoItem item : carrito) {
 
@@ -182,21 +119,10 @@ public class StripeService {
                         "Uno de los productos del carrito no existe.");
             }
 
-            // =============================================
-            // CONVERTIR EUROS A CÉNTIMOS
-            //
-            // Ejemplo:
-            // 109.99 € -> 10999
-            // =============================================
-
             long precioEnCentimos = producto.getPrecio()
                     .multiply(BigDecimal.valueOf(100))
                     .setScale(0, RoundingMode.HALF_UP)
                     .longValueExact();
-
-            // =============================================
-            // DATOS DEL PRODUCTO PARA STRIPE
-            // =============================================
 
             SessionCreateParams.LineItem.PriceData.ProductData productoStripe = SessionCreateParams.LineItem.PriceData.ProductData
                     .builder()
@@ -206,20 +132,12 @@ public class StripeService {
                                     + producto.getNombre())
                     .build();
 
-            // =============================================
-            // PRECIO REAL OBTENIDO DESDE MARIADB
-            // =============================================
-
             SessionCreateParams.LineItem.PriceData precioStripe = SessionCreateParams.LineItem.PriceData
                     .builder()
                     .setCurrency("eur")
                     .setUnitAmount(precioEnCentimos)
                     .setProductData(productoStripe)
                     .build();
-
-            // =============================================
-            // LÍNEA DEL CHECKOUT
-            // =============================================
 
             SessionCreateParams.LineItem linea = SessionCreateParams.LineItem
                     .builder()
@@ -229,10 +147,6 @@ public class StripeService {
 
             paramsBuilder.addLineItem(linea);
         }
-
-        // =================================================
-        // AÑADIR IVA AL CHECKOUT
-        // =================================================
 
         long ivaEnCentimos = iva
                 .multiply(BigDecimal.valueOf(100))
@@ -262,13 +176,6 @@ public class StripeService {
             paramsBuilder.addLineItem(ivaLinea);
         }
 
-        // =================================================
-        // AÑADIR GASTOS DE ENVÍO
-        // -------------------------------------------------
-        // Solo añadimos esta línea cuando realmente
-        // existen gastos de envío.
-        // =================================================
-
         if (envio.compareTo(BigDecimal.ZERO) > 0) {
 
             long envioEnCentimos = envio
@@ -297,29 +204,12 @@ public class StripeService {
             paramsBuilder.addLineItem(envioLinea);
         }
 
-        // =================================================
-        // CREAR SESIÓN EN STRIPE
-        // =================================================
-
         return Session.create(paramsBuilder.build());
     }
 
-
-    // =====================================================
-    // CREAR CHECKOUT DESDE UN PEDIDO YA GUARDADO
-    // -----------------------------------------------------
-    // Stripe ya no depende del carrito.
-    //
-    // Utilizamos los datos guardados en Pedido y PedidoItem.
-    // De esta forma el pedido queda congelado antes de pagar.
-    // =====================================================
-
+    // Construye una sesión desde un pedido.
     public Session crearSesionCheckoutPedido(
             Pedido pedido) throws StripeException {
-
-        // =================================================
-        // VALIDAR PEDIDO
-        // =================================================
 
         if (pedido == null) {
             throw new IllegalArgumentException(
@@ -333,34 +223,20 @@ public class StripeService {
                     "No se puede pagar un pedido sin productos.");
         }
 
-        // =================================================
-        // CREAR CONFIGURACIÓN DE STRIPE
-        // =================================================
-
         SessionCreateParams.Builder paramsBuilder = SessionCreateParams.builder()
                         .setMode(SessionCreateParams.Mode.PAYMENT)
 
-                        // Relacionamos la sesión de Stripe
-                        // con nuestro pedido de MariaDB.
                         .putMetadata(
                                         "idPedido",
                                         pedido.getIdPedido())
 
-                        // Pago realizado correctamente.
-                        // Volvemos a nuestra tienda.
                         .setSuccessUrl(
                                         "http://localhost:5500/frontend/tienda.html?pago=exito&idPedido="
                                                         + pedido.getIdPedido())
 
-                        // Si el usuario cancela el pago,
-                        // también volvemos a nuestra tienda.
                         .setCancelUrl(
                                         "http://localhost:5500/frontend/tienda.html?pago=cancelado&idPedido="
                                                         + pedido.getIdPedido());
-
-        // =================================================
-        // PRODUCTOS DEL PEDIDO
-        // =================================================
 
         for (PedidoItem item : pedido.getItems()) {
 
@@ -395,14 +271,6 @@ public class StripeService {
             paramsBuilder.addLineItem(linea);
         }
 
-        // =================================================
-        // IVA DEL PEDIDO
-        // -------------------------------------------------
-        // Ya NO volvemos a calcular el 21 %.
-        // Utilizamos exactamente el IVA que quedó guardado
-        // en el pedido.
-        // =================================================
-
         if (pedido.getIva() != null
                 && pedido.getIva().compareTo(BigDecimal.ZERO) > 0) {
 
@@ -431,13 +299,6 @@ public class StripeService {
                             .build());
         }
 
-        // =================================================
-        // GASTOS DE ENVÍO DEL PEDIDO
-        // -------------------------------------------------
-        // Igual que con el IVA: utilizamos el valor que ya
-        // quedó calculado y guardado en PedidoService.
-        // =================================================
-
         if (pedido.getEnvio() != null
                 && pedido.getEnvio().compareTo(BigDecimal.ZERO) > 0) {
 
@@ -465,10 +326,6 @@ public class StripeService {
                             .setPriceData(envioPrecio)
                             .build());
         }
-
-        // =================================================
-        // CREAR SESIÓN EN STRIPE
-        // =================================================
 
         return Session.create(paramsBuilder.build());
     }

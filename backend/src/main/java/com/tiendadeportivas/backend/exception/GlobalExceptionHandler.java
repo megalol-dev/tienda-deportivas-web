@@ -1,3 +1,4 @@
+// Convierte excepciones comunes en respuestas HTTP.
 package com.tiendadeportivas.backend.exception;
 
 import java.util.HashMap;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Credenciales incorrectas
+    // Devuelve una respuesta de acceso denegado.
     @ExceptionHandler(SecurityException.class)
     public ResponseEntity<Map<String, String>> manejarSecurityException(
             SecurityException ex) {
@@ -25,7 +26,7 @@ public class GlobalExceptionHandler {
                 .body(respuesta);
     }
 
-    // Datos incorrectos enviados por el cliente
+    // Devuelve una petición inválida.
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> manejarIllegalArgumentException(
             IllegalArgumentException ex) {
@@ -38,7 +39,7 @@ public class GlobalExceptionHandler {
                 .body(respuesta);
     }
 
-    // Validaciones @NotBlank, @Email, @Pattern, etc.
+    // Devuelve los errores de validación por campo.
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> manejarValidaciones(
             MethodArgumentNotValidException ex) {

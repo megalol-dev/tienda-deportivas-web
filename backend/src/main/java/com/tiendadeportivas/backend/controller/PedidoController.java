@@ -1,3 +1,4 @@
+// Expone la creación y el resumen de pedidos.
 package com.tiendadeportivas.backend.controller;
 
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,16 +19,19 @@ public class PedidoController {
 
     private final PedidoService pedidoService;
 
+    // Crea una instancia de PedidoController.
     public PedidoController(PedidoService pedidoService) {
         this.pedidoService = pedidoService;
     }
 
+    // Calcula el resumen del carrito actual.
     @GetMapping("/resumen")
     public PedidoResumen obtenerResumenPedido() {
 
         return pedidoService.obtenerResumenPedido();
     }
 
+    // Crea un pedido con el carrito autenticado.
     @PostMapping
     public PedidoResumen crearPedido(
             @Valid @RequestBody PedidoRequest pedido) {

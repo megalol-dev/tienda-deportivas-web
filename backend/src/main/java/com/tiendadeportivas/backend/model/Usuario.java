@@ -1,3 +1,4 @@
+// Representa un usuario persistente.
 package com.tiendadeportivas.backend.model;
 
 import java.time.LocalDateTime;
@@ -53,73 +54,91 @@ public class Usuario {
         orphanRemoval = true)
     private Carrito carrito;
 
+    // Crea una instancia de Usuario.
     public Usuario() {
     }
 
+    // Devuelve el identificador.
     public Long getId() {
         return id;
     }
 
+    // Devuelve el valor de nombre.
     public String getNombre() {
         return nombre;
     }
 
+    // Actualiza el valor de nombre.
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
 
+    // Devuelve el valor de email.
     public String getEmail() {
         return email;
     }
 
+    // Actualiza el valor de email.
     public void setEmail(String email) {
         this.email = email;
     }
 
+    // Devuelve el valor de password.
     public String getPassword() {
         return password;
     }
 
+    // Actualiza el valor de password.
     public void setPassword(String password) {
         this.password = password;
     }
 
+    // Devuelve el valor de rol.
     public RolUsuario getRol() {
         return rol;
     }
 
+    // Actualiza el valor de rol.
     public void setRol(RolUsuario rol) {
         this.rol = rol;
     }
 
+    // Devuelve la fecha de alta.
     public LocalDateTime getFechaAlta() {
         return fechaAlta;
     }
 
+    // Actualiza la fecha de alta.
     public void setFechaAlta(LocalDateTime fechaAlta) {
         this.fechaAlta = fechaAlta;
     }
 
+    // Indica si el registro está activo.
     public boolean isActivo() {
         return activo;
     }
 
+    // Actualiza el valor de activo.
     public void setActivo(boolean activo) {
         this.activo = activo;
     }
 
+    // Devuelve el valor de pedidos.
     public List<Pedido> getPedidos() {
         return pedidos;
     }
 
+    // Actualiza el valor de pedidos.
     public void setPedidos(List<Pedido> pedidos) {
         this.pedidos = pedidos;
     }
 
+    // Devuelve el valor de carrito.
     public Carrito getCarrito() {
         return carrito;
     }
 
+    // Actualiza el valor de carrito.
     public void setCarrito(Carrito carrito) {
         this.carrito = carrito;
     }

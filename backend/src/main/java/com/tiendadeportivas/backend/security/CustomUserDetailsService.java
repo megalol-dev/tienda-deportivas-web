@@ -1,3 +1,4 @@
+// Adapta los usuarios a Spring Security.
 package com.tiendadeportivas.backend.security;
 
 import org.springframework.security.core.userdetails.User;
@@ -14,10 +15,12 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     private final UsuarioRepository usuarioRepository;
 
+    // Crea una instancia de CustomUserDetailsService.
     public CustomUserDetailsService(UsuarioRepository usuarioRepository) {
         this.usuarioRepository = usuarioRepository;
     }
 
+    // Carga un usuario para Spring Security.
     @Override
     public UserDetails loadUserByUsername(String email)
             throws UsernameNotFoundException {

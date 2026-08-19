@@ -1,3 +1,4 @@
+// Procesa y verifica los eventos enviados por Stripe.
 package com.tiendadeportivas.backend.controller;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -20,33 +21,17 @@ public class StripeWebhookController {
 
     private final PedidoService pedidoService;
 
-    // =====================================================
-    // CONSTRUCTOR
-    // =====================================================
-
+    // Crea una instancia de StripeWebhookController.
     public StripeWebhookController(
             PedidoService pedidoService) {
 
         this.pedidoService = pedidoService;
     }
 
-    // =====================================================
-    // SECRETO DEL WEBHOOK
-    // -----------------------------------------------------
-    // Spring obtiene este valor desde:
-    //
-    // stripe.webhook-secret=${STRIPE_WEBHOOK_SECRET}
-    //
-    // Nunca guardamos el secreto directamente en Java.
-    // =====================================================
-
     @Value("${stripe.webhook-secret}")
     private String webhookSecret;
 
-    // =====================================================
-    // RECIBIR EVENTOS DE STRIPE
-    // =====================================================
-
+    // Verifica y procesa un evento de Stripe.
     @PostMapping("/webhook")
     public ResponseEntity<String> recibirWebhook(
             @RequestBody String payload,
@@ -54,36 +39,16 @@ public class StripeWebhookController {
 
         try {
 
-            // =============================================
-            // VERIFICAR QUE EL MENSAJE VIENE DE STRIPE
-            // =============================================
-
             Event event = Webhook.constructEvent(
                     payload,
                     signature,
                     webhookSecret);
 
-            // =============================================
-            // MOSTRAR EVENTO RECIBIDO
-            // Temporalmente nos servirá para las pruebas.
-            // =============================================
-
             System.out.println(
                     "Evento recibido desde Stripe: "
                             + event.getType());
 
-                            // =============================================
-            // PROCESAR PAGO COMPLETADO
-            // ---------------------------------------------
-            // Solo nos interesa confirmar el pedido cuando
-            // Stripe informa de que el Checkout terminó.
-            // =============================================
-
             if ("checkout.session.completed".equals(event.getType())) {
-
-                // =========================================
-                // EXTRAER CHECKOUT SESSION DEL EVENTO
-                // =========================================
 
                 Session session = (Session) event
                         .getDataObjectDeserializer()
@@ -100,22 +65,11 @@ public class StripeWebhookController {
                             .body("No se pudo obtener la sesión.");
                 }
 
-                // =========================================
-                // OBTENER NUESTRO ID DE PEDIDO
-                // -----------------------------------------
-                // Lo guardamos previamente en metadata
-                // al crear la Checkout Session.
-                // =========================================
-
                 String idPedido = session
                         .getMetadata()
                         .get("idPedido");
 
                 String stripeSessionId = session.getId();
-
-                // =========================================
-                // CONFIRMAR EL PAGO EN MARIADB
-                // =========================================
 
                 pedidoService.confirmarPagoStripe(
                         stripeSessionId,
@@ -126,20 +80,9 @@ public class StripeWebhookController {
                                 + idPedido);
             }
 
-            // =============================================
-            // RESPONDER 200 A STRIPE
-            // =============================================
-
             return ResponseEntity.ok("Webhook recibido.");
 
         } catch (SignatureVerificationException e) {
-
-            // =============================================
-            // FIRMA INCORRECTA
-            // -------------------------------------------------
-            // Si alguien intenta llamar manualmente al endpoint
-            // sin una firma válida de Stripe, lo rechazamos.
-            // =============================================
 
             System.err.println(
                     "Firma del webhook de Stripe no válida.");

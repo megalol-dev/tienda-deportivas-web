@@ -1,7 +1,4 @@
-// =====================================================
-// LOGIN DE USUARIO
-// =====================================================
-
+// Valida y envía el formulario de acceso.
 const formLogin = document.getElementById("form-login");
 
 const loginEmail = document.getElementById("login-email");
@@ -10,28 +7,19 @@ const loginPassword = document.getElementById("login-password");
 const errorLoginEmail = document.getElementById("error-login-email");
 const errorLoginPassword = document.getElementById("error-login-password");
 
-// =====================================================
-// MOSTRAR ERROR
-// =====================================================
-
+// Muestra un error de validación.
 function mostrarError(input, error, mensaje) {
   input.classList.add("campo-invalido");
   error.textContent = mensaje;
 }
 
-// =====================================================
-// LIMPIAR ERROR
-// =====================================================
-
+// Limpia un error de validación.
 function limpiarError(input, error) {
   input.classList.remove("campo-invalido");
   error.textContent = "";
 }
 
-// =====================================================
-// VALIDAR EMAIL
-// =====================================================
-
+// Valida el email de acceso.
 function validarEmailLogin() {
   const email = loginEmail.value.trim();
 
@@ -60,10 +48,7 @@ function validarEmailLogin() {
   return true;
 }
 
-// =====================================================
-// VALIDAR PASSWORD
-// =====================================================
-
+// Valida la contraseña de acceso.
 function validarPasswordLogin() {
   const password = loginPassword.value;
 
@@ -81,17 +66,9 @@ function validarPasswordLogin() {
   return true;
 }
 
-// =====================================================
-// VALIDACIÓN EN VIVO
-// =====================================================
-
 loginEmail.addEventListener("blur", validarEmailLogin);
 
 loginPassword.addEventListener("blur", validarPasswordLogin);
-
-// =====================================================
-// LOGIN
-// =====================================================
 
 formLogin.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -100,19 +77,12 @@ formLogin.addEventListener("submit", async (event) => {
     return;
   }
 
-  // =================================================
-  // RECOGER DATOS
-  // =================================================
-
   const datosLogin = {
     email: loginEmail.value.trim(),
     password: loginPassword.value,
   };
 
   try {
-    // =============================================
-    // OBTENER TOKEN CSRF
-    // =============================================
 
     const respuestaCsrf = await fetch("http://localhost:8080/auth/csrf", {
       method: "GET",
@@ -124,10 +94,6 @@ formLogin.addEventListener("submit", async (event) => {
     }
 
     const csrf = await respuestaCsrf.json();
-
-    // =============================================
-    // LOGIN
-    // =============================================
 
     const respuesta = await fetch("http://localhost:8080/auth/login", {
       method: "POST",
@@ -141,10 +107,6 @@ formLogin.addEventListener("submit", async (event) => {
 
       body: JSON.stringify(datosLogin),
     });
-
-    // =============================================
-    // LOGIN INCORRECTO
-    // =============================================
 
     if (!respuesta.ok) {
       let mensaje = "Email o contraseña incorrectos.";
@@ -161,10 +123,6 @@ formLogin.addEventListener("submit", async (event) => {
 
       return;
     }
-
-    // =============================================
-    // LOGIN CORRECTO
-    // =============================================
 
     const usuario = await respuesta.json();
 

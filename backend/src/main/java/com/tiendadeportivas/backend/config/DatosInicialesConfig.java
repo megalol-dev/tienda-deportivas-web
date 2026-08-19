@@ -1,3 +1,4 @@
+// Carga el catálogo inicial si la base de datos está vacía.
 package com.tiendadeportivas.backend.config;
 
 import java.io.InputStream;
@@ -19,6 +20,7 @@ public class DatosInicialesConfig implements CommandLineRunner {
     private final ProductoRepository productoRepository;
     private final ObjectMapper objectMapper;
 
+    // Crea una instancia de DatosInicialesConfig.
     public DatosInicialesConfig(
             ProductoRepository productoRepository,
             ObjectMapper objectMapper) {
@@ -27,15 +29,9 @@ public class DatosInicialesConfig implements CommandLineRunner {
         this.objectMapper = objectMapper;
     }
 
+    // Importa el catálogo inicial cuando corresponde.
     @Override
     public void run(String... args) throws Exception {
-
-        // =====================================================
-        // COMPROBAR SI YA EXISTEN PRODUCTOS
-        // -----------------------------------------------------
-        // La migración solo se realiza cuando la tabla
-        // productos está completamente vacía.
-        // =====================================================
 
         if (productoRepository.count() > 0) {
 
@@ -44,10 +40,6 @@ public class DatosInicialesConfig implements CommandLineRunner {
 
             return;
         }
-
-        // =====================================================
-        // LEER CATÁLOGO JSON
-        // =====================================================
 
         ClassPathResource recurso = new ClassPathResource("catalogo.json");
 
@@ -58,36 +50,12 @@ public class DatosInicialesConfig implements CommandLineRunner {
                     new TypeReference<List<Producto>>() {
                     });
 
-            // =================================================
-            // PREPARAR PRODUCTOS
-            // =================================================
-
             for (Producto producto : productos) {
-
-                /*
-                 * Todos los productos importados inicialmente
-                 * estarán disponibles en la tienda.
-                 */
 
                 producto.setActivo(true);
 
-                /*
-                 * IMPORTANTE:
-                 *
-                 * Producto utiliza IDENTITY.
-                 * Dejamos que MySQL genere los identificadores.
-                 *
-                 * Como la tabla está vacía y el JSON está
-                 * ordenado del producto 1 al 50, esperamos
-                 * obtener los identificadores 1-50.
-                 */
-
                 producto.setId(null);
             }
-
-            // =================================================
-            // GUARDAR CATÁLOGO
-            // =================================================
 
             productoRepository.saveAll(productos);
 

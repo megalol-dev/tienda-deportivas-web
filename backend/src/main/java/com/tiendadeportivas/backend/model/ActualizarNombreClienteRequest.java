@@ -1,17 +1,9 @@
+// Transporta el nuevo nombre del cliente.
 package com.tiendadeportivas.backend.model;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-
-// =====================================================
-// DTO PARA ACTUALIZAR EL NOMBRE DEL CLIENTE
-// -----------------------------------------------------
-// Se utiliza desde el área personal del cliente.
-//
-// Las reglas son las mismas utilizadas durante
-// el registro de usuarios y empleados.
-// =====================================================
 
 public class ActualizarNombreClienteRequest {
 
@@ -20,25 +12,16 @@ public class ActualizarNombreClienteRequest {
     @Pattern(regexp = "^[\\p{L}][\\p{L} .'-]*$", message = "El nombre contiene caracteres no válidos.")
     private String nombre;
 
-    // =====================================================
-    // CONSTRUCTOR VACÍO
-    // =====================================================
-
+    // Crea una instancia de ActualizarNombreClienteRequest.
     public ActualizarNombreClienteRequest() {
     }
 
-    // =====================================================
-    // GETTER
-    // =====================================================
-
+    // Devuelve el valor de nombre.
     public String getNombre() {
         return nombre;
     }
 
-    // =====================================================
-    // SETTER
-    // =====================================================
-
+    // Actualiza el valor de nombre.
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }

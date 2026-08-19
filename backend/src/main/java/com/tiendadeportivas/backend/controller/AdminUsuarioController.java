@@ -1,3 +1,4 @@
+// Expone la gestión administrativa de empleados.
 package com.tiendadeportivas.backend.controller;
 
 import java.util.List;
@@ -21,35 +22,27 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 
-
-
-
 @RestController
 @RequestMapping("/admin/usuarios")
 public class AdminUsuarioController {
 
     private final UsuarioService usuarioService;
 
+    // Crea una instancia de AdminUsuarioController.
     public AdminUsuarioController(
             UsuarioService usuarioService) {
 
         this.usuarioService = usuarioService;
     }
 
-    // =====================================================
-    // LISTAR EMPLEADOS
-    // =====================================================
-
+    // Devuelve los empleados gestionables.
     @GetMapping
     public List<EmpleadoRespuesta> obtenerEmpleados() {
 
         return usuarioService.obtenerEmpleados();
     }
 
-    // =====================================================
-    // ACTUALIZAR EMPLEADO
-    // =====================================================
-
+    // Valida y actualiza un empleado.
     @PutMapping("/{id}")
     public EmpleadoRespuesta actualizarEmpleado(
             @PathVariable Long id,
@@ -62,10 +55,7 @@ public class AdminUsuarioController {
                 principal.getName());
     }
 
-    // =====================================================
-    // CREAR EMPLEADO
-    // =====================================================
-
+    // Valida y guarda un empleado.
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public EmpleadoRespuesta crearEmpleado(
@@ -77,5 +67,4 @@ public class AdminUsuarioController {
                 principal.getName());
     }
 }
-
 

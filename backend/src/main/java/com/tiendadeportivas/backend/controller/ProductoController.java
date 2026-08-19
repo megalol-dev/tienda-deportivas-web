@@ -1,3 +1,4 @@
+// Expone el catálogo público de productos.
 package com.tiendadeportivas.backend.controller;
 
 import java.util.List;
@@ -16,10 +17,12 @@ public class ProductoController {
 
     private final ProductoService productoService;
 
+    // Crea una instancia de ProductoController.
     public ProductoController(ProductoService productoService) {
         this.productoService = productoService;
     }
 
+    // Devuelve los productos disponibles.
     @GetMapping("/productos")
     public List<Producto> obtenerProductos() {
         return productoService.obtenerProductos();

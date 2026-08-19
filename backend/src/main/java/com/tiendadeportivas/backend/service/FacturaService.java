@@ -1,3 +1,4 @@
+// Crea y recupera facturas de pedidos pagados.
 package com.tiendadeportivas.backend.service;
 
 import java.time.LocalDateTime;
@@ -16,10 +17,7 @@ public class FacturaService {
     private final FacturaRepository facturaRepository;
     private final FacturaPdfService facturaPdfService;
 
-    // =====================================================
-    // CONSTRUCTOR
-    // =====================================================
-
+    // Crea una instancia de FacturaService.
     public FacturaService(
             FacturaRepository facturaRepository,
             FacturaPdfService facturaPdfService) {
@@ -28,13 +26,7 @@ public class FacturaService {
         this.facturaPdfService = facturaPdfService;
     }
 
-    // =====================================================
-    // CREAR FACTURA
-    // -----------------------------------------------------
-    // La factura solamente puede generarse cuando Stripe
-    // ya ha confirmado que el pedido está pagado.
-    // =====================================================
-
+    // Crea la factura de un pedido pagado.
     @Transactional
     public Factura crearFactura(Pedido pedido) {
 
@@ -52,13 +44,6 @@ public class FacturaService {
             throw new IllegalStateException(
                     "No se puede generar una factura para un pedido no pagado.");
         }
-
-        // =================================================
-        // EVITAR FACTURAS DUPLICADAS
-        // -------------------------------------------------
-        // Los webhooks pueden recibirse más de una vez.
-        // Si ya existe una factura, devolvemos la existente.
-        // =================================================
 
         return facturaRepository
                 .findByPedidoId(pedido.getId())
@@ -81,10 +66,7 @@ public class FacturaService {
                 });
     }
 
-    // =====================================================
-    // OBTENER FACTURA DE UN PEDIDO
-    // =====================================================
-
+    // Busca la factura asociada a un pedido.
     @Transactional(readOnly = true)
     public Factura obtenerFacturaPorPedido(
             Long pedidoId) {
@@ -95,14 +77,7 @@ public class FacturaService {
                         "No existe una factura para este pedido."));
     }
 
-    // =====================================================
-    // OBTENER FACTURA DEL CLIENTE
-    // -----------------------------------------------------
-    // Devuelve la factura únicamente después de que el
-    // PedidoService haya comprobado que el pedido pertenece
-    // al usuario autenticado.
-    // =====================================================
-
+    // Devuelve una factura si pertenece al cliente.
     @Transactional(readOnly = true)
     public Factura obtenerFacturaCliente(
             Pedido pedido) {
@@ -125,16 +100,7 @@ public class FacturaService {
                         "No existe una factura para este pedido."));
     }
 
-    // =====================================================
-    // GENERAR NÚMERO DE FACTURA
-    // -----------------------------------------------------
-    // De momento utilizamos el identificador interno del
-    // pedido para garantizar un número único y estable.
-    //
-    // Ejemplo:
-    // FAC-2026-000015
-    // =====================================================
-
+    // Genera el número único de factura.
     private String generarNumeroFactura(
             Pedido pedido) {
 
@@ -146,14 +112,7 @@ public class FacturaService {
                 pedido.getId());
     }
 
-    // =====================================================
-    // GENERAR PDF DE FACTURA DEL CLIENTE
-    // -----------------------------------------------------
-    // La generación se realiza dentro de la transacción
-    // para mantener disponibles las relaciones LAZY
-    // necesarias del pedido y sus items.
-    // =====================================================
-
+    // Genera el PDF de una factura del cliente.
     @Transactional(readOnly = true)
     public byte[] generarPdfFacturaCliente(
             Pedido pedido) {

@@ -1,29 +1,9 @@
-// =====================================================
-// PANEL DEL CLIENTE
-// -----------------------------------------------------
-// • Comprueba que existe una sesión activa.
-// • Recupera los datos del usuario.
-// • Muestra Mi cuenta.
-// • Permite cambiar entre Mi cuenta / Mis pedidos.
-// • Gestiona la apertura y cierre de los modales.
-// • Permite cerrar sesión.
-// =====================================================
-
+// Gestiona la cuenta, los pedidos y las facturas del cliente.
 document.addEventListener("DOMContentLoaded", iniciarPerfil);
-
-// =====================================================
-// USUARIO ACTUAL
-// -----------------------------------------------------
-// Guardamos temporalmente los datos recibidos de /auth/me
-// para poder utilizarlos en los modales.
-// =====================================================
 
 let usuarioActual = null;
 
-// =====================================================
-// INICIAR PERFIL
-// =====================================================
-
+// Inicializa los datos y eventos del perfil.
 async function iniciarPerfil() {
   await cargarPerfil();
 
@@ -34,24 +14,14 @@ async function iniciarPerfil() {
   prepararCerrarSesion();
 }
 
-// =====================================================
-// CARGAR PERFIL
-// =====================================================
-
+// Carga los datos del cliente autenticado.
 async function cargarPerfil() {
   try {
-    // =============================================
-    // COMPROBAR SESIÓN
-    // =============================================
 
     const respuesta = await fetch("http://localhost:8080/auth/me", {
       method: "GET",
       credentials: "include",
     });
-
-    // =============================================
-    // NO HAY SESIÓN
-    // =============================================
 
     if (!respuesta.ok) {
       console.log("No existe una sesión activa.");
@@ -61,33 +31,19 @@ async function cargarPerfil() {
       return;
     }
 
-    // =============================================
-    // USUARIO AUTENTICADO
-    // =============================================
-
     usuarioActual = await respuesta.json();
 
     console.log("Usuario del perfil:", usuarioActual);
-
-    // =============================================
-    // MOSTRAR DATOS
-    // =============================================
 
     mostrarDatosCuenta(usuarioActual);
   } catch (error) {
     console.error("Error comprobando la sesión:", error);
 
-    // Si no podemos comprobar la sesión,
-    // no permitimos permanecer en el perfil.
-
     window.location.href = "../tienda.html";
   }
 }
 
-// =====================================================
-// MOSTRAR DATOS DE MI CUENTA
-// =====================================================
-
+// Muestra los datos de la cuenta.
 function mostrarDatosCuenta(usuario) {
   const perfilNombre = document.getElementById("perfil-nombre");
 
@@ -99,33 +55,17 @@ function mostrarDatosCuenta(usuario) {
 
   const cuentaFechaAlta = document.getElementById("cuenta-fecha-alta");
 
-  // =============================================
-  // NOMBRE DEL SALUDO
-  // =============================================
-
   if (perfilNombre) {
     perfilNombre.textContent = usuario.nombre;
   }
-
-  // =============================================
-  // NOMBRE
-  // =============================================
 
   if (cuentaNombre) {
     cuentaNombre.textContent = usuario.nombre;
   }
 
-  // =============================================
-  // EMAIL
-  // =============================================
-
   if (cuentaEmail) {
     cuentaEmail.textContent = usuario.email;
   }
-
-  // =============================================
-  // ROL
-  // =============================================
 
   if (cuentaRol) {
     if (usuario.rol === "CLIENTE") {
@@ -134,10 +74,6 @@ function mostrarDatosCuenta(usuario) {
       cuentaRol.textContent = usuario.rol;
     }
   }
-
-  // =============================================
-  // FECHA DE ALTA
-  // =============================================
 
   if (cuentaFechaAlta && usuario.fechaAlta) {
     const fecha = new Date(usuario.fechaAlta);
@@ -150,10 +86,7 @@ function mostrarDatosCuenta(usuario) {
   }
 }
 
-// =====================================================
-// PREPARAR NAVEGACIÓN
-// =====================================================
-
+// Configura la navegación del perfil.
 function prepararNavegacion() {
   const btnMiCuenta = document.getElementById("btn-mi-cuenta");
 
@@ -163,10 +96,6 @@ function prepararNavegacion() {
 
   const seccionMisPedidos = document.getElementById("seccion-mis-pedidos");
 
-  // =============================================
-  // MOSTRAR MI CUENTA
-  // =============================================
-
   if (btnMiCuenta && seccionMiCuenta && seccionMisPedidos) {
     btnMiCuenta.addEventListener("click", () => {
       seccionMiCuenta.hidden = false;
@@ -174,10 +103,6 @@ function prepararNavegacion() {
       seccionMisPedidos.hidden = true;
     });
   }
-
-  // =============================================
-  // MOSTRAR MIS PEDIDOS
-  // =============================================
 
   if (btnMisPedidos && seccionMiCuenta && seccionMisPedidos) {
     btnMisPedidos.addEventListener("click", async () => {
@@ -190,10 +115,7 @@ function prepararNavegacion() {
   }
 }
 
-// =====================================================
-// CARGAR PEDIDOS DEL CLIENTE
-// =====================================================
-
+// Carga los pedidos disponibles.
 async function cargarPedidos() {
   const listaPedidos = document.getElementById("lista-pedidos");
 
@@ -201,7 +123,6 @@ async function cargarPedidos() {
     return;
   }
 
-  // Mensaje temporal mientras responde el backend.
   listaPedidos.innerHTML = "<p>Cargando pedidos...</p>";
 
   try {
@@ -213,27 +134,15 @@ async function cargarPedidos() {
       },
     );
 
-    // =================================================
-    // SESIÓN NO VÁLIDA
-    // =================================================
-
     if (respuesta.status === 401 || respuesta.status === 403) {
       window.location.href = "../tienda.html";
 
       return;
     }
 
-    // =================================================
-    // ERROR
-    // =================================================
-
     if (!respuesta.ok) {
       throw new Error("No se pudieron cargar los pedidos.");
     }
-
-    // =================================================
-    // PEDIDOS RECIBIDOS
-    // =================================================
 
     const pedidos = await respuesta.json();
 
@@ -247,10 +156,7 @@ async function cargarPedidos() {
   }
 }
 
-// =====================================================
-// MOSTRAR PEDIDOS
-// =====================================================
-
+// Muestra los pedidos del cliente.
 function mostrarPedidos(pedidos) {
   const listaPedidos = document.getElementById("lista-pedidos");
 
@@ -260,28 +166,16 @@ function mostrarPedidos(pedidos) {
 
   listaPedidos.innerHTML = "";
 
-  // =================================================
-  // CLIENTE SIN PEDIDOS
-  // =================================================
-
   if (!Array.isArray(pedidos) || pedidos.length === 0) {
     listaPedidos.innerHTML = "<p>Todavía no has realizado ningún pedido.</p>";
 
     return;
   }
 
-  // =================================================
-  // CREAR TARJETA POR CADA PEDIDO
-  // =================================================
-
   pedidos.forEach((pedido) => {
     const tarjetaPedido = document.createElement("article");
 
     tarjetaPedido.className = "tarjeta-pedido";
-
-    // ===============================================
-    // FECHA
-    // ===============================================
 
     const fecha = pedido.fechaPedido
       ? new Date(pedido.fechaPedido).toLocaleDateString("es-ES", {
@@ -291,15 +185,7 @@ function mostrarPedidos(pedidos) {
         })
       : "-";
 
-    // ===============================================
-    // ESTADO
-    // ===============================================
-
     const estado = formatearEstadoPedido(pedido.estado);
-
-    // ===============================================
-    // HTML PRINCIPAL DEL PEDIDO
-    // ===============================================
 
     tarjetaPedido.innerHTML = `
       <div class="pedido-cabecera">
@@ -373,10 +259,6 @@ function mostrarPedidos(pedidos) {
       </div>
     `;
 
-    // ===============================================
-    // PRODUCTOS DEL PEDIDO
-    // ===============================================
-
     const contenedorProductos = tarjetaPedido.querySelector(
       ".lista-productos-pedido",
     );
@@ -388,9 +270,6 @@ function mostrarPedidos(pedidos) {
         contenedorProductos.appendChild(producto);
       });
     }
-    // ===============================================
-    // DESCARGAR FACTURA
-    // ===============================================
 
     const btnFactura = tarjetaPedido.querySelector(".btn-descargar-factura");
 
@@ -404,15 +283,7 @@ function mostrarPedidos(pedidos) {
   });
 }
 
-// =====================================================
-// DESCARGAR FACTURA
-// -----------------------------------------------------
-// Solicita al backend el PDF correspondiente al pedido.
-//
-// El backend comprueba que el pedido pertenece al
-// usuario autenticado antes de devolver la factura.
-// =====================================================
-
+// Descarga la factura de un pedido.
 async function descargarFactura(idPedido) {
   try {
     const respuesta = await fetch(
@@ -423,19 +294,11 @@ async function descargarFactura(idPedido) {
       },
     );
 
-    // =================================================
-    // SESIÓN NO VÁLIDA
-    // =================================================
-
     if (respuesta.status === 401 || respuesta.status === 403) {
       window.location.href = "../tienda.html";
 
       return;
     }
-
-    // =================================================
-    // ERROR
-    // =================================================
 
     if (!respuesta.ok) {
       throw new Error(
@@ -443,17 +306,9 @@ async function descargarFactura(idPedido) {
       );
     }
 
-    // =================================================
-    // CONVERTIR RESPUESTA EN PDF
-    // =================================================
-
     const pdf = await respuesta.blob();
 
     const url = URL.createObjectURL(pdf);
-
-    // =================================================
-    // CREAR DESCARGA TEMPORAL
-    // =================================================
 
     const enlace = document.createElement("a");
 
@@ -468,10 +323,6 @@ async function descargarFactura(idPedido) {
 
     enlace.remove();
 
-    // =================================================
-    // LIBERAR MEMORIA
-    // =================================================
-
     URL.revokeObjectURL(url);
   } catch (error) {
     console.error(
@@ -484,10 +335,8 @@ async function descargarFactura(idPedido) {
     );
   }
 }
-// =====================================================
-// CREAR PRODUCTO DEL PEDIDO
-// =====================================================
 
+// Crea la vista de una línea de pedido.
 function crearProductoPedido(item) {
   const producto = document.createElement("div");
 
@@ -532,10 +381,6 @@ function crearProductoPedido(item) {
     </div>
   `;
 
-  // =================================================
-  // FALLBACK SI NO EXISTE LA IMAGEN
-  // =================================================
-
   const imagen = producto.querySelector("img");
 
   if (imagen) {
@@ -553,23 +398,14 @@ function crearProductoPedido(item) {
   return producto;
 }
 
-// =====================================================
-// OBTENER IMAGEN DEL PRODUCTO DEL PEDIDO
-// =====================================================
-
+// Construye la ruta de imagen de un pedido.
 function obtenerImagenPedido(productoId, color) {
   const colorArchivo = normalizarColorImagen(color);
 
   return `../img/p${productoId}_${colorArchivo}.png`;
 }
 
-// =====================================================
-// NORMALIZAR COLOR PARA EL NOMBRE DEL ARCHIVO
-// -----------------------------------------------------
-// Ejemplo:
-// "Azul Marino" -> "azulmarino"
-// =====================================================
-
+// Normaliza un color para la imagen.
 function normalizarColorImagen(color) {
   return (color || "")
     .toLowerCase()
@@ -578,10 +414,7 @@ function normalizarColorImagen(color) {
     .replace(/\s+/g, "");
 }
 
-// =====================================================
-// FORMATEAR PRECIO
-// =====================================================
-
+// Formatea un importe en euros.
 function formatearPrecio(precio) {
   const numero = Number(precio);
 
@@ -595,30 +428,7 @@ function formatearPrecio(precio) {
   });
 }
 
-// =====================================================
-// FORMATEAR ESTADO DEL PEDIDO
-// =====================================================
-
-// =====================================================
-// FORMATEAR ESTADO DEL PAGO
-// -----------------------------------------------------
-// En el área del cliente mostramos únicamente
-// el estado económico del pedido.
-//
-// El estado logístico (PREPARANDO, ENVIADO, etc.)
-// pertenece al panel de gestión.
-// =====================================================
-
-// =====================================================
-// FORMATEAR ESTADO DEL PEDIDO
-// -----------------------------------------------------
-// En el área del cliente mostramos el estado logístico
-// de su pedido.
-//
-// El estado del pago se gestiona internamente y no
-// necesita mostrarse al cliente.
-// =====================================================
-
+// Convierte un estado en texto legible.
 function formatearEstadoPedido(estadoPedido) {
   const estados = {
     PREPARANDO: "Preparando",
@@ -631,13 +441,7 @@ function formatearEstadoPedido(estadoPedido) {
   return estados[estadoPedido] || estadoPedido || "-";
 }
 
-// =====================================================
-// ABRIR MODAL
-// -----------------------------------------------------
-// • Muestra el modal.
-// • Bloquea el scroll de la página.
-// =====================================================
-
+// Abre un modal del perfil.
 function abrirModal(modal) {
   if (!modal) {
     return;
@@ -648,13 +452,7 @@ function abrirModal(modal) {
   document.body.classList.add("modal-abierto");
 }
 
-// =====================================================
-// CERRAR MODAL
-// -----------------------------------------------------
-// • Oculta el modal.
-// • Devuelve el scroll a la página.
-// =====================================================
-
+// Cierra un modal del perfil.
 function cerrarModal(modal) {
   if (!modal) {
     return;
@@ -665,10 +463,7 @@ function cerrarModal(modal) {
   document.body.classList.remove("modal-abierto");
 }
 
-// =====================================================
-// PREPARAR MODALES
-// =====================================================
-
+// Configura los modales del perfil.
 function prepararModales() {
   prepararModalNombre();
 
@@ -677,10 +472,7 @@ function prepararModales() {
   prepararModalPassword();
 }
 
-// =====================================================
-// MODAL NOMBRE
-// =====================================================
-
+// Configura la edición del nombre.
 function prepararModalNombre() {
   const btnEditar = document.getElementById("btn-editar-nombre");
   const modal = document.getElementById("modal-editar-nombre");
@@ -692,16 +484,11 @@ function prepararModalNombre() {
     return;
   }
 
-  // =============================================
-  // ABRIR
-  // =============================================
-
   btnEditar.addEventListener("click", () => {
     if (usuarioActual) {
       input.value = usuarioActual.nombre;
     }
 
-    // Limpiamos posibles errores anteriores.
     input.classList.remove("campo-invalido");
 
     const errorNombre = document.getElementById("error-editar-nombre");
@@ -715,17 +502,9 @@ function prepararModalNombre() {
     input.focus();
   });
 
-  // =============================================
-  // GUARDAR
-  // =============================================
-
   if (btnGuardar) {
     btnGuardar.addEventListener("click", actualizarNombre);
   }
-
-  // =============================================
-  // CANCELAR
-  // =============================================
 
   if (btnCancelar) {
     btnCancelar.addEventListener("click", () => {
@@ -734,10 +513,7 @@ function prepararModalNombre() {
   }
 }
 
-// =====================================================
-// MODAL EMAIL
-// =====================================================
-
+// Configura la edición del email.
 function prepararModalEmail() {
   const btnEditar = document.getElementById("btn-editar-email");
   const modal = document.getElementById("modal-editar-email");
@@ -749,10 +525,6 @@ function prepararModalEmail() {
     return;
   }
 
-  // =============================================
-  // ABRIR
-  // =============================================
-
   btnEditar.addEventListener("click", () => {
     if (usuarioActual) {
       input.value = usuarioActual.email;
@@ -763,17 +535,9 @@ function prepararModalEmail() {
     input.focus();
   });
 
-  // =============================================
-  // GUARDAR
-  // =============================================
-
   if (btnGuardar) {
     btnGuardar.addEventListener("click", actualizarEmail);
   }
-
-  // =============================================
-  // CANCELAR
-  // =============================================
 
   if (btnCancelar) {
     btnCancelar.addEventListener("click", () => {
@@ -781,7 +545,6 @@ function prepararModalEmail() {
     });
   }
 
-  // Comprovación final
   input.addEventListener("blur", () => {
     const email = input.value.trim();
 
@@ -807,10 +570,7 @@ function prepararModalEmail() {
   });
 }
 
-// =====================================================
-// MODAL CONTRASEÑA
-// =====================================================
-
+// Configura el cambio de contraseña.
 function prepararModalPassword() {
   const btnCambiar = document.getElementById("btn-cambiar-password");
   const modal = document.getElementById("modal-cambiar-password");
@@ -823,15 +583,9 @@ function prepararModalPassword() {
     return;
   }
 
-  // =============================================
-  // ABRIR
-  // =============================================
-
   btnCambiar.addEventListener("click", () => {
     inputPassword.value = "";
     inputConfirmar.value = "";
-
-    // Limpiamos posibles errores anteriores.
 
     inputPassword.classList.remove("campo-invalido");
     inputConfirmar.classList.remove("campo-invalido");
@@ -853,17 +607,9 @@ function prepararModalPassword() {
     inputPassword.focus();
   });
 
-  // =============================================
-  // GUARDAR
-  // =============================================
-
   if (btnGuardar) {
     btnGuardar.addEventListener("click", actualizarPassword);
   }
-
-  // =============================================
-  // CANCELAR
-  // =============================================
 
   if (btnCancelar) {
     btnCancelar.addEventListener("click", () => {
@@ -896,10 +642,6 @@ function prepararModalPassword() {
 
     const errorConfirmar = document.getElementById("error-confirmar-password");
 
-    // =============================================
-    // VALIDAR LONGITUD
-    // =============================================
-
     if (confirmarPassword.length < 8 || confirmarPassword.length > 72) {
       inputConfirmar.classList.add("campo-invalido");
 
@@ -911,10 +653,6 @@ function prepararModalPassword() {
       return;
     }
 
-    // =============================================
-    // VALIDAR COINCIDENCIA
-    // =============================================
-
     if (confirmarPassword !== inputPassword.value) {
       inputConfirmar.classList.add("campo-invalido");
 
@@ -924,10 +662,6 @@ function prepararModalPassword() {
 
       return;
     }
-
-    // =============================================
-    // CORRECTO
-    // =============================================
 
     inputConfirmar.classList.remove("campo-invalido");
 
@@ -957,10 +691,7 @@ function prepararModalPassword() {
   });
 }
 
-// =====================================================
-// PREPARAR BOTÓN CERRAR SESIÓN
-// =====================================================
-
+// Configura el botón de cierre de sesión.
 function prepararCerrarSesion() {
   const btnCerrarSesion = document.getElementById("btn-cerrar-sesion-perfil");
 
@@ -971,15 +702,9 @@ function prepararCerrarSesion() {
   btnCerrarSesion.addEventListener("click", cerrarSesionPerfil);
 }
 
-// =====================================================
-// CERRAR SESIÓN
-// =====================================================
-
+// Cierra la sesión desde el perfil.
 async function cerrarSesionPerfil() {
   try {
-    // =============================================
-    // OBTENER TOKEN CSRF
-    // =============================================
 
     const respuestaCsrf = await fetch("http://localhost:8080/auth/csrf", {
       method: "GET",
@@ -991,10 +716,6 @@ async function cerrarSesionPerfil() {
     }
 
     const csrf = await respuestaCsrf.json();
-
-    // =============================================
-    // CERRAR SESIÓN
-    // =============================================
 
     const respuesta = await fetch("http://localhost:8080/auth/logout", {
       method: "POST",
@@ -1010,10 +731,6 @@ async function cerrarSesionPerfil() {
       throw new Error("No se pudo cerrar la sesión.");
     }
 
-    // =============================================
-    // VOLVER A LA TIENDA
-    // =============================================
-
     console.log("Sesión cerrada correctamente.");
 
     window.location.href = "../tienda.html";
@@ -1024,10 +741,7 @@ async function cerrarSesionPerfil() {
   }
 }
 
-// =====================================================
-// ACTUALIZAR NOMBRE DEL CLIENTE
-// =====================================================
-
+// Valida y actualiza el nombre del cliente.
 async function actualizarNombre() {
   const inputNombre = document.getElementById("input-editar-nombre");
 
@@ -1039,19 +753,11 @@ async function actualizarNombre() {
 
   const nuevoNombre = inputNombre.value.trim();
 
-  // =================================================
-  // LIMPIAR ERROR ANTERIOR
-  // =================================================
-
   inputNombre.classList.remove("campo-invalido");
 
   if (errorNombre) {
     errorNombre.textContent = "";
   }
-
-  // =================================================
-  // VALIDAR LONGITUD
-  // =================================================
 
   if (nuevoNombre.length < 2 || nuevoNombre.length > 100) {
     inputNombre.classList.add("campo-invalido");
@@ -1062,10 +768,6 @@ async function actualizarNombre() {
 
     return;
   }
-
-  // =================================================
-  // VALIDAR CARACTERES
-  // =================================================
 
   const patronNombre = /^[\p{L}][\p{L} .'-]*$/u;
 
@@ -1080,9 +782,6 @@ async function actualizarNombre() {
   }
 
   try {
-    // =================================================
-    // OBTENER TOKEN CSRF
-    // =================================================
 
     const respuestaCsrf = await fetch("http://localhost:8080/auth/csrf", {
       method: "GET",
@@ -1094,10 +793,6 @@ async function actualizarNombre() {
     }
 
     const csrf = await respuestaCsrf.json();
-
-    // =================================================
-    // ACTUALIZAR NOMBRE
-    // =================================================
 
     const respuesta = await fetch(
       "http://localhost:8080/cliente/perfil/nombre",
@@ -1117,10 +812,6 @@ async function actualizarNombre() {
       },
     );
 
-    // =================================================
-    // ERROR DEL BACKEND
-    // =================================================
-
     if (!respuesta.ok) {
       let mensaje = "No se ha podido actualizar el nombre.";
 
@@ -1131,7 +822,7 @@ async function actualizarNombre() {
           mensaje = error.message;
         }
       } catch {
-        // Conservamos el mensaje genérico.
+
       }
 
       alert(mensaje);
@@ -1139,36 +830,23 @@ async function actualizarNombre() {
       return;
     }
 
-    // =================================================
-    // ACTUALIZACIÓN CORRECTA
-    // =================================================
-
     const usuarioActualizado = await respuesta.json();
 
-    // Actualizamos el nombre de la tabla.
     const cuentaNombre = document.getElementById("cuenta-nombre");
 
     if (cuentaNombre) {
       cuentaNombre.textContent = usuarioActualizado.nombre;
     }
 
-    // Actualizamos también:
-    // "Bienvenido, Luis"
     const perfilNombre = document.getElementById("perfil-nombre");
 
     if (perfilNombre) {
       perfilNombre.textContent = usuarioActualizado.nombre;
     }
 
-    // Si utilizas una variable global usuarioActual,
-    // mantenemos también su información sincronizada.
     if (typeof usuarioActual !== "undefined" && usuarioActual) {
       usuarioActual.nombre = usuarioActualizado.nombre;
     }
-
-    // =================================================
-    // CERRAR MODAL
-    // =================================================
 
     const modalNombre = document.getElementById("modal-editar-nombre");
 
@@ -1182,10 +860,7 @@ async function actualizarNombre() {
   }
 }
 
-// =====================================================
-// ACTUALIZAR EMAIL DEL CLIENTE
-// =====================================================
-
+// Valida y actualiza el email del cliente.
 async function actualizarEmail() {
   const inputEmail = document.getElementById("input-editar-email");
 
@@ -1197,19 +872,11 @@ async function actualizarEmail() {
 
   const nuevoEmail = inputEmail.value.trim().toLowerCase();
 
-  // =================================================
-  // LIMPIAR ERROR ANTERIOR
-  // =================================================
-
   if (errorEmail) {
     errorEmail.textContent = "";
   }
 
   inputEmail.classList.remove("campo-invalido");
-
-  // =================================================
-  // VALIDAR EMAIL
-  // =================================================
 
   if (nuevoEmail.length === 0 || nuevoEmail.length > 150) {
     if (errorEmail) {
@@ -1234,9 +901,6 @@ async function actualizarEmail() {
   }
 
   try {
-    // =================================================
-    // OBTENER TOKEN CSRF
-    // =================================================
 
     const respuestaCsrf = await fetch("http://localhost:8080/auth/csrf", {
       method: "GET",
@@ -1248,10 +912,6 @@ async function actualizarEmail() {
     }
 
     const csrf = await respuestaCsrf.json();
-
-    // =================================================
-    // ACTUALIZAR EMAIL
-    // =================================================
 
     const respuesta = await fetch(
       "http://localhost:8080/cliente/perfil/email",
@@ -1271,10 +931,6 @@ async function actualizarEmail() {
       },
     );
 
-    // =================================================
-    // ERROR DEL BACKEND
-    // =================================================
-
     if (!respuesta.ok) {
       let mensaje = "No se ha podido actualizar el correo electrónico.";
 
@@ -1285,7 +941,7 @@ async function actualizarEmail() {
           mensaje = error.message;
         }
       } catch {
-        // Conservamos el mensaje genérico.
+
       }
 
       if (errorEmail) {
@@ -1297,23 +953,9 @@ async function actualizarEmail() {
       return;
     }
 
-    // =================================================
-    // EMAIL ACTUALIZADO CORRECTAMENTE
-    // =================================================
-
     const usuarioActualizado = await respuesta.json();
 
     console.log("Email actualizado correctamente:", usuarioActualizado.email);
-
-    // =================================================
-    // CERRAR SESIÓN
-    // -------------------------------------------------
-    // El SecurityContext todavía fue creado utilizando
-    // el email anterior.
-    //
-    // Por seguridad cerramos la sesión y obligamos
-    // al usuario a autenticarse con el nuevo email.
-    // =================================================
 
     await cerrarSesionTrasCambiarEmail();
   } catch (error) {
@@ -1323,10 +965,7 @@ async function actualizarEmail() {
   }
 }
 
-// =====================================================
-// ACTUALIZAR CONTRASEÑA DEL CLIENTE
-// =====================================================
-
+// Valida y actualiza la contraseña del cliente.
 async function actualizarPassword() {
   const inputPassword = document.getElementById("input-nueva-password");
 
@@ -1343,10 +982,6 @@ async function actualizarPassword() {
   const password = inputPassword.value;
   const confirmarPassword = inputConfirmar.value;
 
-  // =================================================
-  // LIMPIAR ERRORES ANTERIORES
-  // =================================================
-
   inputPassword.classList.remove("campo-invalido");
   inputConfirmar.classList.remove("campo-invalido");
 
@@ -1358,10 +993,6 @@ async function actualizarPassword() {
     errorConfirmar.textContent = "";
   }
 
-  // =================================================
-  // VALIDAR LONGITUD
-  // =================================================
-
   if (password.length < 8 || password.length > 72) {
     inputPassword.classList.add("campo-invalido");
 
@@ -1372,10 +1003,6 @@ async function actualizarPassword() {
 
     return;
   }
-
-  // =================================================
-  // VALIDAR LETRA + NÚMERO
-  // =================================================
 
   const patronPassword = /^(?=.*\p{L})(?=.*\d).+$/u;
 
@@ -1389,10 +1016,6 @@ async function actualizarPassword() {
 
     return;
   }
-
-  // =================================================
-  // VALIDAR CONFIRMACIÓN
-  // =================================================
 
   if (confirmarPassword.length < 8 || confirmarPassword.length > 72) {
     inputConfirmar.classList.add("campo-invalido");
@@ -1416,9 +1039,6 @@ async function actualizarPassword() {
   }
 
   try {
-    // =================================================
-    // OBTENER TOKEN CSRF
-    // =================================================
 
     const respuestaCsrf = await fetch("http://localhost:8080/auth/csrf", {
       method: "GET",
@@ -1430,10 +1050,6 @@ async function actualizarPassword() {
     }
 
     const csrf = await respuestaCsrf.json();
-
-    // =================================================
-    // ACTUALIZAR CONTRASEÑA
-    // =================================================
 
     const respuesta = await fetch(
       "http://localhost:8080/cliente/perfil/password",
@@ -1454,10 +1070,6 @@ async function actualizarPassword() {
       },
     );
 
-    // =================================================
-    // ERROR DEL BACKEND
-    // =================================================
-
     if (!respuesta.ok) {
       let mensaje = "No se ha podido actualizar la contraseña.";
 
@@ -1468,7 +1080,7 @@ async function actualizarPassword() {
           mensaje = error.message;
         }
       } catch {
-        // Conservamos el mensaje genérico.
+
       }
 
       if (errorPassword) {
@@ -1480,13 +1092,7 @@ async function actualizarPassword() {
       return;
     }
 
-    // =================================================
-    // CONTRASEÑA ACTUALIZADA
-    // =================================================
-
     console.log("Contraseña actualizada correctamente.");
-
-    // Cerramos la sesión por seguridad.
 
     await cerrarSesionTrasCambiarPassword();
   } catch (error) {
@@ -1496,15 +1102,9 @@ async function actualizarPassword() {
   }
 }
 
-// =====================================================
-// CERRAR SESIÓN TRAS CAMBIAR CONTRASEÑA
-// =====================================================
-
+// Cierra la sesión tras cambiar la contraseña.
 async function cerrarSesionTrasCambiarPassword() {
   try {
-    // =================================================
-    // OBTENER TOKEN CSRF
-    // =================================================
 
     const respuestaCsrf = await fetch("http://localhost:8080/auth/csrf", {
       method: "GET",
@@ -1516,10 +1116,6 @@ async function cerrarSesionTrasCambiarPassword() {
     }
 
     const csrf = await respuestaCsrf.json();
-
-    // =================================================
-    // LOGOUT
-    // =================================================
 
     const respuestaLogout = await fetch("http://localhost:8080/auth/logout", {
       method: "POST",
@@ -1534,10 +1130,6 @@ async function cerrarSesionTrasCambiarPassword() {
     if (!respuestaLogout.ok) {
       throw new Error("No se pudo cerrar la sesión.");
     }
-
-    // =================================================
-    // INFORMAR AL USUARIO
-    // =================================================
 
     alert(
       "Contraseña actualizada correctamente. " +
@@ -1560,15 +1152,9 @@ async function cerrarSesionTrasCambiarPassword() {
   }
 }
 
-// =====================================================
-// CERRAR SESIÓN TRAS CAMBIAR EMAIL
-// =====================================================
-
+// Cierra la sesión tras cambiar el email.
 async function cerrarSesionTrasCambiarEmail() {
   try {
-    // =================================================
-    // OBTENER NUEVO TOKEN CSRF
-    // =================================================
 
     const respuestaCsrf = await fetch("http://localhost:8080/auth/csrf", {
       method: "GET",
@@ -1580,10 +1166,6 @@ async function cerrarSesionTrasCambiarEmail() {
     }
 
     const csrf = await respuestaCsrf.json();
-
-    // =================================================
-    // LOGOUT
-    // =================================================
 
     const respuestaLogout = await fetch("http://localhost:8080/auth/logout", {
       method: "POST",
@@ -1599,10 +1181,6 @@ async function cerrarSesionTrasCambiarEmail() {
       throw new Error("No se pudo cerrar la sesión.");
     }
 
-    // =================================================
-    // INFORMAR Y VOLVER AL LOGIN
-    // =================================================
-
     alert(
       "Correo electrónico actualizado correctamente. " +
         "Por seguridad debes iniciar sesión de nuevo.",
@@ -1611,10 +1189,6 @@ async function cerrarSesionTrasCambiarEmail() {
     window.location.href = "login.html";
   } catch (error) {
     console.error("Error cerrando sesión después de cambiar el email:", error);
-
-    // Aunque falle el logout visualmente, no dejamos
-    // al usuario trabajando normalmente con una sesión
-    // cuyo identificador ha cambiado.
 
     alert(
       "El correo se ha actualizado, pero no se pudo cerrar " +

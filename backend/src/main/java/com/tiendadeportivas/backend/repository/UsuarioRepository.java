@@ -1,3 +1,4 @@
+// Accede a los usuarios almacenados.
 package com.tiendadeportivas.backend.repository;
 
 import java.util.List;
@@ -10,16 +11,12 @@ import com.tiendadeportivas.backend.model.Usuario;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
+    // Busca un usuario por email.
     Optional<Usuario> findByEmail(String email);
 
+    // Comprueba si ya existe un email.
     boolean existsByEmail(String email);
 
-    // =====================================================
-    // OBTENER USUARIOS POR ROLES
-    // -----------------------------------------------------
-    // Permite recuperar únicamente los usuarios
-    // pertenecientes al personal de UrbanSneakers.
-    // =====================================================
-
+    // Busca usuarios por rol ordenados por identificador.
     List<Usuario> findByRolInOrderByIdAsc(List<RolUsuario> roles);
 }

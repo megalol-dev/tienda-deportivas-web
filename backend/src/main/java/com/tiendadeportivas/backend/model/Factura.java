@@ -1,3 +1,4 @@
+// Representa la factura asociada a un pedido.
 package com.tiendadeportivas.backend.model;
 
 import java.time.LocalDateTime;
@@ -16,89 +17,68 @@ import jakarta.persistence.Table;
 @Table(name = "facturas")
 public class Factura {
 
-    // =====================================================
-    // IDENTIFICADOR INTERNO
-    // =====================================================
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // =====================================================
-    // NÚMERO DE FACTURA
-    // =====================================================
-
     @Column(name = "numero_factura", nullable = false, unique = true, length = 30)
     private String numeroFactura;
-
-    // =====================================================
-    // FECHA DE EMISIÓN
-    // =====================================================
 
     @Column(name = "fecha_emision", nullable = false)
     private LocalDateTime fechaEmision;
 
-    // =====================================================
-    // MÉTODO DE PAGO
-    // =====================================================
-
     @Column(name = "metodo_pago", nullable = false, length = 30)
     private String metodoPago;
-
-    // =====================================================
-    // PEDIDO ASOCIADO
-    // -----------------------------------------------------
-    // Cada factura pertenece a un único pedido.
-    // Un pedido solamente puede tener una factura.
-    // =====================================================
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pedido_id", nullable = false, unique = true)
     private Pedido pedido;
 
-    // =====================================================
-    // CONSTRUCTOR VACÍO
-    // =====================================================
-
+    // Crea una instancia de Factura.
     public Factura() {
     }
 
-    // =====================================================
-    // GETTERS Y SETTERS
-    // =====================================================
-
+    // Devuelve el identificador.
     public Long getId() {
         return id;
     }
 
+    // Devuelve el valor de numero factura.
     public String getNumeroFactura() {
         return numeroFactura;
     }
 
+    // Actualiza el valor de numero factura.
     public void setNumeroFactura(String numeroFactura) {
         this.numeroFactura = numeroFactura;
     }
 
+    // Devuelve el valor de fecha emision.
     public LocalDateTime getFechaEmision() {
         return fechaEmision;
     }
 
+    // Actualiza el valor de fecha emision.
     public void setFechaEmision(LocalDateTime fechaEmision) {
         this.fechaEmision = fechaEmision;
     }
 
+    // Devuelve el valor de metodo pago.
     public String getMetodoPago() {
         return metodoPago;
     }
 
+    // Actualiza el valor de metodo pago.
     public void setMetodoPago(String metodoPago) {
         this.metodoPago = metodoPago;
     }
 
+    // Devuelve el valor de pedido.
     public Pedido getPedido() {
         return pedido;
     }
 
+    // Actualiza el valor de pedido.
     public void setPedido(Pedido pedido) {
         this.pedido = pedido;
     }

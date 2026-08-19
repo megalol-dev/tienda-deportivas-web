@@ -1,3 +1,4 @@
+// Representa un producto del catálogo.
 package com.tiendadeportivas.backend.model;
 
 import java.math.BigDecimal;
@@ -20,17 +21,9 @@ import jakarta.persistence.Table;
 @Table(name = "productos")
 public class Producto {
 
-    // =====================================================
-    // ID
-    // =====================================================
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    // =====================================================
-    // DATOS PRINCIPALES
-    // =====================================================
 
     @Column(nullable = false, length = 100)
     private String marca;
@@ -41,28 +34,8 @@ public class Producto {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal precio;
 
-    // =====================================================
-    // ESTADO DEL PRODUCTO
-    // -----------------------------------------------------
-    // En lugar de borrar físicamente productos,
-    // podremos desactivarlos.
-    // =====================================================
-
     @Column(nullable = false)
     private boolean activo = true;
-
-    // =====================================================
-    // TALLAS
-    // -----------------------------------------------------
-    // JPA creará automáticamente:
-    //
-    // producto_tallas
-    // ├── producto_id
-    // ├── talla
-    // └── orden_talla
-    //
-    // El orden se conserva gracias a @OrderColumn.
-    // =====================================================
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "producto_tallas", joinColumns = @JoinColumn(name = "producto_id"))
@@ -70,37 +43,17 @@ public class Producto {
     @OrderColumn(name = "orden_talla")
     private List<Integer> tallas = new ArrayList<>();
 
-    // =====================================================
-    // COLORES
-    // -----------------------------------------------------
-    // JPA creará automáticamente:
-    //
-    // producto_colores
-    // ├── producto_id
-    // ├── color
-    // └── orden_color
-    //
-    // Mantener el orden es importante porque actualmente
-    // el frontend utiliza el primer color como color inicial.
-    // =====================================================
-
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "producto_colores", joinColumns = @JoinColumn(name = "producto_id"))
     @Column(name = "color", nullable = false, length = 50)
     @OrderColumn(name = "orden_color")
     private List<String> colores = new ArrayList<>();
 
-    // =====================================================
-    // CONSTRUCTOR VACÍO
-    // =====================================================
-
+    // Crea una instancia de Producto.
     public Producto() {
     }
 
-    // =====================================================
-    // CONSTRUCTOR
-    // =====================================================
-
+    // Crea una instancia de Producto.
     public Producto(
             Long id,
             String marca,
@@ -118,66 +71,72 @@ public class Producto {
         this.activo = true;
     }
 
-    // =====================================================
-    // GETTERS
-    // =====================================================
-
+    // Devuelve el identificador.
     public Long getId() {
         return id;
     }
 
+    // Devuelve el valor de marca.
     public String getMarca() {
         return marca;
     }
 
+    // Devuelve el valor de nombre.
     public String getNombre() {
         return nombre;
     }
 
+    // Devuelve el valor de precio.
     public BigDecimal getPrecio() {
         return precio;
     }
 
+    // Indica si el registro está activo.
     public boolean isActivo() {
         return activo;
     }
 
+    // Devuelve el valor de tallas.
     public List<Integer> getTallas() {
         return tallas;
     }
 
+    // Devuelve el valor de colores.
     public List<String> getColores() {
         return colores;
     }
 
-    // =====================================================
-    // SETTERS
-    // =====================================================
-
+    // Actualiza el identificador.
     public void setId(Long id) {
         this.id = id;
     }
 
+    // Actualiza el valor de marca.
     public void setMarca(String marca) {
         this.marca = marca;
     }
 
+    // Actualiza el valor de nombre.
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
 
+    // Actualiza el valor de precio.
     public void setPrecio(BigDecimal precio) {
         this.precio = precio;
     }
 
+    // Actualiza el valor de activo.
     public void setActivo(boolean activo) {
         this.activo = activo;
     }
 
+    // Actualiza el valor de tallas.
     public void setTallas(List<Integer> tallas) {
         this.tallas = tallas;
     }
 
+    // Actualiza el valor de colores.
     public void setColores(List<String> colores) {
         this.colores = colores;
     }

@@ -1,3 +1,4 @@
+// Accede a los productos almacenados.
 package com.tiendadeportivas.backend.repository;
 
 import java.util.List;
@@ -9,6 +10,6 @@ import com.tiendadeportivas.backend.model.Producto;
 public interface ProductoRepository
         extends JpaRepository<Producto, Long> {
 
-    // Productos visibles en la tienda pública.
+    // Busca los productos activos ordenados por identificador.
     List<Producto> findByActivoTrueOrderByIdAsc();
 }

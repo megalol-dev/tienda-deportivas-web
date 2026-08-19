@@ -1,3 +1,4 @@
+// Gestiona registro, sesión, logout y CSRF.
 package com.tiendadeportivas.backend.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,6 +43,7 @@ public class AuthController {
         private final AuthenticationManager authenticationManager;
         private final UsuarioRepository usuarioRepository;
 
+        // Crea una instancia de AuthController.
         public AuthController(
                         UsuarioService usuarioService,
                         AuthenticationManager authenticationManager,
@@ -52,6 +54,7 @@ public class AuthController {
                 this.usuarioRepository = usuarioRepository;
         }
 
+        // Registra un cliente y devuelve sus datos públicos.
         @PostMapping("/registro")
         @ResponseStatus(HttpStatus.CREATED)
         public UsuarioRespuesta registrar(
@@ -67,6 +70,7 @@ public class AuthController {
                                 usuario.getFechaAlta());
         }
 
+        // Autentica las credenciales recibidas.
         @PostMapping("/login")
         public ResponseEntity<?> login(
                         @Valid @RequestBody LoginRequest request,
@@ -74,28 +78,23 @@ public class AuthController {
 
                 try {
 
-                        // Spring Security comprueba email + contraseña
                         Authentication authentication = authenticationManager.authenticate(
                                         new UsernamePasswordAuthenticationToken(
                                                         request.getEmail(),
                                                         request.getPassword()));
 
-                        // Creamos el SecurityContext
                         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
 
                         securityContext.setAuthentication(authentication);
 
                         SecurityContextHolder.setContext(securityContext);
 
-                        // Creamos/obtenemos la sesión HTTP
                         HttpSession session = httpRequest.getSession(true);
 
-                        // Guardamos el SecurityContext en la sesión
                         session.setAttribute(
                                         HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
                                         securityContext);
 
-                        // Recuperamos nuestro usuario
                         Usuario usuario = usuarioRepository
                                         .findByEmail(authentication.getName())
                                         .orElseThrow(() -> new SecurityException(
@@ -120,6 +119,7 @@ public class AuthController {
                 }
         }
 
+        // Devuelve el usuario autenticado.
         @GetMapping("/me")
         public UsuarioRespuesta obtenerUsuarioActual(Authentication authentication) {
 
@@ -140,6 +140,7 @@ public class AuthController {
                                 usuario.getFechaAlta());
         }
 
+        // Cierra e invalida la sesión actual.
         @PostMapping("/logout")
         public ResponseEntity<Void> logout(
                         HttpServletRequest request,
@@ -155,6 +156,7 @@ public class AuthController {
                 return ResponseEntity.noContent().build();
         }
 
+        // Devuelve el token CSRF de la sesión.
         @GetMapping("/csrf")
         public CsrfToken csrf(CsrfToken token) {
                 return token;

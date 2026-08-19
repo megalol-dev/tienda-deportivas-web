@@ -11,6 +11,33 @@
   </head>
 
   <body>
+    <!-- Solicita la orientación adecuada antes de mostrar la gestión móvil. -->
+    <div
+      class="aviso-orientacion-panel aviso-orientacion-entrada"
+      role="status"
+      aria-live="polite"
+    >
+      <div class="icono-girar-movil" aria-hidden="true">📱</div>
+      <h2>Gira el móvil</h2>
+      <p>
+        En modo móvil, utiliza la zona de gestión con la pantalla en horizontal.
+      </p>
+    </div>
+
+    <!-- Informa de la orientación recomendada después de cerrar la sesión. -->
+    <div
+      id="aviso-orientacion-salida"
+      class="aviso-orientacion-panel aviso-orientacion-salida"
+      role="status"
+      aria-live="assertive"
+    >
+      <div class="icono-girar-movil icono-volver-vertical" aria-hidden="true">
+        📱
+      </div>
+      <h2>Sesión cerrada</h2>
+      <p>Gira el móvil verticalmente para continuar.</p>
+    </div>
+
     <!-- =========================================
        CABECERA DEL PANEL
        ========================================= -->
@@ -385,10 +412,11 @@
 
         <!-- =====================================
        TABLA DE EMPLEADOS
-       ===================================== -->
+        ===================================== -->
 
-        <div class="tabla-pedidos-contenedor">
-          <table class="tabla-pedidos">
+        <div class="tabla-empleados-desplazamiento">
+          <div class="tabla-pedidos-contenedor">
+            <table class="tabla-pedidos">
             <thead>
               <tr>
                 <th>ID</th>
@@ -419,8 +447,39 @@
           Los CLIENTE no aparecerán
           en esta sección.
         -->
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="controles-desplazamiento-empleados">
+            <button
+              type="button"
+              class="btn-desplazamiento-empleados"
+              data-direccion="-1"
+              aria-label="Desplazar la tabla hacia la izquierda"
+            >
+              &lt;
+            </button>
+
+            <input
+              type="range"
+              id="control-desplazamiento-empleados"
+              min="0"
+              max="0"
+              value="0"
+              step="1"
+              aria-label="Desplazamiento horizontal de la tabla de empleados"
+            />
+
+            <button
+              type="button"
+              class="btn-desplazamiento-empleados"
+              data-direccion="1"
+              aria-label="Desplazar la tabla hacia la derecha"
+            >
+              &gt;
+            </button>
+          </div>
         </div>
 
         <!-- =====================================

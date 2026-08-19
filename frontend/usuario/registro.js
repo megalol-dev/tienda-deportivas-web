@@ -1,13 +1,4 @@
-// =====================================================
-// REGISTRO DE USUARIO
-// -----------------------------------------------------
-// Gestiona:
-// • Lectura del formulario.
-// • Validación de contraseñas.
-// • Obtención del token CSRF.
-// • Envío del registro al backend.
-// =====================================================
-
+// Valida y envía el formulario de registro.
 const formRegistro = document.getElementById("form-registro");
 const registroNombre = document.getElementById("registro-nombre");
 const registroEmail = document.getElementById("registro-email");
@@ -26,30 +17,21 @@ const errorRegistroConfirmarPassword = document.getElementById(
   "error-registro-confirmar-password",
 );
 
-// =====================================================
-// MOSTRAR ERROR
-// =====================================================
-
+// Muestra un error de validación.
 function mostrarError(input, error, mensaje) {
   input.classList.add("campo-invalido");
 
   error.textContent = mensaje;
 }
 
-// =====================================================
-// LIMPIAR ERROR
-// =====================================================
-
+// Limpia un error de validación.
 function limpiarError(input, error) {
   input.classList.remove("campo-invalido");
 
   error.textContent = "";
 }
 
-// =====================================================
-// VALIDAR NOMBRE
-// =====================================================
-
+// Valida el nombre del registro.
 function validarNombreRegistro() {
   const nombre = registroNombre.value.trim();
 
@@ -83,10 +65,7 @@ function validarNombreRegistro() {
   return true;
 }
 
-// =====================================================
-// VALIDAR EMAIL
-// =====================================================
-
+// Valida el email del registro.
 function validarEmailRegistro() {
   const email = registroEmail.value.trim();
 
@@ -120,10 +99,7 @@ function validarEmailRegistro() {
   return true;
 }
 
-// =====================================================
-// VALIDAR PASSWORD
-// =====================================================
-
+// Valida la contraseña del registro.
 function validarPasswordRegistro() {
   const password = registroPassword.value;
 
@@ -161,10 +137,7 @@ function validarPasswordRegistro() {
   return true;
 }
 
-// =====================================================
-// VALIDAR CONFIRMAR PASSWORD
-// =====================================================
-
+// Valida la confirmación de contraseña.
 function validarConfirmarPasswordRegistro() {
 
   const confirmar =
@@ -204,10 +177,6 @@ function validarConfirmarPasswordRegistro() {
   return true;
 }
 
-// =====================================================
-// VALIDACIÓN EN VIVO
-// =====================================================
-
 registroNombre.addEventListener(
   "blur",
   validarNombreRegistro,
@@ -240,20 +209,12 @@ formRegistro.addEventListener("submit", async (event) => {
     return;
   }
 
-  // =================================================
-  // 1. OBTENER DATOS DEL FORMULARIO
-  // =================================================
-
   const nombre = document.getElementById("registro-nombre").value.trim();
   const email = document.getElementById("registro-email").value.trim();
   const password = document.getElementById("registro-password").value;
   const confirmarPassword = document.getElementById(
     "registro-confirmar-password",
   ).value;
-
-  // =================================================
-  // 3. DATOS PARA EL BACKEND
-  // =================================================
 
   const datosRegistro = {
     nombre: nombre,
@@ -263,9 +224,6 @@ formRegistro.addEventListener("submit", async (event) => {
   };
 
   try {
-    // =================================================
-    // 4. OBTENER TOKEN CSRF
-    // =================================================
 
     const respuestaCsrf = await fetch("http://localhost:8080/auth/csrf", {
       method: "GET",
@@ -280,29 +238,19 @@ formRegistro.addEventListener("submit", async (event) => {
 
     console.log("CSRF obtenido:", csrf);
 
-    // =================================================
-    // 5. ENVIAR REGISTRO
-    // =================================================
-
     const respuesta = await fetch("http://localhost:8080/auth/registro", {
       method: "POST",
 
       headers: {
         "Content-Type": "application/json",
 
-        // Spring nos dice qué nombre de cabecera usar
         [csrf.headerName]: csrf.token,
       },
 
-      // Envía también la cookie de sesión
       credentials: "include",
 
       body: JSON.stringify(datosRegistro),
     });
-
-    // =================================================
-    // 6. COMPROBAR RESPUESTA
-    // =================================================
 
     if (!respuesta.ok) {
       let mensaje = "No se ha podido crear la cuenta.";
@@ -314,17 +262,13 @@ formRegistro.addEventListener("submit", async (event) => {
           mensaje = error.message;
         }
       } catch {
-        // Dejamos el mensaje genérico
+
       }
 
       alert(mensaje);
 
       return;
     }
-
-    // =================================================
-    // 7. REGISTRO CORRECTO
-    // =================================================
 
     const usuario = await respuesta.json();
 

@@ -1,3 +1,4 @@
+// Devuelve los datos públicos de un empleado.
 package com.tiendadeportivas.backend.model;
 
 import java.time.LocalDateTime;
@@ -11,9 +12,11 @@ public class EmpleadoRespuesta {
     private LocalDateTime fechaAlta;
     private boolean activo;
 
+    // Crea una instancia de EmpleadoRespuesta.
     public EmpleadoRespuesta() {
     }
 
+    // Crea una instancia de EmpleadoRespuesta.
     public EmpleadoRespuesta(
             Long id,
             String nombre,
@@ -30,26 +33,32 @@ public class EmpleadoRespuesta {
         this.activo = activo;
     }
 
+    // Devuelve el identificador.
     public Long getId() {
         return id;
     }
 
+    // Devuelve el valor de nombre.
     public String getNombre() {
         return nombre;
     }
 
+    // Devuelve el valor de email.
     public String getEmail() {
         return email;
     }
 
+    // Devuelve el valor de rol.
     public RolUsuario getRol() {
         return rol;
     }
 
+    // Devuelve la fecha de alta.
     public LocalDateTime getFechaAlta() {
         return fechaAlta;
     }
 
+    // Indica si el registro está activo.
     public boolean isActivo() {
         return activo;
     }

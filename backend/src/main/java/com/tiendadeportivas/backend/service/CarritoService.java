@@ -1,3 +1,4 @@
+// Aplica la lógica de negocio del carrito.
 package com.tiendadeportivas.backend.service;
 
 import java.util.List;
@@ -24,6 +25,7 @@ public class CarritoService {
     private final UsuarioRepository usuarioRepository;
     private final ProductoRepository productoRepository;
 
+    // Crea una instancia de CarritoService.
     public CarritoService(
             CarritoRepository carritoRepository,
             CarritoItemRepository carritoItemRepository,
@@ -36,10 +38,7 @@ public class CarritoService {
         this.productoRepository = productoRepository;
     }
 
-    // =====================================================
-    // OBTENER O CREAR CARRITO
-    // =====================================================
-
+    // Recupera o crea el carrito del cliente.
     @Transactional
     public Carrito obtenerOCrearCarrito(
             String emailUsuario) {
@@ -61,10 +60,7 @@ public class CarritoService {
                 });
     }
 
-    // =====================================================
-    // OBTENER CARRITO DEL USUARIO
-    // =====================================================
-
+    // Devuelve el carrito del cliente.
     @Transactional(readOnly = true)
     public List<CarritoItemRespuesta> obtenerCarrito(
             String emailUsuario) {
@@ -89,12 +85,7 @@ public class CarritoService {
                 .toList();
     }
 
-    // =====================================================
-    // OBTENER ENTIDADES DEL CARRITO
-    // -----------------------------------------------------
-    // Se utiliza internamente para crear pedidos.
-    // =====================================================
-
+    // Devuelve las líneas persistentes del carrito.
     @Transactional(readOnly = true)
     public List<CarritoItem> obtenerItemsEntidad(
             String emailUsuario) {
@@ -110,10 +101,7 @@ public class CarritoService {
         return List.copyOf(carrito.getItems());
     }
 
-    // =====================================================
-    // AGREGAR PRODUCTO
-    // =====================================================
-
+    // Añade o incrementa un producto del carrito.
     @Transactional
     public void agregarProducto(
             String emailUsuario,
@@ -134,20 +122,12 @@ public class CarritoService {
                     "El producto no está disponible.");
         }
 
-        // =================================================
-        // VALIDAR TALLA
-        // =================================================
-
         if (!producto.getTallas()
                 .contains(request.getTalla())) {
 
             throw new IllegalArgumentException(
                     "La talla seleccionada no es válida.");
         }
-
-        // =================================================
-        // VALIDAR COLOR
-        // =================================================
 
         if (request.getColor() == null
                 || !producto.getColores()
@@ -192,10 +172,7 @@ public class CarritoService {
                         });
     }
 
-    // =====================================================
-    // ELIMINAR PRODUCTO
-    // =====================================================
-
+    // Elimina una variante del carrito.
     @Transactional
     public void eliminarProducto(
             String emailUsuario,
@@ -221,10 +198,7 @@ public class CarritoService {
                         carritoItemRepository::delete);
     }
 
-    // =====================================================
-    // VACIAR CARRITO
-    // =====================================================
-
+    // Elimina todas las líneas del carrito.
     @Transactional
     public void vaciarCarrito(
             String emailUsuario) {
