@@ -9,12 +9,8 @@
 }
 
 body {
-    font-family: Arial, Helvetica, sans-serif;
-    background-image: url("../img/fondoPagina.png");
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    background-position: center;
+    font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #f5f7fa;
     color: #222;
     line-height: 1.7;
 }
@@ -212,4 +208,140 @@ a:hover {
         text-align: center;
     }
 
+}
+
+
+/* Sistema visual compartido con la tienda. */
+
+:root {
+    --legal-bg: #f5f7fa;
+    --legal-surface: #ffffff;
+    --legal-ink: #111827;
+    --legal-muted: #536071;
+    --legal-border: #dfe4ea;
+    --legal-accent: #4f46e5;
+    --legal-header: #0c111d;
+}
+
+body {
+    background: var(--legal-bg);
+    color: var(--legal-ink);
+    -webkit-font-smoothing: antialiased;
+}
+
+.cabecera {
+    padding: 42px 20px;
+    background: var(--legal-header);
+    border-bottom: 0;
+}
+
+.cabecera h1 {
+    margin-bottom: 6px;
+    font-size: clamp(2rem, 5vw, 2.8rem);
+    font-weight: 850;
+    letter-spacing: -0.05em;
+}
+
+.cabecera p {
+    color: #aeb7c5;
+    font-size: 0.95rem;
+}
+
+.contenedor-legal {
+    width: min(calc(100% - 40px), 900px);
+    margin: 48px auto;
+    padding: clamp(28px, 6vw, 56px);
+    background: var(--legal-surface);
+    border: 1px solid var(--legal-border);
+    border-radius: 18px;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+}
+
+.contenedor-legal h2 {
+    color: var(--legal-ink);
+    font-size: clamp(1.7rem, 4vw, 2.3rem);
+    font-weight: 830;
+    letter-spacing: -0.04em;
+}
+
+.fecha {
+    color: var(--legal-muted);
+}
+
+.contenedor-legal h3 {
+    color: var(--legal-ink);
+    font-size: 1.16rem;
+    font-weight: 790;
+    letter-spacing: -0.02em;
+}
+
+.contenedor-legal p,
+.contenedor-legal li {
+    color: var(--legal-muted);
+}
+
+a {
+    color: var(--legal-accent);
+}
+
+.btn-volver {
+    min-height: 46px;
+    padding: 12px 22px;
+    background: var(--legal-header);
+    color: #ffffff;
+    border-radius: 9px;
+}
+
+.btn-volver:hover {
+    background: var(--legal-accent);
+}
+
+footer {
+    background: var(--legal-header);
+}
+
+:where(a, button):focus-visible {
+    outline: 3px solid rgba(79, 70, 229, 0.32);
+    outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+    .contenedor-legal {
+        width: min(calc(100% - 28px), 900px);
+        margin: 28px auto;
+    }
+
+    .contenedor-legal p {
+        text-align: left;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Contraste reforzado para las superficies legales. */
+:root {
+    --legal-border: #929eac;
+}
+
+.contenedor-legal {
+    border-color: var(--legal-border);
+}
+
+.btn-volver,
+.btn-volver:hover {
+    background: var(--legal-accent);
+    color: #ffffff;
+    border: 1px solid var(--legal-accent);
+}
+
+.btn-volver:hover {
+    filter: brightness(0.88);
 }

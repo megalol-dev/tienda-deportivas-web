@@ -6,114 +6,78 @@
     <title>UrbanSneakers - Tienda Online</title>
     <link rel="stylesheet" href="css/tiendaEstilos.css" />
     <link rel="stylesheet" href="css/animacionTitulo.css" />
-    <link rel="stylesheet" href="css/animacionMarcas.css" />
   </head>
 
   <body>
     <!-- ====== ENCABEZADO ====== -->
-    <header>
-      <h1 class="titulo-animado">
-    <span style="--i:0">U</span>
-    <span style="--i:1">r</span>
-    <span style="--i:2">b</span>
-    <span style="--i:3">a</span>
-    <span style="--i:4">n</span>
-    <span style="--i:5">S</span>
-    <span style="--i:6">n</span>
-    <span style="--i:7">e</span>
-    <span style="--i:8">a</span>
-    <span style="--i:9">k</span>
-    <span style="--i:10">e</span>
-    <span style="--i:11">r</span>
-    <span style="--i:12">s</span>
-
-    <span class="espacio"></span>
-    <span style="--i:13">-</span>
-    <span class="espacio"></span>
-
-    <span style="--i:14">t</span>
-    <span style="--i:15">u</span>
-
-    <span class="espacio"></span>
-
-    <span style="--i:16">t</span>
-    <span style="--i:17">i</span>
-    <span style="--i:18">e</span>
-    <span style="--i:19">n</span>
-    <span style="--i:20">d</span>
-    <span style="--i:21">a</span>
-
-    <span class="espacio"></span>
-
-    <span style="--i:22">o</span>
-    <span style="--i:23">n</span>
-    <span style="--i:24">l</span>
-    <span style="--i:25">i</span>
-    <span style="--i:26">n</span>
-    <span style="--i:27">e</span>
-
-    <span class="espacio"></span>
-
-    <span style="--i:28">d</span>
-    <span style="--i:29">e</span>
-
-    <span class="espacio"></span>
-
-    <span style="--i:30">d</span>
-    <span style="--i:31">e</span>
-    <span style="--i:32">p</span>
-    <span style="--i:33">o</span>
-    <span style="--i:34">r</span>
-    <span style="--i:35">t</span>
-    <span style="--i:36">i</span>
-    <span style="--i:37">v</span>
-    <span style="--i:38">a</span>
-    <span style="--i:39">s</span>
-</h1>
-      <!-- Imagen del logotipo -->
-      <img
-        src="img/logotipo.png"
-        alt="Logotipo de UrbanSneakers"
-        class="logo"
-      />
-      <nav class="nav-principal">
-        <ul class="nav-izquierda">
-          <li>
-            <a href="#" id="nombre-usuario">Usuario</a>
-          </li>
-
-          <li>
-            <a href="#" id="btn-carrito"> Carrito <span id="badge">0</span> </a>
-          </li>
-        </ul>
-
-        <div class="nav-derecha">
-          <a
-            href="usuario/perfil.html"
-            class="btn-login btn-perfil"
-            id="btn-perfil"
-            hidden
-          >
-            Mi perfil
-          </a>
-
-          <a href="usuario/login.html" class="btn-login" id="btn-auth">
-            Registrarse / Iniciar sesión
-          </a>
+    <header class="site-header">
+      <div class="cabecera-principal">
+        <div class="identidad-marca">
+          <span class="monograma" aria-hidden="true">US</span>
+          <div>
+            <h1 class="titulo-animado">UrbanSneakers</h1>
+            <p>Deportivas para moverte a tu manera</p>
+          </div>
         </div>
-      </nav>
+        <nav class="nav-principal" aria-label="Navegación principal">
+          <ul class="nav-izquierda">
+            <li>
+              <span id="nombre-usuario">Usuario</span>
+            </li>
+
+            <li>
+              <a href="#" id="btn-carrito">
+                Carrito <span id="badge">0</span>
+              </a>
+            </li>
+          </ul>
+
+          <div class="nav-derecha">
+            <a
+              href="usuario/perfil.html"
+              class="btn-login btn-perfil"
+              id="btn-perfil"
+              hidden
+            >
+              Mi perfil
+            </a>
+
+            <a href="usuario/login.html" class="btn-login" id="btn-auth">
+              Registrarse / Iniciar sesión
+            </a>
+          </div>
+        </nav>
+      </div>
+
+      <div class="barra-ventajas">
+        <span>Envío gratuito desde 100 €</span>
+        <span>Pago seguro con Stripe</span>
+        <span>Factura disponible en tu perfil</span>
+      </div>
     </header>
 
     <!-- ====== CONTENIDO PRINCIPAL ====== -->
     <main>
-      <!-- Sección principal de productos -->
-      <section id="lista">
-        <h2>
-          <!--etiqueta vacia para mostar un espacio en blanco, util para añadir futura seccion-->
-        </h2>
-      </section>
+      <section id="lista" aria-hidden="true"></section>
 
       <!-- ====== SECCIONES DE MARCAS ====== -->
+
+      <section id="portada" class="seccion-deportivas portada-tienda">
+        <div class="portada-visual">
+          <img
+            src="img/logotipo.png"
+            alt="Logotipo grafiti de UrbanSneakers sobre una pared de ladrillo"
+          />
+        </div>
+      </section>
+
+      <section class="seccion-deportivas cabecera-marcas">
+        <span class="eyebrow">Elige tu estilo</span>
+        <h2>Compra por marca</h2>
+        <p>Selecciona una marca para descubrir todos sus modelos.</p>
+      </section>
+
+      <div id="marcas" class="marcas-grid">
 
       <!-- Nike -->
       <section class="seccion-deportivas" id="nike">
@@ -176,6 +140,7 @@
           </div>
         </div>
       </section>
+      </div>
 
       <!-- ===== VISTA DE UNA MARCA (SPA) - Oculta por defecto ===== -->
       <section id="vista-marca" class="oculto">
@@ -189,6 +154,15 @@
 
         <!-- Grid de productos de la marca seleccionada -->
         <div id="grid-productos" class="rejilla-5"></div>
+
+        <a
+          href="#vista-marca"
+          class="btn-subir-catalogo"
+          aria-label="Volver al principio del catálogo"
+          title="Volver al principio del catálogo"
+        >
+          <span aria-hidden="true">↑</span>
+        </a>
       </section>
 
       <!-- ====== CHECKOUT / RESUMEN PEDIDO (SPA) ====== -->
@@ -484,7 +458,7 @@
           <div class="acciones">
             <button id="btn-pagar" class="btn-primario">Pagar ahora</button>
             <button id="btn-vaciar" class="btn-secundario">
-              Cancelar todos los pedidos
+              Vaciar carrito
             </button>
           </div>
         </div>

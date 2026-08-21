@@ -1,71 +1,89 @@
 /* =====================================================
-   ANIMACIÓN DEL TÍTULO PRINCIPAL - URBANSNEAKERS
+   ROTACION DE VENTAJAS EN MOVIL
+   Cada mensaje permanece dos segundos antes del siguiente.
+   En escritorio, la barra conserva sus tres textos visibles.
    ===================================================== */
 
-.titulo-animado {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
+@media (max-width: 720px) {
+    .barra-ventajas {
+        position: relative;
+        display: block;
+        height: 36px;
+        min-height: 36px;
+        padding: 0 14px;
+        overflow: hidden;
+    }
+
+    .barra-ventajas span,
+    .barra-ventajas span:not(:first-child),
+    .barra-ventajas span:last-child {
+        position: absolute;
+        top: 50%;
+        right: 14px;
+        left: 14px;
+        display: block;
+        overflow: hidden;
+        opacity: 0;
+        text-align: center;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        transform: translateY(calc(-50% + 6px));
+        animation: rotar-ventaja-movil 6s ease-in-out infinite;
+    }
+
+    .barra-ventajas span:nth-child(1) {
+        animation-delay: 0s;
+    }
+
+    .barra-ventajas span:nth-child(2) {
+        animation-delay: -4s;
+    }
+
+    .barra-ventajas span:nth-child(3) {
+        animation-delay: -2s;
+    }
+
+    .barra-ventajas span + span::before {
+        display: none;
+    }
 }
 
-
-/* Cada letra se anima individualmente */
-.titulo-animado span {
-    color: white;
-
-    animation-name: color-letra;
-    animation-duration: 6s;
-    animation-iteration-count: infinite;
-    animation-timing-function: ease-in-out;
-
-    /* Cada letra utiliza el número indicado en --i */
-    animation-delay: calc(var(--i) * 0.12s);
-}
-
-
-/* Animación de colores */
-@keyframes color-letra {
-
-    0% {
-        color: white;
+@keyframes rotar-ventaja-movil {
+    0%,
+    25% {
+        opacity: 1;
+        transform: translateY(-50%);
     }
 
-    20% {
-        color: #ff3030;
+    33.333%,
+    91.666% {
+        opacity: 0;
+        transform: translateY(calc(-50% - 6px));
     }
 
-    40% {
-        color: #00bfff;
-    }
-
-    60% {
-        color: #ffe600;
-    }
-
-    80% {
-        color: #39ff14;
+    91.667% {
+        opacity: 0;
+        transform: translateY(calc(-50% + 6px));
     }
 
     100% {
-        color: white;
+        opacity: 1;
+        transform: translateY(-50%);
     }
 }
 
-
-/* Espacios entre palabras */
-.titulo-animado .espacio {
-    width: 0.3em;
-}
-
-
-/* Accesibilidad:
-   si el usuario tiene desactivadas las animaciones,
-   dejamos el título normal */
-@media (prefers-reduced-motion: reduce) {
-
-    .titulo-animado span {
+/* Accesibilidad: sin movimiento se muestra una unica ventaja estable. */
+@media (max-width: 720px) and (prefers-reduced-motion: reduce) {
+    .barra-ventajas span,
+    .barra-ventajas span:not(:first-child),
+    .barra-ventajas span:last-child {
+        display: none;
         animation: none;
-        color: white;
     }
 
+    .barra-ventajas span:first-child {
+        display: block;
+        opacity: 1;
+        transform: translateY(-50%);
+    }
 }
