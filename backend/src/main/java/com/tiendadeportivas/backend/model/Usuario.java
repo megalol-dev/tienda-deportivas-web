@@ -17,6 +17,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.OneToOne;
+import com.tiendadeportivas.backend.model.ActualizarEmailPersonalRequest;
 
 @Entity
 @Table(name = "usuarios")

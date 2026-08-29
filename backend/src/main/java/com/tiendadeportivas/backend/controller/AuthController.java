@@ -31,6 +31,7 @@ import com.tiendadeportivas.backend.model.Usuario;
 import com.tiendadeportivas.backend.model.UsuarioRespuesta;
 import com.tiendadeportivas.backend.repository.UsuarioRepository;
 import com.tiendadeportivas.backend.service.UsuarioService;
+import org.springframework.security.core.session.SessionRegistry;
 
 import java.util.Map;
 
@@ -42,16 +43,18 @@ public class AuthController {
         private final UsuarioService usuarioService;
         private final AuthenticationManager authenticationManager;
         private final UsuarioRepository usuarioRepository;
+        private final SessionRegistry sessionRegistry;
 
         // Crea una instancia de AuthController.
         public AuthController(
                         UsuarioService usuarioService,
                         AuthenticationManager authenticationManager,
-                        UsuarioRepository usuarioRepository) {
+                        UsuarioRepository usuarioRepository, SessionRegistry sessionRegistry) {
 
                 this.usuarioService = usuarioService;
                 this.authenticationManager = authenticationManager;
                 this.usuarioRepository = usuarioRepository;
+                this.sessionRegistry = sessionRegistry;
         }
 
         // Registra un cliente y devuelve sus datos públicos.
@@ -91,9 +94,17 @@ public class AuthController {
 
                         HttpSession session = httpRequest.getSession(true);
 
+                        // Renueva el identificador para impedir la fijación de sesión.
+                        httpRequest.changeSessionId();
+
                         session.setAttribute(
                                         HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
                                         securityContext);
+
+                        // Registra la sesión para permitir su revocación administrativa.
+                        sessionRegistry.registerNewSession(
+                                        session.getId(),
+                                        authentication.getPrincipal());
 
                         Usuario usuario = usuarioRepository
                                         .findByEmail(authentication.getName())

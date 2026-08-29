@@ -18,21 +18,29 @@ import com.tiendadeportivas.backend.model.CrearEmpleadoRequest;
 import com.tiendadeportivas.backend.model.ActualizarEmpleadoRequest;
 import com.tiendadeportivas.backend.model.ActualizarNombreClienteRequest;
 import com.tiendadeportivas.backend.model.ActualizarEmailClienteRequest;
+import com.tiendadeportivas.backend.model.ActualizarEmailPersonalRequest;
 import com.tiendadeportivas.backend.model.ActualizarPasswordClienteRequest;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.userdetails.UserDetails;
+import com.tiendadeportivas.backend.model.ActualizarPasswordPersonalRequest;
 
 @Service
 public class UsuarioService {
 
         private final UsuarioRepository usuarioRepository;
         private final PasswordEncoder passwordEncoder;
+        private final SessionRegistry sessionRegistry;
 
         // Crea una instancia de UsuarioService.
         public UsuarioService(
                         UsuarioRepository usuarioRepository,
-                        PasswordEncoder passwordEncoder) {
+                        PasswordEncoder passwordEncoder,
+                        SessionRegistry sessionRegistry) {
 
                 this.usuarioRepository = usuarioRepository;
                 this.passwordEncoder = passwordEncoder;
+                this.sessionRegistry = sessionRegistry;
         }
 
         // Valida y guarda un nuevo cliente.
@@ -159,6 +167,11 @@ public class UsuarioService {
                                         }
                                 });
 
+                String emailAnterior = usuario.getEmail();
+
+                boolean rolCambiado = usuario.getRol() != request.getRol();
+
+                boolean empleadoDesactivado = usuario.isActivo() && !request.isActivo();
                 usuario.setNombre(
                                 request.getNombre().trim());
 
@@ -188,6 +201,11 @@ public class UsuarioService {
                 }
 
                 Usuario usuarioActualizado = usuarioRepository.save(usuario);
+
+                // Revoca las sesiones si cambian los permisos o se desactiva la cuenta.
+                if (rolCambiado || empleadoDesactivado) {
+                        cerrarSesionesActivas(emailAnterior);
+                }
 
                 return new EmpleadoRespuesta(
                                 usuarioActualizado.getId(),
@@ -316,6 +334,29 @@ public class UsuarioService {
                 return usuarioRepository.save(usuario);
         }
 
+        // Valida y guarda el nuevo nombre del personal autenticado.
+        public Usuario actualizarNombrePersonal(
+                        String emailAutenticado,
+                        ActualizarNombreClienteRequest request) {
+
+                Usuario usuario = usuarioRepository
+                                .findByEmail(emailAutenticado)
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "Usuario autenticado no encontrado."));
+
+                if (usuario.getRol() != RolUsuario.TRABAJADOR
+                                && usuario.getRol() != RolUsuario.JEFE
+                                && usuario.getRol() != RolUsuario.ADMIN) {
+
+                        throw new SecurityException(
+                                        "La cuenta autenticada no pertenece al personal.");
+                }
+
+                usuario.setNombre(request.getNombre().trim());
+
+                return usuarioRepository.save(usuario);
+        }
+
         // Valida y guarda el nuevo email del cliente.
         public Usuario actualizarEmailCliente(
                         String emailAutenticado,
@@ -325,6 +366,14 @@ public class UsuarioService {
                                 .findByEmail(emailAutenticado)
                                 .orElseThrow(() -> new IllegalArgumentException(
                                                 "Usuario autenticado no encontrado."));
+
+                if (!passwordEncoder.matches(
+                                request.getPasswordActual(),
+                                usuario.getPassword())) {
+
+                        throw new IllegalArgumentException(
+                                        "La contraseña actual no es correcta.");
+                }
 
                 String nuevoEmail = request
                                 .getEmail()
@@ -357,6 +406,14 @@ public class UsuarioService {
                                 .orElseThrow(() -> new IllegalArgumentException(
                                                 "Usuario autenticado no encontrado."));
 
+                if (!passwordEncoder.matches(
+                                request.getPasswordActual(),
+                                usuario.getPassword())) {
+
+                        throw new IllegalArgumentException(
+                                        "La contraseña actual no es correcta.");
+                }
+
                 if (!request.getPassword().equals(
                                 request.getConfirmarPassword())) {
 
@@ -367,6 +424,109 @@ public class UsuarioService {
                 String passwordCodificada = passwordEncoder.encode(request.getPassword());
 
                 usuario.setPassword(passwordCodificada);
+
+                return usuarioRepository.save(usuario);
+        }
+
+        // Valida y guarda la nueva contraseña del personal autenticado.
+        public Usuario actualizarPasswordPersonal(
+                        String emailAutenticado,
+                        ActualizarPasswordPersonalRequest request) {
+
+                Usuario usuario = usuarioRepository
+                                .findByEmail(emailAutenticado)
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "Usuario autenticado no encontrado."));
+
+                if (usuario.getRol() != RolUsuario.TRABAJADOR
+                                && usuario.getRol() != RolUsuario.JEFE
+                                && usuario.getRol() != RolUsuario.ADMIN) {
+
+                        throw new SecurityException(
+                                        "La cuenta autenticada no pertenece al personal.");
+                }
+
+                if (!passwordEncoder.matches(
+                                request.getPasswordActual(),
+                                usuario.getPassword())) {
+
+                        throw new IllegalArgumentException(
+                                        "La contraseña actual no es correcta.");
+                }
+
+                if (!request.getPassword().equals(
+                                request.getConfirmarPassword())) {
+
+                        throw new IllegalArgumentException(
+                                        "Las contraseñas no coinciden.");
+                }
+
+                usuario.setPassword(
+                                passwordEncoder.encode(request.getPassword()));
+
+                return usuarioRepository.save(usuario);
+        }
+
+        // Expira todas las sesiones activas para que se cierren en su siguiente petición.
+        private void cerrarSesionesActivas(String email) {
+
+                sessionRegistry.getAllPrincipals()
+                                .stream()
+                                .filter(principal -> principal instanceof UserDetails)
+                                .map(principal -> (UserDetails) principal)
+                                .filter(userDetails -> userDetails.getUsername()
+                                                .equalsIgnoreCase(email))
+                                .forEach(userDetails -> {
+
+                                        List<SessionInformation> sesiones = sessionRegistry.getAllSessions(
+                                                        userDetails,
+                                                        false);
+
+                                        sesiones.forEach(
+                                                        SessionInformation::expireNow);
+                                });
+        }
+
+        // Valida y guarda el nuevo email del personal autenticado.
+        public Usuario actualizarEmailPersonal(
+                        String emailAutenticado,
+                        ActualizarEmailPersonalRequest request) {
+
+                Usuario usuario = usuarioRepository
+                                .findByEmail(emailAutenticado)
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "Usuario autenticado no encontrado."));
+
+                if (usuario.getRol() != RolUsuario.TRABAJADOR
+                                && usuario.getRol() != RolUsuario.JEFE
+                                && usuario.getRol() != RolUsuario.ADMIN) {
+
+                        throw new SecurityException(
+                                        "La cuenta autenticada no pertenece al personal.");
+                }
+
+                if (!passwordEncoder.matches(
+                                request.getPasswordActual(),
+                                usuario.getPassword())) {
+
+                        throw new IllegalArgumentException(
+                                        "La contraseña actual no es correcta.");
+                }
+
+                String nuevoEmail = request.getEmail()
+                                .trim()
+                                .toLowerCase();
+
+                usuarioRepository.findByEmail(nuevoEmail)
+                                .ifPresent(usuarioExistente -> {
+
+                                        if (!usuarioExistente.getId().equals(usuario.getId())) {
+                                                throw new IllegalArgumentException(
+                                                                "Ya existe un usuario con ese email.");
+                                        }
+                                });
+
+                usuario.setEmail(nuevoEmail);
 
                 return usuarioRepository.save(usuario);
         }

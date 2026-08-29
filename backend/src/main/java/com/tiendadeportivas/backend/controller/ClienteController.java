@@ -27,6 +27,8 @@ import com.tiendadeportivas.backend.model.UsuarioRespuesta;
 import com.tiendadeportivas.backend.service.FacturaService;
 import com.tiendadeportivas.backend.service.PedidoService;
 import com.tiendadeportivas.backend.service.UsuarioService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 @RestController
 @RequestMapping("/cliente/perfil")
@@ -70,18 +72,28 @@ public class ClienteController {
         @PutMapping("/email")
         public UsuarioRespuesta actualizarEmail(
                         @Valid @RequestBody ActualizarEmailClienteRequest request,
-                        Principal principal) {
+                        Principal principal,
+                        HttpServletRequest httpRequest) {
 
                 Usuario usuario = usuarioService.actualizarEmailCliente(
                                 principal.getName(),
                                 request);
 
-                return new UsuarioRespuesta(
+                UsuarioRespuesta respuesta = new UsuarioRespuesta(
                                 usuario.getId(),
                                 usuario.getNombre(),
                                 usuario.getEmail(),
                                 usuario.getRol(),
                                 usuario.getFechaAlta());
+
+                HttpSession session = httpRequest.getSession(false);
+
+                // Obliga a iniciar sesión de nuevo con el email actualizado.
+                if (session != null) {
+                        session.invalidate();
+                }
+
+                return respuesta;
         }
 
         // Actualiza la contraseña del cliente autenticado.

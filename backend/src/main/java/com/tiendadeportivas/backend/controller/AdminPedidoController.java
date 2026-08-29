@@ -8,9 +8,10 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import com.tiendadeportivas.backend.model.CambioEstadoPedidoRequest;
+import com.tiendadeportivas.backend.model.CambioEstadoPedidoRespuesta;
 import com.tiendadeportivas.backend.model.Pedido;
-import com.tiendadeportivas.backend.service.PedidoService;
 import com.tiendadeportivas.backend.model.PedidoAdminResumen;
+import com.tiendadeportivas.backend.service.PedidoService;
 
 @RestController
 @RequestMapping("/admin/pedidos")
@@ -30,14 +31,19 @@ public class AdminPedidoController {
         return pedidoService.obtenerResumenPedidosAdmin();
     }
 
-    // Actualiza el estado de un pedido.
+    // Actualiza el estado y devuelve únicamente los datos necesarios.
     @PatchMapping("/{id}/estado")
-    public Pedido cambiarEstado(
+    public CambioEstadoPedidoRespuesta cambiarEstado(
             @PathVariable Long id,
             @Valid @RequestBody CambioEstadoPedidoRequest request) {
 
-        return pedidoService.cambiarEstadoPedido(
+        Pedido pedido = pedidoService.cambiarEstadoPedido(
                 id,
                 request.getEstado());
+
+        return new CambioEstadoPedidoRespuesta(
+                pedido.getId(),
+                pedido.getIdPedido(),
+                pedido.getEstado());
     }
 }

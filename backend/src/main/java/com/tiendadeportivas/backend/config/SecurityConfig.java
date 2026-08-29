@@ -20,6 +20,10 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 import com.tiendadeportivas.backend.security.CustomUserDetailsService;
 
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
+
 @Configuration
 public class SecurityConfig {
 
@@ -36,6 +40,18 @@ public class SecurityConfig {
                 return new BCryptPasswordEncoder();
         }
 
+        // Registra las sesiones activas de los usuarios.
+        @Bean
+        public SessionRegistry sessionRegistry() {
+                return new SessionRegistryImpl();
+        }
+
+        // Mantiene actualizado el registro cuando una sesión termina.
+        @Bean
+        public HttpSessionEventPublisher httpSessionEventPublisher() {
+                return new HttpSessionEventPublisher();
+        }
+
         // Crea el gestor de autenticación.
         @Bean
         public AuthenticationManager authenticationManager(
@@ -50,62 +66,111 @@ public class SecurityConfig {
 
         // Define la seguridad de las rutas HTTP.
         @Bean
-        public SecurityFilterChain securityFilterChain(HttpSecurity http)
+        public SecurityFilterChain securityFilterChain(
+                        HttpSecurity http,
+                        SessionRegistry sessionRegistry)
                         throws Exception {
 
                 http
                                 .cors(cors -> {
                                 })
 
+                                // Conserva el registro necesario para revocar sesiones activas.
+                                .sessionManagement(session -> session
+                                                .maximumSessions(-1)
+                                                .sessionRegistry(sessionRegistry))
+
                                 .csrf(csrf -> csrf
                                                 .csrfTokenRepository(
                                                                 CookieCsrfTokenRepository.withHttpOnlyFalse())
 
+                                                // Stripe autentica el webhook mediante su propia firma.
                                                 .ignoringRequestMatchers(
                                                                 "/api/stripe/webhook"))
 
                                 .authorizeHttpRequests(auth -> auth
 
+                                                // Rutas públicas de autenticación.
+                                                .requestMatchers(
+                                                                "/auth/login",
+                                                                "/auth/registro",
+                                                                "/auth/csrf")
+                                                .permitAll()
+
+                                                // Catálogo público.
+                                                .requestMatchers("/productos")
+                                                .permitAll()
+
+                                                // Endpoint de comprobación del servidor.
+                                                .requestMatchers("/api/saludo")
+                                                .permitAll()
+
+                                                // Permite el dispatch interno de errores de Spring.
+                                                .requestMatchers("/error")
+                                                .permitAll()
+
+                                                // Webhook público de Stripe.
+                                                .requestMatchers("/api/stripe/webhook")
+                                                .permitAll()
+
+                                                // Operaciones que requieren cualquier sesión autenticada.
+                                                .requestMatchers(
+                                                                "/auth/me",
+                                                                "/auth/logout")
+                                                .authenticated()
+
+                                                // Gestión de empleados.
+                                                .requestMatchers("/admin/usuarios/**")
+                                                .hasAnyRole(
+                                                                "JEFE",
+                                                                "ADMIN")
+
+                                                // Gestión de pedidos.
                                                 .requestMatchers("/admin/pedidos/**")
                                                 .hasAnyRole(
                                                                 "TRABAJADOR",
                                                                 "JEFE",
                                                                 "ADMIN")
 
+                                                // Gestión de productos.
                                                 .requestMatchers("/admin/productos/**")
                                                 .hasAnyRole(
                                                                 "TRABAJADOR",
                                                                 "JEFE",
                                                                 "ADMIN")
 
-                                                .requestMatchers("/admin/usuarios/**")
-                                                .hasAnyRole(
-                                                                "JEFE",
-                                                                "ADMIN")
-
+                                                // Resto del área de personal.
                                                 .requestMatchers("/admin/**")
                                                 .hasAnyRole(
                                                                 "TRABAJADOR",
                                                                 "JEFE",
                                                                 "ADMIN")
 
+                                                // Perfil del cliente.
                                                 .requestMatchers("/cliente/**")
                                                 .hasRole("CLIENTE")
 
-                                                .requestMatchers("/carrito/**", "/carrito")
+                                                // Carrito del cliente.
+                                                .requestMatchers(
+                                                                "/carrito",
+                                                                "/carrito/**")
                                                 .hasRole("CLIENTE")
 
-                                                .requestMatchers("/pedido/**", "/pedido")
+                                                // Pedidos del cliente.
+                                                .requestMatchers(
+                                                                "/pedido",
+                                                                "/pedido/**")
                                                 .hasRole("CLIENTE")
 
-                                                .requestMatchers("/api/stripe/webhook")
-                                                .permitAll()
-
-                                                .requestMatchers("/api/stripe/checkout/**")
+                                                // Checkout de Stripe.
+                                                .requestMatchers(
+                                                                "/api/stripe/checkout",
+                                                                "/api/stripe/checkout/**")
                                                 .hasRole("CLIENTE")
 
+                                                // Todo lo no declarado explícitamente queda bloqueado.
                                                 .anyRequest()
-                                                .permitAll());
+                                                .denyAll());
 
                 return http.build();
         }
