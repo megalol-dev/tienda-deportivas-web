@@ -2,7 +2,11 @@
 let usuarioActual = null;
 
 document.addEventListener("DOMContentLoaded", comprobarAccesoPanel);
-document.addEventListener("DOMContentLoaded", inicializarDesplazamientoEmpleados);
+window.addEventListener("focus", comprobarAccesoPanel);
+document.addEventListener(
+  "DOMContentLoaded",
+  inicializarDesplazamientoEmpleados,
+);
 
 const btnLogout = document.getElementById("btn-logout-panel");
 const btnGestionPedidos = document.getElementById("btn-gestion-pedidos");
@@ -11,14 +15,269 @@ const btnGestionUsuarios = document.getElementById("btn-gestion-usuarios");
 const seccionPedidos = document.getElementById("seccion-pedidos");
 const seccionProductos = document.getElementById("seccion-productos");
 const seccionUsuarios = document.getElementById("seccion-usuarios");
+const btnMiCuenta = document.getElementById("btn-mi-cuenta");
+const seccionMiCuenta = document.getElementById("seccion-mi-cuenta");
+const formMiCuenta = document.getElementById("form-mi-cuenta");
+const miCuentaNombre = document.getElementById("mi-cuenta-nombre");
+const miCuentaEmail = document.getElementById("mi-cuenta-email");
+const miCuentaRol = document.getElementById("mi-cuenta-rol");
+const errorMiCuentaNombre = document.getElementById("error-mi-cuenta-nombre");
+const errorMiCuentaEmail = document.getElementById("error-mi-cuenta-email");
+const miCuentaPasswordEmailContenedor = document.getElementById(
+  "mi-cuenta-password-email-contenedor",
+);
+const miCuentaPasswordActual = document.getElementById(
+  "mi-cuenta-password-actual",
+);
+const errorMiCuentaPasswordActual = document.getElementById(
+  "error-mi-cuenta-password-actual",
+);
 const camposPasswordEmpleado = document.getElementById(
   "campos-password-empleado",
 );
 const avisoOrientacionSalida = document.getElementById(
   "aviso-orientacion-salida",
 );
+const btnCambiarMiPassword = document.getElementById("btn-cambiar-mi-password");
+const modalMiPassword = document.getElementById("modal-mi-password");
+const inputMiPasswordActual = document.getElementById("mi-password-actual");
+const inputMiPasswordNueva = document.getElementById("mi-password-nueva");
+const inputMiPasswordConfirmar = document.getElementById(
+  "mi-password-confirmar",
+);
+const errorMiPasswordActual = document.getElementById(
+  "error-mi-password-actual",
+);
+const errorMiPasswordNueva = document.getElementById("error-mi-password-nueva");
+const errorMiPasswordConfirmar = document.getElementById(
+  "error-mi-password-confirmar",
+);
+const btnGuardarMiPassword = document.getElementById("btn-guardar-mi-password");
+const btnCancelarMiPassword = document.getElementById(
+  "btn-cancelar-mi-password",
+);
 
-// Comprueba el rol y prepara el panel.
+if (btnCambiarMiPassword) {
+  btnCambiarMiPassword.addEventListener("click", abrirModalMiPassword);
+}
+
+if (btnCancelarMiPassword) {
+  btnCancelarMiPassword.addEventListener("click", cerrarModalMiPassword);
+}
+
+if (btnGuardarMiPassword) {
+  btnGuardarMiPassword.addEventListener("click", actualizarMiPassword);
+}
+
+if (formMiCuenta) {
+  formMiCuenta.addEventListener("submit", guardarMiCuenta);
+}
+
+if (miCuentaEmail) {
+  miCuentaEmail.addEventListener("input", () => {
+    if (!usuarioActual || !miCuentaPasswordEmailContenedor) {
+      return;
+    }
+
+    const emailIntroducido = miCuentaEmail.value.trim().toLowerCase();
+
+    const emailActual = usuarioActual.email.trim().toLowerCase();
+
+    const emailCambiado = emailIntroducido !== emailActual;
+
+    miCuentaPasswordEmailContenedor.hidden = !emailCambiado;
+
+    if (!emailCambiado && miCuentaPasswordActual) {
+      miCuentaPasswordActual.value = "";
+      miCuentaPasswordActual.classList.remove("campo-invalido");
+
+      if (errorMiCuentaPasswordActual) {
+        errorMiCuentaPasswordActual.textContent = "";
+      }
+    }
+  });
+}
+
+function abrirModalMiPassword() {
+  limpiarFormularioMiPassword();
+
+  if (modalMiPassword) {
+    modalMiPassword.hidden = false;
+  }
+
+  inputMiPasswordActual?.focus();
+}
+
+function cerrarModalMiPassword() {
+  if (modalMiPassword) {
+    modalMiPassword.hidden = true;
+  }
+
+  limpiarFormularioMiPassword();
+}
+
+function limpiarFormularioMiPassword() {
+  if (inputMiPasswordActual) {
+    inputMiPasswordActual.value = "";
+    inputMiPasswordActual.classList.remove("campo-invalido");
+  }
+
+  if (inputMiPasswordNueva) {
+    inputMiPasswordNueva.value = "";
+    inputMiPasswordNueva.classList.remove("campo-invalido");
+  }
+
+  if (inputMiPasswordConfirmar) {
+    inputMiPasswordConfirmar.value = "";
+    inputMiPasswordConfirmar.classList.remove("campo-invalido");
+  }
+
+  if (errorMiPasswordActual) {
+    errorMiPasswordActual.textContent = "";
+  }
+
+  if (errorMiPasswordNueva) {
+    errorMiPasswordNueva.textContent = "";
+  }
+
+  if (errorMiPasswordConfirmar) {
+    errorMiPasswordConfirmar.textContent = "";
+  }
+}
+
+async function actualizarMiPassword() {
+  const passwordActual = inputMiPasswordActual?.value || "";
+  const password = inputMiPasswordNueva?.value || "";
+  const confirmarPassword = inputMiPasswordConfirmar?.value || "";
+
+  limpiarErroresMiPassword();
+
+  if (passwordActual.length === 0) {
+    mostrarErrorMiPassword(
+      inputMiPasswordActual,
+      errorMiPasswordActual,
+      "Debes introducir tu contraseña actual.",
+    );
+
+    return;
+  }
+
+  if (password.length < 8 || password.length > 72) {
+    mostrarErrorMiPassword(
+      inputMiPasswordNueva,
+      errorMiPasswordNueva,
+      "La contraseña debe tener entre 8 y 72 caracteres.",
+    );
+
+    return;
+  }
+
+  if (!/\p{L}/u.test(password) || !/\d/.test(password)) {
+    mostrarErrorMiPassword(
+      inputMiPasswordNueva,
+      errorMiPasswordNueva,
+      "La contraseña debe contener al menos una letra y un número.",
+    );
+
+    return;
+  }
+
+  if (password !== confirmarPassword) {
+    mostrarErrorMiPassword(
+      inputMiPasswordConfirmar,
+      errorMiPasswordConfirmar,
+      "Las contraseñas no coinciden.",
+    );
+
+    return;
+  }
+
+  try {
+    const respuesta = await fetchConCsrf(`${API_URL}/admin/mi-password`, {
+      method: "PUT",
+
+      headers: {
+        "Content-Type": "application/json",
+      },
+
+      body: JSON.stringify({
+        passwordActual: passwordActual,
+        password: password,
+        confirmarPassword: confirmarPassword,
+      }),
+    });
+
+    if (await comprobarSesionExpirada(respuesta)) {
+      return;
+    }
+
+    if (!respuesta.ok) {
+      let mensaje = "No se ha podido actualizar la contraseña.";
+
+      try {
+        const error = await respuesta.json();
+
+        if (error.error) {
+          mensaje = error.error;
+        } else if (error.message) {
+          mensaje = error.message;
+        }
+      } catch {}
+
+      if (mensaje === "La contraseña actual no es correcta.") {
+        mostrarErrorMiPassword(
+          inputMiPasswordActual,
+          errorMiPasswordActual,
+          mensaje,
+        );
+      } else {
+        mostrarErrorMiPassword(
+          inputMiPasswordNueva,
+          errorMiPasswordNueva,
+          mensaje,
+        );
+      }
+
+      return;
+    }
+
+    await cerrarSesionPanel();
+  } catch (error) {
+    console.error("Error actualizando contraseña:", error);
+
+    mostrarModalPanel("Error", "No se ha podido actualizar la contraseña.");
+  }
+}
+
+function mostrarErrorMiPassword(input, elementoError, mensaje) {
+  if (input) {
+    input.classList.add("campo-invalido");
+  }
+
+  if (elementoError) {
+    elementoError.textContent = mensaje;
+  }
+}
+
+function limpiarErroresMiPassword() {
+  inputMiPasswordActual?.classList.remove("campo-invalido");
+  inputMiPasswordNueva?.classList.remove("campo-invalido");
+  inputMiPasswordConfirmar?.classList.remove("campo-invalido");
+
+  if (errorMiPasswordActual) {
+    errorMiPasswordActual.textContent = "";
+  }
+
+  if (errorMiPasswordNueva) {
+    errorMiPasswordNueva.textContent = "";
+  }
+
+  if (errorMiPasswordConfirmar) {
+    errorMiPasswordConfirmar.textContent = "";
+  }
+}
+
+// Comprueba la sesión y adapta el panel al rol devuelto por el backend.
 async function comprobarAccesoPanel() {
   try {
     const respuesta = await fetch(`${API_URL}/auth/me`, {
@@ -84,6 +343,30 @@ async function comprobarAccesoPanel() {
   }
 }
 
+// Comprueba si una respuesta indica que la sesión ya no es válida.
+async function comprobarSesionExpirada(respuesta) {
+  if (respuesta.status !== 401 && respuesta.status !== 403) {
+    return false;
+  }
+
+  try {
+    const comprobacion = await fetch(`${API_URL}/auth/me`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    if (comprobacion.ok) {
+      return false;
+    }
+  } catch (error) {
+    console.error("Error comprobando la sesión:", error);
+  }
+
+  window.location.href = "../usuario/login.html";
+
+  return true;
+}
+
 if (btnLogout) {
   btnLogout.addEventListener("click", cerrarSesionPanel);
 }
@@ -125,10 +408,7 @@ function prepararSalidaResponsivePanel() {
     }
 
     window.removeEventListener("resize", redirigirAlVolverAVertical);
-    window.removeEventListener(
-      "orientationchange",
-      redirigirAlVolverAVertical,
-    );
+    window.removeEventListener("orientationchange", redirigirAlVolverAVertical);
 
     window.location.href = "../usuario/login.html";
   };
@@ -177,6 +457,281 @@ if (btnGestionPedidos) {
   btnGestionPedidos.addEventListener("click", mostrarGestionPedidos);
 }
 
+if (btnMiCuenta) {
+  btnMiCuenta.addEventListener("click", mostrarMiCuenta);
+}
+
+// Muestra los datos de la cuenta del usuario autenticado.
+function mostrarMiCuenta() {
+  if (!seccionMiCuenta || !usuarioActual) {
+    return;
+  }
+
+  if (seccionPedidos) {
+    seccionPedidos.classList.add("oculto");
+  }
+
+  if (seccionProductos) {
+    seccionProductos.classList.add("oculto");
+  }
+
+  if (seccionUsuarios) {
+    seccionUsuarios.classList.add("oculto");
+  }
+
+  seccionMiCuenta.classList.remove("oculto");
+
+  if (miCuentaNombre) {
+    miCuentaNombre.value = usuarioActual.nombre || "";
+  }
+
+  if (miCuentaEmail) {
+    miCuentaEmail.value = usuarioActual.email || "";
+  }
+
+  if (miCuentaRol) {
+    miCuentaRol.value = usuarioActual.rol || "";
+  }
+
+  seccionMiCuenta.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+}
+
+// Guarda el nuevo nombre del usuario autenticado.
+// Guarda los datos personales del usuario autenticado.
+async function guardarMiCuenta(event) {
+  event.preventDefault();
+
+  if (!miCuentaNombre || !miCuentaEmail || !usuarioActual) {
+    return;
+  }
+
+  const nombre = miCuentaNombre.value.trim();
+  const email = miCuentaEmail.value.trim().toLowerCase();
+  const passwordActual = miCuentaPasswordActual?.value || "";
+
+  limpiarErroresMiCuenta();
+
+  if (nombre.length < 2 || nombre.length > 100) {
+    mostrarErrorMiCuenta(
+      miCuentaNombre,
+      errorMiCuentaNombre,
+      "El nombre debe tener entre 2 y 100 caracteres.",
+    );
+
+    return;
+  }
+
+  if (!/^[\p{L}][\p{L} .'-]*$/u.test(nombre)) {
+    mostrarErrorMiCuenta(
+      miCuentaNombre,
+      errorMiCuentaNombre,
+      "El nombre contiene caracteres no válidos.",
+    );
+
+    return;
+  }
+
+  if (email.length === 0 || email.length > 150) {
+    mostrarErrorMiCuenta(
+      miCuentaEmail,
+      errorMiCuentaEmail,
+      "El email debe tener entre 1 y 150 caracteres.",
+    );
+
+    return;
+  }
+
+  const patronEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!patronEmail.test(email)) {
+    mostrarErrorMiCuenta(
+      miCuentaEmail,
+      errorMiCuentaEmail,
+      "Introduce un correo electrónico válido.",
+    );
+
+    return;
+  }
+
+  const nombreCambiado = nombre !== usuarioActual.nombre;
+
+  const emailCambiado =
+    email !== usuarioActual.email.toLowerCase();
+  
+  if (emailCambiado && passwordActual.length === 0) {
+    mostrarErrorMiCuenta(
+      miCuentaPasswordActual,
+      errorMiCuentaPasswordActual,
+      "Debes introducir tu contraseña actual para cambiar el email.",
+    );
+
+    return;
+  }
+
+  if (!nombreCambiado && !emailCambiado) {
+    mostrarModalPanel(
+      "Sin cambios",
+      "No has modificado ningún dato.",
+    );
+
+    return;
+  }
+
+  try {
+    if (nombreCambiado) {
+      const respuestaNombre = await fetchConCsrf(
+        `${API_URL}/admin/mi-cuenta/nombre`,
+        {
+          method: "PUT",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            nombre: nombre,
+          }),
+        },
+      );
+
+      if (await comprobarSesionExpirada(respuestaNombre)) {
+        return;
+      }
+
+      if (!respuestaNombre.ok) {
+        let mensaje = "No se ha podido actualizar el nombre.";
+
+        try {
+          const error = await respuestaNombre.json();
+
+          if (error.error) {
+            mensaje = error.error;
+          } else if (error.message) {
+            mensaje = error.message;
+          }
+        } catch {}
+
+        mostrarErrorMiCuenta(
+          miCuentaNombre,
+          errorMiCuentaNombre,
+          mensaje,
+        );
+
+        return;
+      }
+
+      const usuarioActualizado = await respuestaNombre.json();
+
+      usuarioActual.nombre = usuarioActualizado.nombre;
+
+      miCuentaNombre.value = usuarioActualizado.nombre;
+
+      const nombrePanel = document.getElementById("nombre-panel");
+
+      if (nombrePanel) {
+        nombrePanel.textContent = usuarioActualizado.nombre;
+      }
+    }
+
+    if (emailCambiado) {
+      const respuestaEmail = await fetchConCsrf(
+        `${API_URL}/admin/mi-cuenta/email`,
+        {
+          method: "PUT",
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+
+          body: JSON.stringify({
+            email: email,
+            passwordActual: passwordActual,
+          }),
+        },
+      );
+
+      if (!respuestaEmail.ok) {
+        let mensaje = "No se ha podido actualizar el email.";
+
+        try {
+          const error = await respuestaEmail.json();
+
+          if (error.error) {
+            mensaje = error.error;
+          } else if (error.message) {
+            mensaje = error.message;
+          }
+        } catch {}
+
+        if (mensaje === "La contraseña actual no es correcta.") {
+          mostrarErrorMiCuenta(
+            miCuentaPasswordActual,
+            errorMiCuentaPasswordActual,
+            mensaje,
+          );
+        } else {
+          mostrarErrorMiCuenta(miCuentaEmail, errorMiCuentaEmail, mensaje);
+        }
+        
+        return;
+      }
+
+      // El backend invalida la sesión y el frontend conduce al nuevo login.
+      prepararSalidaResponsivePanel();
+
+      return;
+    }
+
+    mostrarModalPanel(
+      "Datos actualizados",
+      "Tus datos se han actualizado correctamente.",
+    );
+  } catch (error) {
+    console.error(
+      "Error actualizando los datos de la cuenta:",
+      error,
+    );
+
+    mostrarModalPanel(
+      "Error",
+      "No se han podido actualizar tus datos.",
+    );
+  }
+}
+
+// Muestra un error de validación de Mi cuenta.
+function mostrarErrorMiCuenta(input, elementoError, mensaje) {
+  if (input) {
+    input.classList.add("campo-invalido");
+  }
+
+  if (elementoError) {
+    elementoError.textContent = mensaje;
+  }
+}
+
+// Limpia los errores del formulario Mi cuenta.
+function limpiarErroresMiCuenta() {
+  miCuentaNombre?.classList.remove("campo-invalido");
+  miCuentaEmail?.classList.remove("campo-invalido");
+  miCuentaPasswordActual?.classList.remove("campo-invalido");
+
+  if (errorMiCuentaNombre) {
+    errorMiCuentaNombre.textContent = "";
+  }
+
+  if (errorMiCuentaEmail) {
+    errorMiCuentaEmail.textContent = "";
+  }
+
+  if (errorMiCuentaPasswordActual) {
+    errorMiCuentaPasswordActual.textContent = "";
+  }
+}
+
 // Muestra la gestión de pedidos.
 async function mostrarGestionPedidos() {
   if (!seccionPedidos) {
@@ -190,6 +745,10 @@ async function mostrarGestionPedidos() {
   if (seccionUsuarios) {
     seccionUsuarios.classList.add("oculto");
   }
+
+   if (seccionMiCuenta) {
+     seccionMiCuenta.classList.add("oculto");
+   }
 
   seccionPedidos.classList.remove("oculto");
 
@@ -209,6 +768,10 @@ async function cargarPedidos() {
       credentials: "include",
     });
 
+    if (await comprobarSesionExpirada(respuesta)) {
+      return;
+    }
+
     if (!respuesta.ok) {
       throw new Error("No se pudieron cargar los pedidos.");
     }
@@ -223,22 +786,25 @@ async function cargarPedidos() {
   }
 }
 
-// Renderiza la tabla o lista de pedidos.
+// Renderiza los pedidos con nodos DOM para no interpretar datos dinámicos como HTML.
 function renderizarPedidos(pedidos) {
   if (!tablaPedidosBody) {
     return;
   }
 
-  tablaPedidosBody.innerHTML = "";
+  tablaPedidosBody.replaceChildren();
 
   if (!Array.isArray(pedidos) || pedidos.length === 0) {
-    tablaPedidosBody.innerHTML = `
-      <tr>
-        <td colspan="6">
-          No existen pedidos.
-        </td>
-      </tr>
-    `;
+    const fila = document.createElement("tr");
+
+    const celda = document.createElement("td");
+
+    celda.colSpan = 6;
+    celda.textContent = "No existen pedidos.";
+
+    fila.appendChild(celda);
+
+    tablaPedidosBody.appendChild(fila);
 
     return;
   }
@@ -252,57 +818,53 @@ function renderizarPedidos(pedidos) {
 
     const total = Number(pedido.total || 0).toFixed(2);
 
-    fila.innerHTML = `
+    const celdaIdPedido = document.createElement("td");
+    celdaIdPedido.textContent = pedido.idPedido;
 
-      <td>
-        ${pedido.idPedido}
-      </td>
+    const celdaCliente = document.createElement("td");
+    celdaCliente.textContent =
+      `${pedido.nombre || ""} ${pedido.apellidos || ""}`.trim();
 
-      <td>
-        ${pedido.nombre}
-        ${pedido.apellidos}
-      </td>
+    const celdaFecha = document.createElement("td");
+    celdaFecha.textContent = fecha;
 
-      <td>
-        ${fecha}
-      </td>
+    const celdaTotal = document.createElement("td");
+    celdaTotal.textContent = `${total} €`;
 
-      <td>
-        ${total} €
-      </td>
+    const celdaEstado = document.createElement("td");
 
-      <td>
+    const selectEstado = document.createElement("select");
 
-        <select
-          id="estado-pedido-${pedido.id}"
-        >
+    selectEstado.id = `estado-pedido-${pedido.id}`;
 
-          ${crearOpcionesEstado(pedido.estado)}
+    crearOpcionesEstado(selectEstado, pedido.estado);
 
-        </select>
+    celdaEstado.appendChild(selectEstado);
 
-      </td>
+    const celdaAcciones = document.createElement("td");
 
-      <td>
+    const botonGuardar = document.createElement("button");
 
-        <button
-          type="button"
-          class="btn-guardar-estado"
-          data-id="${pedido.id}"
-        >
-          Guardar
-        </button>
+    botonGuardar.type = "button";
+    botonGuardar.className = "btn-guardar-estado";
+    botonGuardar.dataset.id = String(pedido.id);
+    botonGuardar.textContent = "Guardar";
 
-      </td>
+    celdaAcciones.appendChild(botonGuardar);
 
-    `;
+    fila.appendChild(celdaIdPedido);
+    fila.appendChild(celdaCliente);
+    fila.appendChild(celdaFecha);
+    fila.appendChild(celdaTotal);
+    fila.appendChild(celdaEstado);
+    fila.appendChild(celdaAcciones);
 
     tablaPedidosBody.appendChild(fila);
   });
 }
 
 // Crea las transiciones de estado permitidas.
-function crearOpcionesEstado(estadoActual) {
+function crearOpcionesEstado(select, estadoActual) {
   const estados = [
     "PREPARANDO",
     "ENVIADO",
@@ -311,20 +873,15 @@ function crearOpcionesEstado(estadoActual) {
     "CANCELADO",
   ];
 
-  return estados
-    .map((estado) => {
-      const seleccionado = estado === estadoActual ? "selected" : "";
+  estados.forEach((estado) => {
+    const opcion = document.createElement("option");
 
-      return `
-        <option
-          value="${estado}"
-          ${seleccionado}
-        >
-          ${estado}
-        </option>
-      `;
-    })
-    .join("");
+    opcion.value = estado;
+    opcion.textContent = estado;
+    opcion.selected = estado === estadoActual;
+
+    select.appendChild(opcion);
+  });
 }
 
 if (tablaPedidosBody) {
@@ -364,6 +921,10 @@ async function cambiarEstadoPedido(pedidoId, nuevoEstado) {
         }),
       },
     );
+
+    if (await comprobarSesionExpirada(respuesta)) {
+      return;
+    }
 
     if (!respuesta.ok) {
       throw new Error("No se pudo modificar el estado del pedido.");
@@ -444,6 +1005,10 @@ async function mostrarGestionProductos() {
     seccionUsuarios.classList.add("oculto");
   }
 
+  if (seccionMiCuenta) {
+    seccionMiCuenta.classList.add("oculto");
+  }
+
   seccionProductos.classList.remove("oculto");
 
   await cargarProductos();
@@ -462,6 +1027,10 @@ async function cargarProductos() {
       credentials: "include",
     });
 
+    if (await comprobarSesionExpirada(respuesta)) {
+      return;
+    }
+
     if (!respuesta.ok) {
       throw new Error("No se pudieron cargar los productos.");
     }
@@ -478,22 +1047,25 @@ async function cargarProductos() {
   }
 }
 
-// Renderiza la tabla de productos.
+// Renderiza los productos con textContent y propiedades DOM seguras.
 function renderizarProductos(productos) {
   if (!tablaProductosBody) {
     return;
   }
 
-  tablaProductosBody.innerHTML = "";
+  tablaProductosBody.replaceChildren();
 
   if (!Array.isArray(productos) || productos.length === 0) {
-    tablaProductosBody.innerHTML = `
-      <tr>
-        <td colspan="8">
-          No existen productos.
-        </td>
-      </tr>
-    `;
+    const fila = document.createElement("tr");
+
+    const celda = document.createElement("td");
+
+    celda.colSpan = 8;
+    celda.textContent = "No existen productos.";
+
+    fila.appendChild(celda);
+
+    tablaProductosBody.appendChild(fila);
 
     return;
   }
@@ -513,49 +1085,46 @@ function renderizarProductos(productos) {
 
     const estado = producto.activo ? "ACTIVO" : "INACTIVO";
 
-    fila.innerHTML = `
+    const celdaId = document.createElement("td");
+    celdaId.textContent = String(producto.id);
 
-      <td>
-        ${producto.id}
-      </td>
+    const celdaMarca = document.createElement("td");
+    celdaMarca.textContent = producto.marca || "";
 
-      <td>
-        ${producto.marca}
-      </td>
+    const celdaNombre = document.createElement("td");
+    celdaNombre.textContent = producto.nombre || "";
 
-      <td>
-        ${producto.nombre}
-      </td>
+    const celdaPrecio = document.createElement("td");
+    celdaPrecio.textContent = `${precio} €`;
 
-      <td>
-        ${precio} €
-      </td>
+    const celdaTallas = document.createElement("td");
+    celdaTallas.textContent = tallas;
 
-      <td>
-        ${tallas}
-      </td>
+    const celdaColores = document.createElement("td");
+    celdaColores.textContent = colores;
 
-      <td>
-        ${colores}
-      </td>
+    const celdaEstado = document.createElement("td");
+    celdaEstado.textContent = estado;
 
-      <td>
-        ${estado}
-      </td>
+    const celdaAcciones = document.createElement("td");
 
-      <td>
+    const botonEditar = document.createElement("button");
 
-        <button
-          type="button"
-          class="btn-editar-producto"
-          data-id="${producto.id}"
-        >
-          Editar
-        </button>
+    botonEditar.type = "button";
+    botonEditar.className = "btn-editar-producto";
+    botonEditar.dataset.id = String(producto.id);
+    botonEditar.textContent = "Editar";
 
-      </td>
+    celdaAcciones.appendChild(botonEditar);
 
-    `;
+    fila.appendChild(celdaId);
+    fila.appendChild(celdaMarca);
+    fila.appendChild(celdaNombre);
+    fila.appendChild(celdaPrecio);
+    fila.appendChild(celdaTallas);
+    fila.appendChild(celdaColores);
+    fila.appendChild(celdaEstado);
+    fila.appendChild(celdaAcciones);
 
     tablaProductosBody.appendChild(fila);
   });
@@ -812,38 +1381,23 @@ function validarCampoColoresProducto() {
 }
 
 if (productoMarca) {
-  productoMarca.addEventListener(
-    "blur",
-    validarCampoMarcaProducto,
-  );
+  productoMarca.addEventListener("blur", validarCampoMarcaProducto);
 }
 
 if (productoNombre) {
-  productoNombre.addEventListener(
-    "blur",
-    validarCampoNombreProducto,
-  );
+  productoNombre.addEventListener("blur", validarCampoNombreProducto);
 }
 
 if (productoPrecio) {
-  productoPrecio.addEventListener(
-    "blur",
-    validarCampoPrecioProducto,
-  );
+  productoPrecio.addEventListener("blur", validarCampoPrecioProducto);
 }
 
 if (productoTallas) {
-  productoTallas.addEventListener(
-    "blur",
-    validarCampoTallasProducto,
-  );
+  productoTallas.addEventListener("blur", validarCampoTallasProducto);
 }
 
 if (productoColores) {
-  productoColores.addEventListener(
-    "blur",
-    validarCampoColoresProducto,
-  );
+  productoColores.addEventListener("blur", validarCampoColoresProducto);
 }
 
 // Valida el formulario completo del producto.
@@ -860,11 +1414,7 @@ function validarProducto() {
     return "El nombre debe tener entre 2 y 150 caracteres.";
   }
 
-  if (
-    !Number.isFinite(precio) ||
-    precio < 0.01 ||
-    precio > 99999999.99
-  ) {
+  if (!Number.isFinite(precio) || precio < 0.01 || precio > 99999999.99) {
     return "El precio debe estar entre 0,01 € y 99.999.999,99 €.";
   }
 
@@ -872,16 +1422,11 @@ function validarProducto() {
     .split(",")
     .map((talla) => talla.trim());
 
-  if (
-    textosTallas.length === 0 ||
-    textosTallas.some((talla) => talla === "")
-  ) {
+  if (textosTallas.length === 0 || textosTallas.some((talla) => talla === "")) {
     return "Debes introducir al menos una talla.";
   }
 
-  const tallasValidas = textosTallas.every((talla) =>
-    /^\d+$/.test(talla),
-  );
+  const tallasValidas = textosTallas.every((talla) => /^\d+$/.test(talla));
 
   if (!tallasValidas) {
     return "Las tallas deben ser números enteros separados por comas.";
@@ -893,14 +1438,9 @@ function validarProducto() {
     return "Las tallas deben estar entre 1 y 100.";
   }
 
-  const colores = productoColores.value
-    .split(",")
-    .map((color) => color.trim());
+  const colores = productoColores.value.split(",").map((color) => color.trim());
 
-  if (
-    colores.length === 0 ||
-    colores.some((color) => color === "")
-  ) {
+  if (colores.length === 0 || colores.some((color) => color === "")) {
     return "Debes introducir al menos un color.";
   }
 
@@ -924,7 +1464,6 @@ async function guardarProducto(event) {
   }
 
   try {
-
     const tallas = productoTallas.value
       .split(",")
       .map((talla) => Number(talla.trim()))
@@ -963,9 +1502,7 @@ async function guardarProducto(event) {
 
         body: JSON.stringify(datosProducto),
       });
-    }
-
-    else {
+    } else {
       respuesta = await fetchConCsrf(`${API_URL}/admin/productos`, {
         method: "POST",
 
@@ -977,6 +1514,10 @@ async function guardarProducto(event) {
       });
     }
 
+    if (await comprobarSesionExpirada(respuesta)) {
+      return;
+    }
+
     if (!respuesta.ok) {
       let mensaje = "No se pudo guardar el producto.";
 
@@ -986,9 +1527,7 @@ async function guardarProducto(event) {
         if (error.message) {
           mensaje = error.message;
         }
-      } catch {
-
-      }
+      } catch {}
 
       mostrarModalPanel("Datos incorrectos", mensaje);
 
@@ -1070,12 +1609,8 @@ const empleadoConfirmarPassword = document.getElementById(
   "empleado-confirmar-password",
 );
 
-const errorEmpleadoNombre = document.getElementById(
-  "error-empleado-nombre",
-);
-const errorEmpleadoEmail = document.getElementById(
-  "error-empleado-email",
-);
+const errorEmpleadoNombre = document.getElementById("error-empleado-nombre");
+const errorEmpleadoEmail = document.getElementById("error-empleado-email");
 const errorEmpleadoPassword = document.getElementById(
   "error-empleado-password",
 );
@@ -1136,7 +1671,10 @@ function inicializarDesplazamientoEmpleados() {
   botonesDesplazamientoEmpleados.forEach((boton) => {
     boton.addEventListener("click", () => {
       const direccion = Number(boton.dataset.direccion);
-      const distancia = Math.max(200, contenedorTablaEmpleados.clientWidth * 0.75);
+      const distancia = Math.max(
+        200,
+        contenedorTablaEmpleados.clientWidth * 0.75,
+      );
 
       contenedorTablaEmpleados.scrollBy({
         left: direccion * distancia,
@@ -1163,6 +1701,10 @@ async function mostrarGestionUsuarios() {
     seccionProductos.classList.add("oculto");
   }
 
+  if (seccionMiCuenta) {
+    seccionMiCuenta.classList.add("oculto");
+  }
+
   seccionUsuarios.classList.remove("oculto");
 
   await cargarEmpleados();
@@ -1183,6 +1725,10 @@ async function cargarEmpleados() {
       credentials: "include",
     });
 
+    if (await comprobarSesionExpirada(respuesta)) {
+      return;
+    }
+
     if (!respuesta.ok) {
       throw new Error("No se pudieron cargar los empleados.");
     }
@@ -1199,22 +1745,25 @@ async function cargarEmpleados() {
   }
 }
 
-// Renderiza la tabla de empleados.
+// Renderiza los empleados sin interpolar los datos recibidos mediante innerHTML.
 function renderizarEmpleados(empleados) {
   if (!tablaUsuariosBody) {
     return;
   }
 
-  tablaUsuariosBody.innerHTML = "";
+  tablaUsuariosBody.replaceChildren();
 
   if (!Array.isArray(empleados) || empleados.length === 0) {
-    tablaUsuariosBody.innerHTML = `
-      <tr>
-        <td colspan="7">
-          No existen empleados.
-        </td>
-      </tr>
-    `;
+    const fila = document.createElement("tr");
+
+    const celda = document.createElement("td");
+
+    celda.colSpan = 7;
+    celda.textContent = "No existen empleados.";
+
+    fila.appendChild(celda);
+
+    tablaUsuariosBody.appendChild(fila);
 
     return;
   }
@@ -1239,53 +1788,56 @@ function renderizarEmpleados(empleados) {
 
     const estado = empleado.activo ? "ACTIVO" : "INACTIVO";
 
-    fila.innerHTML = `
+    const celdaId = document.createElement("td");
+    celdaId.textContent = String(empleado.id);
 
-      <td>
-        ${empleado.id}
-      </td>
+    const celdaNombre = document.createElement("td");
+    celdaNombre.textContent = empleado.nombre || "";
 
-      <td>
-        ${empleado.nombre}
-      </td>
+    const celdaEmail = document.createElement("td");
+    celdaEmail.textContent = empleado.email || "";
 
-      <td>
-        ${empleado.email}
-      </td>
+    const celdaRol = document.createElement("td");
+    celdaRol.textContent = empleado.rol || "";
 
-      <td>
-        ${empleado.rol}
-      </td>
+    const celdaEstado = document.createElement("td");
+    celdaEstado.textContent = estado;
 
-      <td>
-        ${estado}
-      </td>
+    const celdaFechaAlta = document.createElement("td");
+    celdaFechaAlta.textContent = fechaAlta;
 
-      <td>
-        ${fechaAlta}
-      </td>
+    const celdaAcciones = document.createElement("td");
 
-      <td>
+    if (esUsuarioActual) {
+      const textoSesionActual = document.createElement("strong");
 
-  ${
-    esUsuarioActual
-      ? "<strong>Sesión actual</strong>"
-      : esEmpleadoProtegidoParaJefe
-        ? "<strong>Empleado protegido</strong>"
-        : `
-          <button
-            type="button"
-            class="btn-editar-empleado"
-            data-id="${empleado.id}"
-          >
-            Editar
-          </button>
-        `
-  }
+      textoSesionActual.textContent = "Sesión actual";
 
-</td>
+      celdaAcciones.appendChild(textoSesionActual);
+    } else if (esEmpleadoProtegidoParaJefe) {
+      const textoEmpleadoProtegido = document.createElement("strong");
 
-    `;
+      textoEmpleadoProtegido.textContent = "Empleado protegido";
+
+      celdaAcciones.appendChild(textoEmpleadoProtegido);
+    } else {
+      const botonEditar = document.createElement("button");
+
+      botonEditar.type = "button";
+      botonEditar.className = "btn-editar-empleado";
+      botonEditar.dataset.id = String(empleado.id);
+      botonEditar.textContent = "Editar";
+
+      celdaAcciones.appendChild(botonEditar);
+    }
+
+    fila.appendChild(celdaId);
+    fila.appendChild(celdaNombre);
+    fila.appendChild(celdaEmail);
+    fila.appendChild(celdaRol);
+    fila.appendChild(celdaEstado);
+    fila.appendChild(celdaFechaAlta);
+    fila.appendChild(celdaAcciones);
 
     tablaUsuariosBody.appendChild(fila);
   });
@@ -1586,17 +2138,11 @@ function validarCampoConfirmarPasswordEmpleado() {
 }
 
 if (empleadoNombre) {
-  empleadoNombre.addEventListener(
-    "blur",
-    validarCampoNombreEmpleado,
-  );
+  empleadoNombre.addEventListener("blur", validarCampoNombreEmpleado);
 }
 
 if (empleadoEmail) {
-  empleadoEmail.addEventListener(
-    "blur",
-    validarCampoEmailEmpleado,
-  );
+  empleadoEmail.addEventListener("blur", validarCampoEmailEmpleado);
 }
 
 if (empleadoPassword) {
@@ -1711,7 +2257,6 @@ async function guardarEmpleado(event) {
   }
 
   try {
-
     if (!id) {
       const datosEmpleado = {
         nombre: empleadoNombre.value.trim(),
@@ -1736,6 +2281,10 @@ async function guardarEmpleado(event) {
         body: JSON.stringify(datosEmpleado),
       });
 
+      if (await comprobarSesionExpirada(respuesta)) {
+        return;
+      }
+
       if (!respuesta.ok) {
         let mensaje = "No se pudo crear el empleado.";
 
@@ -1745,9 +2294,7 @@ async function guardarEmpleado(event) {
           if (error.message && error.message !== "No message available") {
             mensaje = error.message;
           }
-        } catch {
-
-        }
+        } catch {}
 
         mostrarModalPanel("Datos incorrectos", mensaje);
 
@@ -1790,6 +2337,10 @@ async function guardarEmpleado(event) {
       },
       body: JSON.stringify(datosEmpleado),
     });
+
+    if (await comprobarSesionExpirada(respuesta)) {
+      return;
+    }
 
     if (!respuesta.ok) {
       throw new Error("No se pudo modificar el empleado.");

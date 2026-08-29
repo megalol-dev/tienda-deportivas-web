@@ -31,7 +31,7 @@ Gestion de pedidos:     Pueden ver sus pedidos y el estado en el que estan
 
 Nombre:         Jefe UrbanSneakers
 Email:          jefe@urbansneakers.com
-Contraseña:     a1234567
+Contraseña:     b1234567
 
 
 // EMPLEADOS    ROL -> JEFE ////////////////////////////////////////////////////////
@@ -43,6 +43,8 @@ Contraseña:     a1234567
 Nombre:         Laura Parla
 Email:          Laura@gmail.com
 Contraseña:     a1234567
+
+
 
 
 
@@ -65,7 +67,9 @@ Nombre:         lolo
 Email:          lolo@gmail.com 
 Contraseña:     a1234567
 
-
+Nombre:         seguridad
+Email:          seguridad@gmail.com 
+Contraseña:     a1234567
 
 
 
@@ -74,8 +78,8 @@ Contraseña:     a1234567
 // Clientes ////////////////////////////////////////////////////////
 
 Nombre:         Luis
-Correo:         luis@gmail.com
-Contraseña:     a1234567
+Correo:         luisito@gmail.com
+Contraseña:     Prueba1234
 
 Nombre:         Pepe
 Correo:         pepito@gmail.com

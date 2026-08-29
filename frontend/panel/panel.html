@@ -100,6 +100,10 @@
           >
             Gestión de empleados
           </button>
+
+          <button type="button" id="btn-mi-cuenta" class="btn-login-form">
+            Mi cuenta
+          </button>
         </div>
 
         <!-- =====================================
@@ -110,6 +114,125 @@
           <button type="button" id="btn-logout-panel" class="btn-login-form">
             Cerrar sesión
           </button>
+        </div>
+      </section>
+
+      <!-- =========================================
+     MI CUENTA
+     ========================================= -->
+
+      <section
+        id="seccion-mi-cuenta"
+        class="panel-pedidos panel-mi-cuenta oculto"
+      >
+        <h2>Mi cuenta</h2>
+
+        <p>Consulta y modifica los datos de tu propia cuenta.</p>
+
+        <div class="login-contenedor mi-cuenta-contenedor">
+          <form id="form-mi-cuenta" class="mi-cuenta-formulario">
+            <!-- NOMBRE -->
+
+            <div class="form-grupo mi-cuenta-campo">
+              <label for="mi-cuenta-nombre">Nombre</label>
+
+              <input
+                type="text"
+                id="mi-cuenta-nombre"
+                minlength="2"
+                maxlength="100"
+                autocomplete="name"
+                required
+              />
+
+              <small
+                id="error-mi-cuenta-nombre"
+                class="mensaje-error-campo"
+                aria-live="polite"
+              ></small>
+            </div>
+
+            <!-- EMAIL -->
+
+            <div class="form-grupo mi-cuenta-campo">
+              <label for="mi-cuenta-email">Email</label>
+
+              <input
+                type="email"
+                id="mi-cuenta-email"
+                maxlength="150"
+                autocomplete="email"
+                required
+              />
+
+              <small
+                id="error-mi-cuenta-email"
+                class="mensaje-error-campo"
+                aria-live="polite"
+              ></small>
+            </div>
+
+            <!-- CONTRASEÑA ACTUAL PARA CAMBIAR EMAIL -->
+
+            <div
+              id="mi-cuenta-password-email-contenedor"
+              class="form-grupo mi-cuenta-campo"
+              hidden
+            >
+              <label for="mi-cuenta-password-actual"> Contraseña actual </label>
+
+              <input
+                type="password"
+                id="mi-cuenta-password-actual"
+                maxlength="72"
+                autocomplete="current-password"
+                placeholder="Necesaria para cambiar el email"
+              />
+
+              <small class="mensaje-ayuda-campo">
+                Por seguridad, debes confirmar tu contraseña actual para cambiar
+                el email.
+              </small>
+
+              <small
+                id="error-mi-cuenta-password-actual"
+                class="mensaje-error-campo"
+                aria-live="polite"
+              ></small>
+            </div>
+
+            <!-- ROL DE SOLO LECTURA: NO FORMA PARTE DE LA EDICIÓN PROPIA -->
+
+            <div class="form-grupo mi-cuenta-campo mi-cuenta-campo-readonly">
+              <label for="mi-cuenta-rol">Rol</label>
+
+              <input type="text" id="mi-cuenta-rol" readonly />
+
+              <small class="mensaje-ayuda-campo">
+                El rol solamente puede ser modificado por un usuario autorizado.
+              </small>
+            </div>
+
+            <!-- GUARDAR DATOS -->
+
+            <div class="login-registro mi-cuenta-acciones">
+              <button
+                type="submit"
+                id="btn-guardar-mi-cuenta"
+                class="btn-login-form"
+              >
+                Guardar mis datos
+              </button>
+
+              <button
+                type="button"
+                id="btn-cambiar-mi-password"
+                class="btn-login-form"
+              >
+                Cambiar mi contraseña
+              </button>
+            </div>
+          </form>
         </div>
       </section>
 
@@ -417,26 +540,26 @@
         <div class="tabla-empleados-desplazamiento">
           <div class="tabla-pedidos-contenedor">
             <table class="tabla-pedidos">
-            <thead>
-              <tr>
-                <th>ID</th>
+              <thead>
+                <tr>
+                  <th>ID</th>
 
-                <th>Nombre</th>
+                  <th>Nombre</th>
 
-                <th>Email</th>
+                  <th>Email</th>
 
-                <th>Rol</th>
+                  <th>Rol</th>
 
-                <th>Estado</th>
+                  <th>Estado</th>
 
-                <th>Fecha de alta</th>
+                  <th>Fecha de alta</th>
 
-                <th>Acciones</th>
-              </tr>
-            </thead>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
 
-            <tbody id="tabla-usuarios-body">
-              <!--
+              <tbody id="tabla-usuarios-body">
+                <!--
           JavaScript insertará aquí únicamente
           los usuarios con rol:
 
@@ -684,6 +807,99 @@
           </form>
         </div>
       </section>
+
+      <!-- CANTRASEÑA ANTIGUA -->
+      <div id="modal-mi-password" class="modal-perfil" hidden>
+        <div class="modal-perfil-contenido modal-password-contenido">
+          <h3>Cambiar mi contraseña</h3>
+
+          <div class="modal-password-campos">
+            <div class="modal-password-campo">
+              <label for="mi-password-actual">Contraseña actual</label>
+
+              <input
+                type="password"
+                id="mi-password-actual"
+                maxlength="72"
+                autocomplete="current-password"
+                placeholder="Introduce tu contraseña actual"
+              />
+
+              <p
+                id="error-mi-password-actual"
+                class="mensaje-error"
+                aria-live="polite"
+              ></p>
+            </div>
+
+            <div class="modal-password-campo">
+              <label for="mi-password-nueva">Nueva contraseña</label>
+
+              <input
+                type="password"
+                id="mi-password-nueva"
+                maxlength="72"
+                autocomplete="new-password"
+                placeholder="Introduce la nueva contraseña"
+              />
+
+              <small class="mensaje-ayuda-campo">
+                Entre 8 y 72 caracteres y debe contener al menos una letra y un
+                número.
+              </small>
+
+              <p
+                id="error-mi-password-nueva"
+                class="mensaje-error"
+                aria-live="polite"
+              ></p>
+            </div>
+
+            <div class="modal-password-campo">
+              <label for="mi-password-confirmar">
+                Confirmar nueva contraseña
+              </label>
+
+              <input
+                type="password"
+                id="mi-password-confirmar"
+                maxlength="72"
+                autocomplete="new-password"
+                placeholder="Repite la nueva contraseña"
+              />
+
+              <p
+                id="error-mi-password-confirmar"
+                class="mensaje-error"
+                aria-live="polite"
+              ></p>
+            </div>
+          </div>
+
+          <p class="aviso-importante-perfil">
+            DESPUÉS DE CAMBIAR LA CONTRASEÑA TENDRÁS QUE INICIAR SESIÓN DE
+            NUEVO.
+          </p>
+
+          <div class="modal-perfil-botones">
+            <button
+              type="button"
+              id="btn-guardar-mi-password"
+              class="btn-modal-guardar"
+            >
+              Guardar contraseña
+            </button>
+
+            <button
+              type="button"
+              id="btn-cancelar-mi-password"
+              class="btn-modal-cancelar"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
     </main>
 
     <!-- =========================================

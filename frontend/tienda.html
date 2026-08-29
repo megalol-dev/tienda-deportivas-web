@@ -152,7 +152,7 @@
           </button>
         </div>
 
-        <!-- Grid de productos de la marca seleccionada -->
+        <!-- JavaScript crea las tarjetas sin interpretar los datos del catálogo como HTML. -->
         <div id="grid-productos" class="rejilla-5"></div>
 
         <a
@@ -360,6 +360,7 @@
 
           <aside class="checkout-right">
             <h3>Resumen del pedido</h3>
+            <!-- Las líneas se construyen con nodos DOM y contenido de texto. -->
             <div id="resumen-lineas" class="resumen-lineas"></div>
 
             <div class="resumen-calculos">
@@ -446,7 +447,7 @@
         </div>
 
         <div class="modal-body">
-          <!-- Contenedor de líneas del carrito -->
+          <!-- Contenedor de líneas construidas de forma segura por JavaScript. -->
           <div id="carrito-items" class="carrito-lista"></div>
         </div>
 

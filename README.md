@@ -163,8 +163,12 @@ flowchart LR
 │   ├── panel/
 │   ├── usuario/
 │   └── tienda.html
+├── docs/
+│   └── seguridad.md
 └── imgReadme/
 ```
+
+La carpeta `docs/` reúne la documentación técnica utilizada durante el proceso de validación y profesionalización de UrbanSneakers. Actualmente contiene la documentación del único bloque validado, el [Bloque 1 — Seguridad inmediata](docs/seguridad.md). A medida que los siguientes bloques técnicos sean revisados y validados, se incorporarán progresivamente sus documentos correspondientes.
 
 ## Flujo de compra y pago
 
@@ -264,10 +268,11 @@ Las claves de Stripe se inyectan mediante variables de entorno. La configuració
 | `PedidoController` | Calcula el resumen y crea pedidos para el cliente conectado. |
 | `ClienteController` | Gestiona el perfil, pedidos propios y descarga segura de facturas. |
 | `StripeController` | Crea sesiones de Stripe Checkout; incluye el flujo basado en un pedido ya persistido. |
-| `StripeWebhookController` | Recibe eventos de Stripe, verifica su firma y confirma pagos de forma idempotente. |
+| `StripeWebhookController` | Recibe eventos de Stripe, verifica su firma y coordina la confirmación de pagos. |
 | `AdminPedidoController` | Lista pedidos y permite actualizar su estado desde el panel interno. |
 | `AdminProductoController` | Gestiona el alta y la edición del catálogo. |
 | `AdminUsuarioController` | Gestiona las cuentas y roles del personal autorizado. |
+| `AdminPerfilController` | Gestiona el nombre, email y contraseña propios del personal autenticado. |
 | `SaludoController` | Endpoint sencillo de comprobación de la API. |
 
 ### Servicios de negocio
@@ -301,9 +306,10 @@ Los repositorios `UsuarioRepository`, `ProductoRepository`, `CarritoRepository`,
 | Estados y roles | `RolUsuario`, `EstadoPedido`, `EstadoPago`. |
 | Entrada de autenticación | `RegistroUsuarioRequest`, `LoginRequest`. |
 | Entrada de cliente | `ActualizarNombreClienteRequest`, `ActualizarEmailClienteRequest`, `ActualizarPasswordClienteRequest`. |
+| Entrada de personal | `ActualizarEmailPersonalRequest`, `ActualizarPasswordPersonalRequest`. |
 | Entrada de compra | `CarritoItemRequest`, `PedidoRequest`. |
 | Entrada de administración | `ProductoRequest`, `CambioEstadoPedidoRequest`, `CrearEmpleadoRequest`, `ActualizarEmpleadoRequest`. |
-| Respuestas | `UsuarioRespuesta`, `EmpleadoRespuesta`, `CarritoItemRespuesta`, `PedidoResumen`, `PedidoAdminResumen`, `PedidoClienteRespuesta`, `PedidoItemClienteRespuesta`. |
+| Respuestas | `UsuarioRespuesta`, `EmpleadoRespuesta`, `CarritoItemRespuesta`, `PedidoResumen`, `PedidoAdminResumen`, `CambioEstadoPedidoRespuesta`, `PedidoClienteRespuesta`, `PedidoItemClienteRespuesta`. |
 | Apoyo | `Saludo`, usado por el endpoint básico de verificación. |
 
 ## Frontend
@@ -330,7 +336,7 @@ Resumen de los principales endpoints:
 |---|---|---|---|
 | `POST` | `/auth/registro` | Público | Registrar un cliente. |
 | `POST` | `/auth/login` | Público | Autenticar y crear la sesión. |
-| `GET` | `/auth/me` | Público/sesión | Consultar el usuario actual. |
+| `GET` | `/auth/me` | Autenticado | Consultar el usuario actual. |
 | `GET` | `/auth/csrf` | Público | Obtener la cookie y el token CSRF. |
 | `POST` | `/auth/logout` | Autenticado | Invalidar la sesión. |
 | `GET` | `/productos` | Público | Obtener productos activos. |
@@ -342,11 +348,14 @@ Resumen de los principales endpoints:
 | `POST` | `/pedido` | Cliente | Validar el checkout y crear el pedido. |
 | `POST` | `/api/stripe/checkout/pedido` | Cliente | Crear la sesión de pago del pedido. |
 | `POST` | `/api/stripe/webhook` | Stripe/firma | Confirmar eventos de pago. |
-| `GET` | `/cliente/pedidos` | Cliente | Consultar los pedidos propios. |
-| `GET` | `/cliente/pedidos/{idPedido}/factura` | Cliente propietario | Descargar la factura PDF. |
+| `GET` | `/cliente/perfil/pedidos` | Cliente | Consultar los pedidos propios. |
+| `GET` | `/cliente/perfil/pedidos/{idPedido}/factura` | Cliente propietario | Descargar la factura PDF. |
 | `PUT` | `/cliente/perfil/nombre` | Cliente | Actualizar el nombre. |
 | `PUT` | `/cliente/perfil/email` | Cliente | Actualizar el correo. |
 | `PUT` | `/cliente/perfil/password` | Cliente | Cambiar la contraseña. |
+| `PUT` | `/admin/mi-cuenta/nombre` | Personal | Actualizar el nombre propio. |
+| `PUT` | `/admin/mi-cuenta/email` | Personal | Actualizar el email propio y cerrar la sesión. |
+| `PUT` | `/admin/mi-password` | Personal | Cambiar la contraseña propia. |
 | `GET` | `/admin/pedidos` | Personal | Listar pedidos. |
 | `PATCH` | `/admin/pedidos/{id}/estado` | Personal | Cambiar el estado del pedido. |
 | `GET/POST` | `/admin/productos` | Personal | Listar o crear productos. |
@@ -356,16 +365,43 @@ Resumen de los principales endpoints:
 
 ## Seguridad y permisos
 
-- Contraseñas almacenadas con hash BCrypt.
-- Autenticación basada en Spring Security y sesión `JSESSIONID`.
-- Cookie de sesión inaccesible desde JavaScript mediante `HttpOnly`.
-- Protección CSRF con token en cookie para las operaciones con cambio de estado.
+UrbanSneakers aplica Spring Security sobre sesiones HTTP y separa el acceso mediante los roles `CLIENTE`, `TRABAJADOR`, `JEFE` y `ADMIN`. Cada familia de endpoints declara sus roles permitidos y la configuración termina con `anyRequest().denyAll()`: cualquier ruta que no haya sido clasificada expresamente queda bloqueada.
+
+- Contraseñas almacenadas con BCrypt mediante `PasswordEncoder`.
+- Autenticación de sesión con `JSESSIONID`, `SecurityContext` y protección frente a session fixation mediante `changeSessionId()`.
+- Registro de sesiones en `SessionRegistry` y expiración cuando cambia el rol de un empleado o su cuenta pasa de activa a inactiva.
+- Protección CSRF con token en cookie para las operaciones con cambio de estado; el webhook queda excluido porque Stripe lo invoca externamente.
 - CORS limitado en desarrollo a `localhost:5500` y `127.0.0.1:5500`, con credenciales habilitadas.
-- Validación de DTO mediante Bean Validation y validaciones adicionales en servicios.
-- Autorización por rol tanto en rutas de cliente como de administración.
-- Verificación criptográfica de la firma de los webhooks de Stripe.
-- Secretos de Stripe fuera del repositorio mediante variables de entorno.
-- Comprobación de propiedad antes de exponer pedidos y facturas de cliente.
+- Cambio de contraseña propia sujeto a la comprobación de la contraseña actual mediante `PasswordEncoder.matches()`.
+- Cambio de email propio sujeto a la misma comprobación e invalidación posterior de la sesión desde el backend.
+- DTOs de entrada y respuesta que limitan los campos aceptados y evitan exponer entidades completas cuando no son necesarias.
+- Construcción segura del DOM con `createElement`, `textContent` y propiedades DOM en catálogo, carrito, checkout, perfil y panel.
+- Verificación del encabezado `Stripe-Signature` mediante `Webhook.constructEvent()` antes de procesar un webhook.
+- Gestión estándar de errores sin incluir stack traces, excepciones, binding errors ni mensajes internos.
+
+### Flujo de autenticación segura
+
+```mermaid
+flowchart LR
+    U[Usuario] --> L[POST /auth/login]
+    L --> AM[AuthenticationManager]
+    AM --> SC[SecurityContext]
+    SC --> ID[changeSessionId]
+    ID --> SR[SessionRegistry]
+    SR --> S[Sesión autenticada]
+```
+
+### Acceso por nivel
+
+```mermaid
+flowchart TD
+    R[Petición HTTP] --> P{Ruta declarada}
+    P -->|Pública| PUB[Login, registro, catálogo, saludo, webhook y error]
+    P -->|CLIENTE| CLI[Perfil, carrito, pedido y checkout]
+    P -->|Personal| PER[Pedidos, productos y cuenta propia]
+    P -->|JEFE o ADMIN| JA[Gestión de empleados]
+    P -->|No declarada| DENY[denyAll]
+```
 
 | Recurso | CLIENTE | TRABAJADOR | JEFE | ADMIN |
 |---|:---:|:---:|:---:|:---:|
@@ -373,6 +409,10 @@ Resumen de los principales endpoints:
 | Gestión de pedidos | No | Sí | Sí | Sí |
 | Gestión de productos | No | Sí | Sí | Sí |
 | Gestión de empleados | No | No | Sí | Sí |
+
+Los cambios propios del personal solo aceptan nombre, email y contraseña; el rol y el estado no forman parte de esos DTOs. El cambio administrativo de rol o la desactivación de otra cuenta provoca la expiración de sus sesiones registradas.
+
+La documentación detallada de las medidas, pruebas manuales y dos auditorías del primer bloque se encuentra en [docs/seguridad.md](docs/seguridad.md).
 
 > La configuración incluida está pensada para desarrollo local. En producción, la cookie debe usar `Secure`, los orígenes CORS deben restringirse al dominio definitivo y toda la aplicación debe servirse mediante HTTPS.
 

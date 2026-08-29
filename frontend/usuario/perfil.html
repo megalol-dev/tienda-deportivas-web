@@ -232,6 +232,7 @@
          MODAL EDITAR EMAIL
          ======================================= -->
 
+    <!-- La contraseña actual acompaña al cambio de email para validarla en backend. -->
     <div id="modal-editar-email" class="modal-perfil" hidden>
       <div class="modal-perfil-contenido">
         <h3>Editar correo electrónico</h3>
@@ -252,6 +253,23 @@
         </small>
 
         <p id="error-editar-email" class="mensaje-error"></p>
+
+        <label for="input-password-actual-email"> Contraseña actual </label>
+
+        <input
+          type="password"
+          id="input-password-actual-email"
+          maxlength="72"
+          autocomplete="current-password"
+          placeholder="Introduce tu contraseña actual"
+        />
+
+        <small>
+          Por seguridad, confirma tu contraseña actual para cambiar el correo
+          electrónico.
+        </small>
+
+        <p id="error-password-actual-email" class="mensaje-error"></p>
 
         <p class="aviso-importante-perfil">
           AL CAMBIAR TU CORREO ELECTRÓNICO SE CERRARÁ LA SESIÓN. TENDRÁS QUE
@@ -285,6 +303,23 @@
     <div id="modal-cambiar-password" class="modal-perfil" hidden>
       <div class="modal-perfil-contenido">
         <h3>Cambiar contraseña</h3>
+
+        <label for="input-password-actual"> Contraseña actual </label>
+
+        <input
+          type="password"
+          id="input-password-actual"
+          maxlength="72"
+          autocomplete="current-password"
+          placeholder="Introduce tu contraseña actual"
+        />
+
+        <small>
+          Por seguridad, introduce tu contraseña actual antes de establecer una
+          nueva.
+        </small>
+
+        <p id="error-password-actual" class="mensaje-error"></p>
 
         <label for="input-nueva-password"> Nueva contraseña </label>
 

@@ -88,7 +88,7 @@ function cerrarCheckout() {
   }
 }
 
-// Renderiza los productos del resumen.
+// Renderiza los productos mediante nodos DOM y contenido de texto.
 function renderizarResumenPedido() {
   if (
     !resumenLineas ||
@@ -99,13 +99,17 @@ function renderizarResumenPedido() {
   )
     return;
 
-  resumenLineas.innerHTML = "";
+  resumenLineas.replaceChildren();
 
   if (!carrito.length) {
-    resumenLineas.innerHTML = `
-            <div style="padding:18px; color:#666; text-align:center;">
-                Tu carrito está vacío.
-            </div>`;
+    const vacio = document.createElement("div");
+    vacio.style.padding = "18px";
+    vacio.style.color = "#666";
+    vacio.style.textAlign = "center";
+    vacio.textContent = "Tu carrito está vacío.";
+
+    resumenLineas.appendChild(vacio);
+
     resumenSubtotalEl.textContent = "0,00 €";
     resumenEnvioEl.textContent = "0,00 €";
     resumenIvaEl.textContent = "0,00 €";
@@ -122,27 +126,19 @@ function renderizarResumenPedido() {
 
     const div = document.createElement("div");
     div.className = "linea-resumen";
-    div.innerHTML = `
-            <div class="thumb-zapa">
-                ${
-                  srcImg
-                    ? `<img class="thumb-img" src="${srcImg}" alt="${item.marca} ${item.nombre}">`
-                    : `Foto`
-                }
-            </div>
-            <div class="info">
-                <strong>${item.marca} — ${item.nombre}</strong>
-                <small>Talla: ${item.talla ?? "-"}</small>
-                <small>Color: ${item.color ?? "-"}</small>
-                <small>Precio: ${precioU} € · Cantidad: ${item.cantidad}</small>
-            </div>
-            <div class="importe">${importe} €</div>
-        `;
 
-    const img = div.querySelector(".thumb-img");
-    if (img) {
+    const thumb = document.createElement("div");
+    thumb.className = "thumb-zapa";
+
+    if (srcImg) {
+      const img = document.createElement("img");
+      img.className = "thumb-img";
+      img.src = srcImg;
+      img.alt = `${item.marca} ${item.nombre}`;
+
       img.onerror = () => {
         const fallback = `img/p${item.id}_default.png`;
+
         if (!img.dataset.fallbackTried) {
           img.dataset.fallbackTried = "1";
           img.src = fallback;
@@ -150,7 +146,44 @@ function renderizarResumenPedido() {
           img.style.display = "none";
         }
       };
+
+      thumb.appendChild(img);
+    } else {
+      thumb.textContent = "Foto";
     }
+
+    const info = document.createElement("div");
+    info.className = "info";
+
+    const titulo = document.createElement("strong");
+    titulo.textContent = `${item.marca} — ${item.nombre}`;
+
+    const talla = document.createElement("small");
+    talla.textContent = `Talla: ${item.talla ?? "-"}`;
+
+    const color = document.createElement("small");
+    color.textContent = `Color: ${item.color ?? "-"}`;
+
+    const precioCantidad = document.createElement("small");
+    precioCantidad.textContent =
+      `Precio: ${precioU} € · Cantidad: ${item.cantidad}`;
+
+    info.append(
+      titulo,
+      talla,
+      color,
+      precioCantidad,
+    );
+
+    const importeEl = document.createElement("div");
+    importeEl.className = "importe";
+    importeEl.textContent = `${importe} €`;
+
+    div.append(
+      thumb,
+      info,
+      importeEl,
+    );
 
     resumenLineas.appendChild(div);
   });

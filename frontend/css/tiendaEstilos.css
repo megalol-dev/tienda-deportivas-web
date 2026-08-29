@@ -3631,6 +3631,271 @@ select {
     }
 }
 
+
+/* =====================================================
+   PANEL - MI CUENTA Y CAMBIO DE CONTRASENA
+   Integra ambos formularios con el sistema visual actual.
+   ===================================================== */
+
+.panel-mi-cuenta > p {
+    max-width: 680px;
+    margin-bottom: 0;
+}
+
+.login-contenedor.mi-cuenta-contenedor {
+    max-width: 760px;
+    box-sizing: border-box;
+    margin: 28px auto 0;
+    padding: clamp(24px, 4vw, 34px);
+    border-color: var(--ui-border-strong);
+    box-shadow: none;
+}
+
+.mi-cuenta-formulario {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 22px;
+}
+
+.mi-cuenta-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
+
+.mi-cuenta-campo label,
+.modal-password-campo label {
+    margin: 0;
+    color: var(--ui-ink);
+    font-size: 0.8rem;
+    font-weight: 760;
+    letter-spacing: 0.01em;
+}
+
+.mi-cuenta-campo input,
+#modal-mi-password .modal-password-campo input {
+    width: 100%;
+    min-height: 46px;
+    box-sizing: border-box;
+    padding: 10px 13px;
+    background: #ffffff;
+    color: var(--ui-ink);
+    border: 1px solid var(--ui-border-strong);
+    border-radius: 9px;
+    font: inherit;
+    font-size: 0.9rem;
+    transition: border-color 160ms ease, box-shadow 160ms ease,
+        background-color 160ms ease;
+}
+
+.mi-cuenta-campo input:focus,
+#modal-mi-password .modal-password-campo input:focus {
+    border-color: var(--ui-accent);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+    outline: 0;
+}
+
+.mi-cuenta-campo-readonly {
+    grid-column: 1 / -1;
+}
+
+.mi-cuenta-campo input[readonly] {
+    background: var(--ui-surface-muted);
+    color: var(--ui-ink-soft);
+    border-style: dashed;
+    cursor: not-allowed;
+}
+
+.mensaje-ayuda-campo,
+#modal-mi-password .mensaje-ayuda-campo {
+    display: block;
+    margin: 0;
+    color: var(--ui-ink-soft);
+    font-size: 0.76rem;
+    line-height: 1.45;
+}
+
+.mi-cuenta-campo .mensaje-error-campo,
+#modal-mi-password .mensaje-error {
+    min-height: 17px;
+    margin: 0;
+    color: var(--ui-danger);
+    font-size: 0.76rem;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.login-registro.mi-cuenta-acciones {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 2px;
+    padding-top: 22px;
+    border-top: 1px solid var(--ui-border);
+}
+
+.mi-cuenta-acciones .btn-login-form {
+    width: 100%;
+    margin: 0;
+}
+
+#btn-guardar-mi-cuenta,
+#btn-guardar-mi-cuenta:hover {
+    background: var(--ui-success);
+    color: #ffffff;
+    border-color: var(--ui-success);
+}
+
+#btn-guardar-mi-cuenta:hover {
+    filter: brightness(0.9);
+}
+
+#btn-cambiar-mi-password {
+    background: #ffffff;
+    color: var(--ui-accent-dark);
+    border-color: #afb4ed;
+}
+
+#btn-cambiar-mi-password:hover {
+    background: #eceefe;
+    color: var(--ui-accent-dark);
+    border-color: var(--ui-accent);
+}
+
+#modal-mi-password {
+    padding: 24px;
+}
+
+#modal-mi-password .modal-password-contenido {
+    width: min(100%, 520px);
+    max-height: min(90vh, 760px);
+    padding: clamp(24px, 4vw, 34px);
+}
+
+#modal-mi-password .modal-password-contenido h3 {
+    margin: 0;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--ui-border);
+    font-size: clamp(1.35rem, 4vw, 1.65rem);
+    text-align: left;
+}
+
+.modal-password-campos {
+    display: flex;
+    flex-direction: column;
+    gap: 17px;
+    margin-top: 24px;
+}
+
+.modal-password-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+#modal-mi-password .aviso-importante-perfil {
+    position: relative;
+    margin: 22px 0 0;
+    padding: 13px 15px 13px 42px;
+    background: #fff8e7;
+    color: #725116;
+    border: 1px solid #e7cd91;
+    border-radius: 10px;
+    font-size: 0.76rem;
+    line-height: 1.5;
+    text-align: left;
+}
+
+#modal-mi-password .aviso-importante-perfil::before {
+    content: "!";
+    position: absolute;
+    top: 13px;
+    left: 15px;
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    color: #725116;
+    border: 1px solid currentColor;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: 850;
+}
+
+#modal-mi-password .modal-perfil-botones {
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--ui-border);
+}
+
+#modal-mi-password .modal-perfil-botones button {
+    min-width: 150px;
+    margin: 0;
+}
+
+@media (max-width: 700px) {
+    .mi-cuenta-formulario {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .mi-cuenta-campo-readonly,
+    .login-registro.mi-cuenta-acciones {
+        grid-column: auto;
+    }
+
+    .mi-cuenta-acciones {
+        grid-template-columns: 1fr;
+        padding-top: 20px;
+    }
+}
+
+@media (max-width: 520px) {
+    .panel-mi-cuenta {
+        padding-right: 16px;
+        padding-left: 16px;
+    }
+
+    .login-contenedor.mi-cuenta-contenedor {
+        margin-top: 22px;
+        padding: 20px 16px;
+        border-radius: 14px;
+    }
+
+    #modal-mi-password {
+        align-items: flex-end;
+        padding: 10px;
+    }
+
+    #modal-mi-password .modal-password-contenido {
+        max-height: calc(100dvh - 20px);
+        padding: 23px 18px 18px;
+        border-radius: 16px;
+    }
+
+    #modal-mi-password .modal-password-contenido h3 {
+        padding-bottom: 16px;
+    }
+
+    .modal-password-campos {
+        gap: 14px;
+        margin-top: 19px;
+    }
+
+    #modal-mi-password .modal-perfil-botones {
+        flex-direction: column;
+    }
+
+    #modal-mi-password .modal-perfil-botones button {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     html {
         scroll-behavior: auto;

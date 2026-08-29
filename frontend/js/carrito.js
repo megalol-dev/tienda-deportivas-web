@@ -252,7 +252,7 @@ function cerrarModalCarrito() {
   modalCarrito.classList.remove("modal-visible");
 }
 
-// Renderiza las líneas del carrito.
+// Renderiza las líneas sin interpretar como HTML los datos del producto.
 function renderizarCarritoModal() {
   if (!carrito.length) {
     listaCarrito.innerHTML = `
@@ -263,7 +263,7 @@ function renderizarCarritoModal() {
     return;
   }
 
-  listaCarrito.innerHTML = "";
+  listaCarrito.replaceChildren();
 
   carrito.forEach((item) => {
     const importe = (item.precio * item.cantidad).toFixed(2).replace(".", ",");
@@ -275,34 +275,18 @@ function renderizarCarritoModal() {
     const fila = document.createElement("div");
     fila.className = "item-carrito";
 
-    fila.innerHTML = `
-            <div class="thumb-zapa">
-                ${
-                  srcImg
-                    ? `<img class="thumb-img" src="${srcImg}" alt="${item.marca} ${item.nombre}">`
-                    : `Foto`
-                }
-            </div>
+    const thumb = document.createElement("div");
+    thumb.className = "thumb-zapa";
 
-            <div class="info-zapa">
-                <h4>${item.marca} — ${item.nombre}</h4>
-                <div class="meta">Talla: ${item.talla ?? "-"}</div>
-                <div class="meta">Color: ${item.color ?? "-"}</div>
-                <div class="meta">Precio: ${precioU} €</div>
-                <div class="meta">Cantidad: ${item.cantidad}</div>
-            </div>
+    if (srcImg) {
+      const img = document.createElement("img");
+      img.className = "thumb-img";
+      img.src = srcImg;
+      img.alt = `${item.marca} ${item.nombre}`;
 
-            <div class="importe">${importe} €</div>
-
-            <div class="acciones-item">
-                <button class="btn-quitar" data-clave="${item.clave}">Quitar producto</button>
-            </div>
-        `;
-
-    const img = fila.querySelector(".thumb-img");
-    if (img) {
       img.onerror = () => {
         const fallback = `img/p${item.id}_default.png`;
+
         if (!img.dataset.fallbackTried) {
           img.dataset.fallbackTried = "1";
           img.src = fallback;
@@ -310,12 +294,71 @@ function renderizarCarritoModal() {
           img.style.display = "none";
         }
       };
+
+      thumb.appendChild(img);
+    } else {
+      thumb.textContent = "Foto";
     }
+
+    const info = document.createElement("div");
+    info.className = "info-zapa";
+
+    const titulo = document.createElement("h4");
+    titulo.textContent = `${item.marca} — ${item.nombre}`;
+
+    const metaTalla = document.createElement("div");
+    metaTalla.className = "meta";
+    metaTalla.textContent = `Talla: ${item.talla ?? "-"}`;
+
+    const metaColor = document.createElement("div");
+    metaColor.className = "meta";
+    metaColor.textContent = `Color: ${item.color ?? "-"}`;
+
+    const metaPrecio = document.createElement("div");
+    metaPrecio.className = "meta";
+    metaPrecio.textContent = `Precio: ${precioU} €`;
+
+    const metaCantidad = document.createElement("div");
+    metaCantidad.className = "meta";
+    metaCantidad.textContent = `Cantidad: ${item.cantidad}`;
+
+    info.append(
+      titulo,
+      metaTalla,
+      metaColor,
+      metaPrecio,
+      metaCantidad,
+    );
+
+    const importeEl = document.createElement("div");
+    importeEl.className = "importe";
+    importeEl.textContent = `${importe} €`;
+
+    const acciones = document.createElement("div");
+    acciones.className = "acciones-item";
+
+    const botonQuitar = document.createElement("button");
+    botonQuitar.className = "btn-quitar";
+    botonQuitar.dataset.clave = item.clave;
+    botonQuitar.textContent = "Quitar producto";
+
+    acciones.appendChild(botonQuitar);
+
+    fila.append(
+      thumb,
+      info,
+      importeEl,
+      acciones,
+    );
 
     listaCarrito.appendChild(fila);
   });
 
-  const total = carrito.reduce((acc, it) => acc + it.precio * it.cantidad, 0);
+  const total = carrito.reduce(
+    (acc, it) => acc + it.precio * it.cantidad,
+    0,
+  );
+
   totalCarritoEl.textContent = `${total.toFixed(2).replace(".", ",")} €`;
 }
 

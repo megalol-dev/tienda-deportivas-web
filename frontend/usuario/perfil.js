@@ -17,7 +17,6 @@ async function iniciarPerfil() {
 // Carga los datos del cliente autenticado.
 async function cargarPerfil() {
   try {
-
     const respuesta = await fetch("http://localhost:8080/auth/me", {
       method: "GET",
       credentials: "include",
@@ -156,7 +155,7 @@ async function cargarPedidos() {
   }
 }
 
-// Muestra los pedidos del cliente.
+// Muestra los pedidos creando nodos seguros para los datos recibidos del backend.
 function mostrarPedidos(pedidos) {
   const listaPedidos = document.getElementById("lista-pedidos");
 
@@ -164,10 +163,14 @@ function mostrarPedidos(pedidos) {
     return;
   }
 
-  listaPedidos.innerHTML = "";
+  listaPedidos.replaceChildren();
 
   if (!Array.isArray(pedidos) || pedidos.length === 0) {
-    listaPedidos.innerHTML = "<p>Todavía no has realizado ningún pedido.</p>";
+    const mensaje = document.createElement("p");
+
+    mensaje.textContent = "Todavía no has realizado ningún pedido.";
+
+    listaPedidos.appendChild(mensaje);
 
     return;
   }
@@ -187,83 +190,94 @@ function mostrarPedidos(pedidos) {
 
     const estado = formatearEstadoPedido(pedido.estado);
 
-    tarjetaPedido.innerHTML = `
-      <div class="pedido-cabecera">
+    const cabecera = document.createElement("div");
+    cabecera.className = "pedido-cabecera";
 
-        <div>
-          <h4>Pedido ${pedido.idPedido}</h4>
-          <p>${fecha}</p>
-        </div>
+    const datosCabecera = document.createElement("div");
 
-        <span class="estado-pedido estado-${pedido.estado?.toLowerCase()}">
-          ${estado}
-        </span>
+    const tituloPedido = document.createElement("h4");
+    tituloPedido.textContent = `Pedido ${pedido.idPedido || ""}`;
 
-      </div>
+    const fechaPedido = document.createElement("p");
+    fechaPedido.textContent = fecha;
 
-      <div class="pedido-datos-cabecera">
+    datosCabecera.appendChild(tituloPedido);
+    datosCabecera.appendChild(fechaPedido);
 
-        <h4>Datos de envío</h4>
+    const estadoPedido = document.createElement("span");
 
-        <button
-            type="button"
-            class="btn-descargar-factura"
-            data-id-pedido="${pedido.idPedido}">
-            Descargar factura
-        </button>
+    estadoPedido.className = "estado-pedido";
 
-      </div>
+    const estadoSeguro = String(pedido.estado || "").toLowerCase();
 
-        <p>
-          <strong>Destinatario:</strong>
-          ${pedido.nombre} ${pedido.apellidos}
-        </p>
+    if (
+      ["preparando", "enviado", "entregado", "devuelto", "cancelado"].includes(
+        estadoSeguro,
+      )
+    ) {
+      estadoPedido.classList.add(`estado-${estadoSeguro}`);
+    }
 
-        <p>
-          <strong>Dirección:</strong>
-          ${pedido.direccion}
-        </p>
+    estadoPedido.textContent = estado;
 
-        <p>
-          <strong>Localidad:</strong>
-          ${pedido.cp} ${pedido.ciudad}, ${pedido.provincia}
-        </p>
+    cabecera.appendChild(datosCabecera);
+    cabecera.appendChild(estadoPedido);
 
-        <p>
-          <strong>País:</strong>
-          ${pedido.pais}
-        </p>
+    const datosEnvioCabecera = document.createElement("div");
+    datosEnvioCabecera.className = "pedido-datos-cabecera";
 
-        <p>
-          <strong>Teléfono:</strong>
-          ${pedido.telefono}
-        </p>
+    const tituloEnvio = document.createElement("h4");
+    tituloEnvio.textContent = "Datos de envío";
 
-      </div>
+    const btnFactura = document.createElement("button");
 
-      <div class="pedido-productos">
+    btnFactura.type = "button";
+    btnFactura.className = "btn-descargar-factura";
+    btnFactura.dataset.idPedido = String(pedido.idPedido || "");
+    btnFactura.textContent = "Descargar factura";
 
-        <h4>Productos</h4>
+    datosEnvioCabecera.appendChild(tituloEnvio);
+    datosEnvioCabecera.appendChild(btnFactura);
 
-        <div class="lista-productos-pedido"></div>
+    const crearDato = (etiqueta, valor) => {
+      const parrafo = document.createElement("p");
 
-      </div>
+      const strong = document.createElement("strong");
+      strong.textContent = `${etiqueta}: `;
 
-      <div class="pedido-total">
+      const texto = document.createTextNode(valor || "");
 
-        <p>
-          <strong>Total:</strong>
-          ${formatearPrecio(pedido.total)}
-        </p>
+      parrafo.appendChild(strong);
+      parrafo.appendChild(texto);
 
-      </div>
-    `;
+      return parrafo;
+    };
 
-    const contenedorProductos = tarjetaPedido.querySelector(
-      ".lista-productos-pedido",
-    );
+    const destinatario =
+      `${pedido.nombre || ""} ${pedido.apellidos || ""}`.trim();
 
-    if (contenedorProductos && Array.isArray(pedido.items)) {
+    const localidad =
+      `${pedido.cp || ""} ${pedido.ciudad || ""}, ${pedido.provincia || ""}`.trim();
+
+    const datoDestinatario = crearDato("Destinatario", destinatario);
+    const datoDireccion = crearDato("Dirección", pedido.direccion);
+    const datoLocalidad = crearDato("Localidad", localidad);
+    const datoPais = crearDato("País", pedido.pais);
+    const datoTelefono = crearDato("Teléfono", pedido.telefono);
+
+    const productosPedido = document.createElement("div");
+    productosPedido.className = "pedido-productos";
+
+    const tituloProductos = document.createElement("h4");
+    tituloProductos.textContent = "Productos";
+
+    const contenedorProductos = document.createElement("div");
+    contenedorProductos.className = "lista-productos-pedido";
+
+    productosPedido.appendChild(tituloProductos);
+    productosPedido.appendChild(contenedorProductos);
+
+    if (Array.isArray(pedido.items)) {
       pedido.items.forEach((item) => {
         const producto = crearProductoPedido(item);
 
@@ -271,13 +285,26 @@ function mostrarPedidos(pedidos) {
       });
     }
 
-    const btnFactura = tarjetaPedido.querySelector(".btn-descargar-factura");
+    const pedidoTotal = document.createElement("div");
+    pedidoTotal.className = "pedido-total";
 
-    if (btnFactura) {
-      btnFactura.addEventListener("click", () => {
-        descargarFactura(pedido.idPedido);
-      });
-    }
+    const textoTotal = crearDato("Total", formatearPrecio(pedido.total));
+
+    pedidoTotal.appendChild(textoTotal);
+
+    btnFactura.addEventListener("click", () => {
+      descargarFactura(pedido.idPedido);
+    });
+
+    tarjetaPedido.appendChild(cabecera);
+    tarjetaPedido.appendChild(datosEnvioCabecera);
+    tarjetaPedido.appendChild(datoDestinatario);
+    tarjetaPedido.appendChild(datoDireccion);
+    tarjetaPedido.appendChild(datoLocalidad);
+    tarjetaPedido.appendChild(datoPais);
+    tarjetaPedido.appendChild(datoTelefono);
+    tarjetaPedido.appendChild(productosPedido);
+    tarjetaPedido.appendChild(pedidoTotal);
 
     listaPedidos.appendChild(tarjetaPedido);
   });
@@ -301,9 +328,7 @@ async function descargarFactura(idPedido) {
     }
 
     if (!respuesta.ok) {
-      throw new Error(
-        "No se pudo descargar la factura.",
-      );
+      throw new Error("No se pudo descargar la factura.");
     }
 
     const pdf = await respuesta.blob();
@@ -314,8 +339,7 @@ async function descargarFactura(idPedido) {
 
     enlace.href = url;
 
-    enlace.download =
-      `factura-${idPedido}.pdf`;
+    enlace.download = `factura-${idPedido}.pdf`;
 
     document.body.appendChild(enlace);
 
@@ -325,18 +349,13 @@ async function descargarFactura(idPedido) {
 
     URL.revokeObjectURL(url);
   } catch (error) {
-    console.error(
-      "Error descargando la factura:",
-      error,
-    );
+    console.error("Error descargando la factura:", error);
 
-    alert(
-      "No se ha podido descargar la factura.",
-    );
+    alert("No se ha podido descargar la factura.");
   }
 }
 
-// Crea la vista de una línea de pedido.
+// Crea la vista de una línea de pedido sin interpretar sus datos como HTML.
 function crearProductoPedido(item) {
   const producto = document.createElement("div");
 
@@ -344,56 +363,60 @@ function crearProductoPedido(item) {
 
   const rutaImagen = obtenerImagenPedido(item.productoId, item.color);
 
-  producto.innerHTML = `
-    <div class="producto-pedido-imagen">
+  const contenedorImagen = document.createElement("div");
+  contenedorImagen.className = "producto-pedido-imagen";
 
-      <img
-        src="${rutaImagen}"
-        alt="${item.nombreProducto}"
-      />
+  const imagen = document.createElement("img");
 
-    </div>
+  imagen.src = rutaImagen;
+  imagen.alt = item.nombreProducto || "";
 
-    <div class="producto-pedido-info">
+  contenedorImagen.appendChild(imagen);
 
-      <h5>${item.nombreProducto}</h5>
+  const informacion = document.createElement("div");
+  informacion.className = "producto-pedido-info";
 
-      <p>
-        <strong>Talla:</strong>
-        ${item.talla}
-      </p>
+  const nombre = document.createElement("h5");
+  nombre.textContent = item.nombreProducto || "";
 
-      <p>
-        <strong>Color:</strong>
-        ${item.color}
-      </p>
+  informacion.appendChild(nombre);
 
-      <p>
-        <strong>Cantidad:</strong>
-        ${item.cantidad}
-      </p>
+  const crearDatoProducto = (etiqueta, valor) => {
+    const parrafo = document.createElement("p");
 
-      <p>
-        <strong>Precio:</strong>
-        ${formatearPrecio(item.precioUnitario)}
-      </p>
+    const strong = document.createElement("strong");
+    strong.textContent = `${etiqueta}: `;
 
-    </div>
-  `;
+    const texto = document.createTextNode(String(valor ?? ""));
 
-  const imagen = producto.querySelector("img");
+    parrafo.appendChild(strong);
+    parrafo.appendChild(texto);
 
-  if (imagen) {
-    imagen.addEventListener("error", () => {
-      if (!imagen.dataset.fallback) {
-        imagen.dataset.fallback = "true";
+    return parrafo;
+  };
 
-        imagen.src = `../img/p${item.productoId}_default.png`;
-      } else {
-        imagen.style.display = "none";
-      }
-    });
-  }
+  informacion.appendChild(crearDatoProducto("Talla", item.talla));
+
+  informacion.appendChild(crearDatoProducto("Color", item.color));
+
+  informacion.appendChild(crearDatoProducto("Cantidad", item.cantidad));
+
+  informacion.appendChild(
+    crearDatoProducto("Precio", formatearPrecio(item.precioUnitario)),
+  );
+
+  producto.appendChild(contenedorImagen);
+  producto.appendChild(informacion);
+
+  imagen.addEventListener("error", () => {
+    if (!imagen.dataset.fallback) {
+      imagen.dataset.fallback = "true";
+
+      imagen.src = `../img/p${item.productoId}_default.png`;
+    } else {
+      imagen.style.display = "none";
+    }
+  });
 
   return producto;
 }
@@ -520,6 +543,12 @@ function prepararModalEmail() {
   const input = document.getElementById("input-editar-email");
   const btnGuardar = document.getElementById("btn-guardar-email");
   const btnCancelar = document.getElementById("btn-cancelar-email");
+  const inputPasswordActual = document.getElementById(
+    "input-password-actual-email",
+  );
+  const errorPasswordActual = document.getElementById(
+    "error-password-actual-email",
+  );
 
   if (!btnEditar || !modal || !input) {
     return;
@@ -528,6 +557,23 @@ function prepararModalEmail() {
   btnEditar.addEventListener("click", () => {
     if (usuarioActual) {
       input.value = usuarioActual.email;
+    }
+
+    if (inputPasswordActual) {
+      inputPasswordActual.value = "";
+      inputPasswordActual.classList.remove("campo-invalido");
+    }
+
+    if (errorPasswordActual) {
+      errorPasswordActual.textContent = "";
+    }
+
+    const errorEmail = document.getElementById("error-editar-email");
+
+    input.classList.remove("campo-invalido");
+
+    if (errorEmail) {
+      errorEmail.textContent = "";
     }
 
     abrirModal(modal);
@@ -574,25 +620,42 @@ function prepararModalEmail() {
 function prepararModalPassword() {
   const btnCambiar = document.getElementById("btn-cambiar-password");
   const modal = document.getElementById("modal-cambiar-password");
+  const inputPasswordActual = document.getElementById("input-password-actual");
   const inputPassword = document.getElementById("input-nueva-password");
   const inputConfirmar = document.getElementById("input-confirmar-password");
   const btnCancelar = document.getElementById("btn-cancelar-password");
   const btnGuardar = document.getElementById("btn-guardar-password");
 
-  if (!btnCambiar || !modal || !inputPassword || !inputConfirmar) {
+  if (
+    !btnCambiar ||
+    !modal ||
+    !inputPasswordActual ||
+    !inputPassword ||
+    !inputConfirmar
+  ) {
     return;
   }
 
   btnCambiar.addEventListener("click", () => {
+    inputPasswordActual.value = "";
     inputPassword.value = "";
     inputConfirmar.value = "";
 
+    inputPasswordActual.classList.remove("campo-invalido");
     inputPassword.classList.remove("campo-invalido");
     inputConfirmar.classList.remove("campo-invalido");
 
     const errorPassword = document.getElementById("error-nueva-password");
 
+    const errorPasswordActual = document.getElementById(
+      "error-password-actual",
+    );
+
     const errorConfirmar = document.getElementById("error-confirmar-password");
+
+    if (errorPasswordActual) {
+      errorPasswordActual.textContent = "";
+    }
 
     if (errorPassword) {
       errorPassword.textContent = "";
@@ -604,7 +667,7 @@ function prepararModalPassword() {
 
     abrirModal(modal);
 
-    inputPassword.focus();
+    inputPasswordActual.focus();
   });
 
   if (btnGuardar) {
@@ -613,13 +676,23 @@ function prepararModalPassword() {
 
   if (btnCancelar) {
     btnCancelar.addEventListener("click", () => {
+      inputPasswordActual.value = "";
       inputPassword.value = "";
       inputConfirmar.value = "";
 
       inputPassword.classList.remove("campo-invalido");
       inputConfirmar.classList.remove("campo-invalido");
+      inputPasswordActual.classList.remove("campo-invalido");
 
       const errorPassword = document.getElementById("error-nueva-password");
+
+      const errorPasswordActual = document.getElementById(
+        "error-password-actual",
+      );
+
+      if (errorPasswordActual) {
+        errorPasswordActual.textContent = "";
+      }
 
       const errorConfirmar = document.getElementById(
         "error-confirmar-password",
@@ -705,7 +778,6 @@ function prepararCerrarSesion() {
 // Cierra la sesión desde el perfil.
 async function cerrarSesionPerfil() {
   try {
-
     const respuestaCsrf = await fetch("http://localhost:8080/auth/csrf", {
       method: "GET",
       credentials: "include",
@@ -782,7 +854,6 @@ async function actualizarNombre() {
   }
 
   try {
-
     const respuestaCsrf = await fetch("http://localhost:8080/auth/csrf", {
       method: "GET",
       credentials: "include",
@@ -818,12 +889,12 @@ async function actualizarNombre() {
       try {
         const error = await respuesta.json();
 
-        if (error.message) {
+        if (error.error) {
+          mensaje = error.error;
+        } else if (error.message) {
           mensaje = error.message;
         }
-      } catch {
-
-      }
+      } catch {}
 
       alert(mensaje);
 
@@ -863,20 +934,31 @@ async function actualizarNombre() {
 // Valida y actualiza el email del cliente.
 async function actualizarEmail() {
   const inputEmail = document.getElementById("input-editar-email");
-
   const errorEmail = document.getElementById("error-editar-email");
+  const inputPasswordActual = document.getElementById(
+    "input-password-actual-email",
+  );
+  const errorPasswordActual = document.getElementById(
+    "error-password-actual-email",
+  );
 
-  if (!inputEmail) {
+  if (!inputEmail || !inputPasswordActual) {
     return;
   }
 
   const nuevoEmail = inputEmail.value.trim().toLowerCase();
+  const passwordActual = inputPasswordActual.value;
 
   if (errorEmail) {
     errorEmail.textContent = "";
   }
 
   inputEmail.classList.remove("campo-invalido");
+  inputPasswordActual.classList.remove("campo-invalido");
+
+  if (errorPasswordActual) {
+    errorPasswordActual.textContent = "";
+  }
 
   if (nuevoEmail.length === 0 || nuevoEmail.length > 150) {
     if (errorEmail) {
@@ -900,8 +982,18 @@ async function actualizarEmail() {
     return;
   }
 
-  try {
+  if (passwordActual.length === 0) {
+    inputPasswordActual.classList.add("campo-invalido");
 
+    if (errorPasswordActual) {
+      errorPasswordActual.textContent =
+        "Debes introducir tu contraseña actual.";
+    }
+
+    return;
+  }
+
+  try {
     const respuestaCsrf = await fetch("http://localhost:8080/auth/csrf", {
       method: "GET",
       credentials: "include",
@@ -927,6 +1019,7 @@ async function actualizarEmail() {
 
         body: JSON.stringify({
           email: nuevoEmail,
+          passwordActual: passwordActual,
         }),
       },
     );
@@ -937,18 +1030,26 @@ async function actualizarEmail() {
       try {
         const error = await respuesta.json();
 
-        if (error.message) {
+        if (error.error) {
+          mensaje = error.error;
+        } else if (error.message) {
           mensaje = error.message;
         }
-      } catch {
+      } catch {}
 
+      if (mensaje === "La contraseña actual no es correcta.") {
+        if (errorPasswordActual) {
+          errorPasswordActual.textContent = mensaje;
+        }
+
+        inputPasswordActual.classList.add("campo-invalido");
+      } else {
+        if (errorEmail) {
+          errorEmail.textContent = mensaje;
+        }
+
+        inputEmail.classList.add("campo-invalido");
       }
-
-      if (errorEmail) {
-        errorEmail.textContent = mensaje;
-      }
-
-      inputEmail.classList.add("campo-invalido");
 
       return;
     }
@@ -957,7 +1058,13 @@ async function actualizarEmail() {
 
     console.log("Email actualizado correctamente:", usuarioActualizado.email);
 
-    await cerrarSesionTrasCambiarEmail();
+    alert(
+      "Correo electrónico actualizado correctamente. " +
+        "Por seguridad debes iniciar sesión de nuevo.",
+    );
+
+    // El backend ya ha invalidado la sesión tras completar el cambio sensible.
+    window.location.href = "login.html";
   } catch (error) {
     console.error("Error actualizando el email:", error);
 
@@ -967,23 +1074,32 @@ async function actualizarEmail() {
 
 // Valida y actualiza la contraseña del cliente.
 async function actualizarPassword() {
+  const inputPasswordActual = document.getElementById("input-password-actual");
   const inputPassword = document.getElementById("input-nueva-password");
 
   const inputConfirmar = document.getElementById("input-confirmar-password");
+
+  const errorPasswordActual = document.getElementById("error-password-actual");
 
   const errorPassword = document.getElementById("error-nueva-password");
 
   const errorConfirmar = document.getElementById("error-confirmar-password");
 
-  if (!inputPassword || !inputConfirmar) {
+  if (!inputPasswordActual || !inputPassword || !inputConfirmar) {
     return;
   }
 
+  const passwordActual = inputPasswordActual.value;
   const password = inputPassword.value;
   const confirmarPassword = inputConfirmar.value;
 
+  inputPasswordActual.classList.remove("campo-invalido");
   inputPassword.classList.remove("campo-invalido");
   inputConfirmar.classList.remove("campo-invalido");
+
+  if (errorPasswordActual) {
+    errorPasswordActual.textContent = "";
+  }
 
   if (errorPassword) {
     errorPassword.textContent = "";
@@ -991,6 +1107,18 @@ async function actualizarPassword() {
 
   if (errorConfirmar) {
     errorConfirmar.textContent = "";
+  }
+
+  // La contraseña actual es obligatoria.
+  if (passwordActual.length === 0) {
+    inputPasswordActual.classList.add("campo-invalido");
+
+    if (errorPasswordActual) {
+      errorPasswordActual.textContent =
+        "Debes introducir tu contraseña actual.";
+    }
+
+    return;
   }
 
   if (password.length < 8 || password.length > 72) {
@@ -1039,7 +1167,6 @@ async function actualizarPassword() {
   }
 
   try {
-
     const respuestaCsrf = await fetch("http://localhost:8080/auth/csrf", {
       method: "GET",
       credentials: "include",
@@ -1064,6 +1191,7 @@ async function actualizarPassword() {
         },
 
         body: JSON.stringify({
+          passwordActual: passwordActual,
           password: password,
           confirmarPassword: confirmarPassword,
         }),
@@ -1076,18 +1204,24 @@ async function actualizarPassword() {
       try {
         const error = await respuesta.json();
 
-        if (error.message) {
-          mensaje = error.message;
+        if (error.error) {
+          mensaje = error.error;
         }
-      } catch {
+      } catch {}
 
+      if (mensaje === "La contraseña actual no es correcta.") {
+        if (errorPasswordActual) {
+          errorPasswordActual.textContent = mensaje;
+        }
+
+        inputPasswordActual.classList.add("campo-invalido");
+      } else {
+        if (errorPassword) {
+          errorPassword.textContent = mensaje;
+        }
+
+        inputPassword.classList.add("campo-invalido");
       }
-
-      if (errorPassword) {
-        errorPassword.textContent = mensaje;
-      }
-
-      inputPassword.classList.add("campo-invalido");
 
       return;
     }
@@ -1105,7 +1239,6 @@ async function actualizarPassword() {
 // Cierra la sesión tras cambiar la contraseña.
 async function cerrarSesionTrasCambiarPassword() {
   try {
-
     const respuestaCsrf = await fetch("http://localhost:8080/auth/csrf", {
       method: "GET",
       credentials: "include",
@@ -1152,49 +1285,4 @@ async function cerrarSesionTrasCambiarPassword() {
   }
 }
 
-// Cierra la sesión tras cambiar el email.
-async function cerrarSesionTrasCambiarEmail() {
-  try {
 
-    const respuestaCsrf = await fetch("http://localhost:8080/auth/csrf", {
-      method: "GET",
-      credentials: "include",
-    });
-
-    if (!respuestaCsrf.ok) {
-      throw new Error("No se pudo obtener el token CSRF.");
-    }
-
-    const csrf = await respuestaCsrf.json();
-
-    const respuestaLogout = await fetch("http://localhost:8080/auth/logout", {
-      method: "POST",
-
-      credentials: "include",
-
-      headers: {
-        [csrf.headerName]: csrf.token,
-      },
-    });
-
-    if (!respuestaLogout.ok) {
-      throw new Error("No se pudo cerrar la sesión.");
-    }
-
-    alert(
-      "Correo electrónico actualizado correctamente. " +
-        "Por seguridad debes iniciar sesión de nuevo.",
-    );
-
-    window.location.href = "login.html";
-  } catch (error) {
-    console.error("Error cerrando sesión después de cambiar el email:", error);
-
-    alert(
-      "El correo se ha actualizado, pero no se pudo cerrar " +
-        "la sesión correctamente. Vuelve a iniciar sesión.",
-    );
-
-    window.location.href = "login.html";
-  }
-}

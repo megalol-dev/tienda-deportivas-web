@@ -77,7 +77,7 @@ function mostrarTituloMarcaAnimado(nombreMarca) {
   tituloMarca.replaceChildren(fragmento);
 }
 
-// Muestra los productos de una marca.
+// Muestra los productos de una marca creando nodos y tratando sus datos como texto.
 function mostrarGridMarca(nombreMarca) {
   if (!Array.isArray(catalogo) || catalogo.length === 0) {
     console.warn("Catálogo vacío.");
@@ -89,7 +89,7 @@ function mostrarGridMarca(nombreMarca) {
 
   mostrarTituloMarcaAnimado(nombreMarca);
 
-  gridProductos.innerHTML = "";
+  gridProductos.replaceChildren();
 
   const productosMarca = catalogo.filter((p) => p.marca === nombreMarca);
 
@@ -104,47 +104,79 @@ function mostrarGridMarca(nombreMarca) {
       ? obtenerSrcImagenProducto(prod.id, colorInicial)
       : "";
 
-    card.innerHTML = `
+    const contenedorImagen = document.createElement("div");
+    contenedorImagen.className = "img-zapatilla";
 
-            <div class="img-zapatilla">
+    const imagen = document.createElement("img");
 
-                ${
-                  srcInicial
-                    ? `<img id="img-${prod.id}" src="${srcInicial}" alt="${prod.nombre}">`
-                    : `<img id="img-${prod.id}" src="" alt="${prod.nombre}" style="display:none">`
-                }
+    imagen.id = `img-${prod.id}`;
+    imagen.alt = prod.nombre || "";
 
-            </div>
+    if (srcInicial) {
+      imagen.src = srcInicial;
+    } else {
+      imagen.src = "";
+      imagen.style.display = "none";
+    }
 
-            <h4>${prod.nombre}</h4>
+    contenedorImagen.appendChild(imagen);
 
-            <div class="precio">${prod.precio.toFixed(2)} €</div>
+    const titulo = document.createElement("h4");
+    titulo.textContent = prod.nombre || "";
 
-            <label>Talla</label>
+    const precio = document.createElement("div");
+    precio.className = "precio";
+    precio.textContent = `${Number(prod.precio || 0).toFixed(2)} €`;
 
-            <select id="talla-${prod.id}">
+    const labelTalla = document.createElement("label");
+    labelTalla.textContent = "Talla";
 
-                ${prod.tallas.map((t) => `<option>${t}</option>`).join("")}
+    const selectTalla = document.createElement("select");
+    selectTalla.id = `talla-${prod.id}`;
 
-            </select>
+    if (Array.isArray(prod.tallas)) {
+      prod.tallas.forEach((talla) => {
+        const opcion = document.createElement("option");
 
-            <label>Color</label>
+        opcion.value = String(talla);
+        opcion.textContent = String(talla);
 
-            <select id="color-${prod.id}">
+        selectTalla.appendChild(opcion);
+      });
+    }
 
-                ${prod.colores.map((c) => `<option>${c}</option>`).join("")}
+    const labelColor = document.createElement("label");
+    labelColor.textContent = "Color";
 
-            </select>
+    const selectColor = document.createElement("select");
+    selectColor.id = `color-${prod.id}`;
 
-            <button
-                class="btn-add-carrito"
-                data-id="${prod.id}">
+    if (Array.isArray(prod.colores)) {
+      prod.colores.forEach((color) => {
+        const opcion = document.createElement("option");
 
-                Añadir al carrito
+        opcion.value = color;
+        opcion.textContent = color;
 
-            </button>
+        selectColor.appendChild(opcion);
+      });
+    }
 
-        `;
+    const botonCarrito = document.createElement("button");
+
+    botonCarrito.type = "button";
+    botonCarrito.className = "btn-add-carrito";
+    botonCarrito.dataset.id = String(prod.id);
+    botonCarrito.textContent = "Añadir al carrito";
+
+    card.appendChild(contenedorImagen);
+    card.appendChild(titulo);
+    card.appendChild(precio);
+    card.appendChild(labelTalla);
+    card.appendChild(selectTalla);
+    card.appendChild(labelColor);
+    card.appendChild(selectColor);
+    card.appendChild(botonCarrito);
 
     gridProductos.appendChild(card);
 
@@ -155,7 +187,6 @@ function mostrarGridMarca(nombreMarca) {
 
   vistaMarca.scrollIntoView({
     behavior: "smooth",
-
     block: "start",
   });
 }
