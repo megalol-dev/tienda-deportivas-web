@@ -465,6 +465,20 @@ public class PedidoService {
                 return pedido;
         }
 
+        // Comprueba que el pedido todavía pueda iniciar un pago.
+        public void validarPedidoPuedeIniciarPago(Pedido pedido) {
+
+                if (pedido == null) {
+                        throw new IllegalArgumentException(
+                                        "El pedido no puede ser nulo.");
+                }
+
+                if (pedido.getEstadoPago() == EstadoPago.PAGADO) {
+                        throw new IllegalStateException(
+                                        "El pedido ya está pagado.");
+                }
+        }
+
         // Asocia una sesión de Stripe al pedido.
         @Transactional
         public void guardarStripeSessionId(

@@ -29,161 +29,211 @@ import com.tiendadeportivas.backend.service.PedidoService;
 @RequestMapping("/api/stripe")
 public class StripeController {
 
-    private final StripeService stripeService;
-    private final CarritoService carritoService;
-    private final PedidoService pedidoService;
+        private final StripeService stripeService;
+        private final CarritoService carritoService;
+        private final PedidoService pedidoService;
 
-    // Crea una instancia de StripeController.
-    public StripeController(
-            StripeService stripeService,
-            CarritoService carritoService,
-            PedidoService pedidoService) {
+        // Crea una instancia de StripeController.
+        public StripeController(
+                        StripeService stripeService,
+                        CarritoService carritoService,
+                        PedidoService pedidoService) {
 
-        this.stripeService = stripeService;
-        this.carritoService = carritoService;
-        this.pedidoService = pedidoService;
-    }
-
-    // Crea un Checkout para un producto.
-    @PostMapping("/checkout")
-    public ResponseEntity<?> crearCheckout(
-            @RequestParam String nombre,
-            @RequestParam long precio,
-            @RequestParam long cantidad) {
-
-        try {
-
-            Session session = stripeService.crearSesionCheckout(
-                    nombre,
-                    precio,
-                    cantidad);
-
-            return ResponseEntity.ok(
-                    Map.of("url", session.getUrl()));
-
-        } catch (StripeException e) {
-
-            return ResponseEntity
-                    .internalServerError()
-                    .body(Map.of(
-                            "error",
-                            "No se pudo crear la sesión de pago."));
+                this.stripeService = stripeService;
+                this.carritoService = carritoService;
+                this.pedidoService = pedidoService;
         }
-    }
 
-    // Crea un Checkout con el carrito autenticado.
-    @PostMapping("/checkout/carrito")
-    @Transactional
-    public ResponseEntity<?> crearCheckoutCarrito() {
+        // Crea un Checkout para un producto.
+        @PostMapping("/checkout")
+        public ResponseEntity<?> crearCheckout(
+                        @RequestParam String nombre,
+                        @RequestParam long precio,
+                        @RequestParam long cantidad) {
 
-        try {
+                try {
 
-            Authentication authentication = SecurityContextHolder
-                    .getContext()
-                    .getAuthentication();
+                        Session session = stripeService.crearSesionCheckout(
+                                        nombre,
+                                        precio,
+                                        cantidad);
 
-            if (authentication == null
-                    || !authentication.isAuthenticated()
-                    || "anonymousUser".equals(authentication.getPrincipal())) {
+                        return ResponseEntity.ok(
+                                        Map.of("url", session.getUrl()));
 
-                return ResponseEntity
-                        .status(401)
-                        .body(Map.of(
-                                "error",
-                                "Debes iniciar sesión para realizar el pago."));
-            }
+                } catch (StripeException e) {
 
-            String emailUsuario = authentication.getName();
-
-            List<CarritoItem> carrito = carritoService.obtenerItemsEntidad(emailUsuario);
-
-            if (carrito.isEmpty()) {
-
-                return ResponseEntity
-                        .badRequest()
-                        .body(Map.of(
-                                "error",
-                                "No se puede pagar un carrito vacío."));
-            }
-
-            Session session = stripeService.crearSesionCheckoutCarrito(carrito);
-
-            return ResponseEntity.ok(
-                    Map.of("url", session.getUrl()));
-
-        } catch (StripeException e) {
-
-            return ResponseEntity
-                    .internalServerError()
-                    .body(Map.of(
-                            "error",
-                            "No se pudo crear la sesión de pago."));
+                        return ResponseEntity
+                                        .internalServerError()
+                                        .body(Map.of(
+                                                        "error",
+                                                        "No se pudo crear la sesión de pago."));
+                }
         }
-    }
 
-    // Crea un Checkout para un pedido guardado.
-    @PostMapping("/checkout/pedido")
-    @Transactional
-    public ResponseEntity<?> crearCheckoutPedido(
-            @RequestParam String idPedido) {
+        // Crea un Checkout con el carrito autenticado.
+        @PostMapping("/checkout/carrito")
+        @Transactional
+        public ResponseEntity<?> crearCheckoutCarrito() {
 
-        try {
+                try {
 
-            Authentication authentication = SecurityContextHolder
-                    .getContext()
-                    .getAuthentication();
+                        Authentication authentication = SecurityContextHolder
+                                        .getContext()
+                                        .getAuthentication();
 
-            if (authentication == null
-                    || !authentication.isAuthenticated()
-                    || "anonymousUser".equals(authentication.getPrincipal())) {
+                        if (authentication == null
+                                        || !authentication.isAuthenticated()
+                                        || "anonymousUser".equals(authentication.getPrincipal())) {
 
-                return ResponseEntity
-                        .status(401)
-                        .body(Map.of(
-                                "error",
-                                "Debes iniciar sesión para realizar el pago."));
-            }
+                                return ResponseEntity
+                                                .status(401)
+                                                .body(Map.of(
+                                                                "error",
+                                                                "Debes iniciar sesión para realizar el pago."));
+                        }
 
-            String emailUsuario = authentication.getName();
+                        String emailUsuario = authentication.getName();
 
-            Pedido pedido = pedidoService.obtenerPedidoPorIdPedido(
-                    idPedido,
-                    emailUsuario);
+                        List<CarritoItem> carrito = carritoService.obtenerItemsEntidad(emailUsuario);
 
-            Session session = stripeService.crearSesionCheckoutPedido(pedido);
+                        if (carrito.isEmpty()) {
 
-            pedidoService.guardarStripeSessionId(
-                    pedido,
-                    session.getId());
+                                return ResponseEntity
+                                                .badRequest()
+                                                .body(Map.of(
+                                                                "error",
+                                                                "No se puede pagar un carrito vacío."));
+                        }
 
-            return ResponseEntity.ok(
-                    Map.of(
-                            "url", session.getUrl(),
-                            "stripeSessionId", session.getId()));
+                        Session session = stripeService.crearSesionCheckoutCarrito(carrito);
 
-        } catch (IllegalArgumentException e) {
+                        return ResponseEntity.ok(
+                                        Map.of("url", session.getUrl()));
 
-            return ResponseEntity
-                    .badRequest()
-                    .body(Map.of(
-                            "error",
-                            e.getMessage()));
+                } catch (StripeException e) {
 
-        } catch (SecurityException e) {
-
-            return ResponseEntity
-                    .status(403)
-                    .body(Map.of(
-                            "error",
-                            e.getMessage()));
-
-        } catch (StripeException e) {
-
-            return ResponseEntity
-                    .internalServerError()
-                    .body(Map.of(
-                            "error",
-                            "No se pudo crear la sesión de pago."));
+                        return ResponseEntity
+                                        .internalServerError()
+                                        .body(Map.of(
+                                                        "error",
+                                                        "No se pudo crear la sesión de pago."));
+                }
         }
-    }
+
+        // Crea un Checkout para un pedido guardado.
+        @PostMapping("/checkout/pedido")
+        @Transactional
+        public ResponseEntity<?> crearCheckoutPedido(
+                        @RequestParam String idPedido) {
+
+                try {
+
+                        Authentication authentication = SecurityContextHolder
+                                        .getContext()
+                                        .getAuthentication();
+
+                        if (authentication == null
+                                        || !authentication.isAuthenticated()
+                                        || "anonymousUser".equals(authentication.getPrincipal())) {
+
+                                return ResponseEntity
+                                                .status(401)
+                                                .body(Map.of(
+                                                                "error",
+                                                                "Debes iniciar sesión para realizar el pago."));
+                        }
+
+                        String emailUsuario = authentication.getName();
+
+                        Pedido pedido = pedidoService.obtenerPedidoPorIdPedido(
+                                        idPedido,
+                                        emailUsuario);
+
+                        pedidoService.validarPedidoPuedeIniciarPago(pedido);
+
+                        if (pedido.getStripeSessionId() != null
+                                        && !pedido.getStripeSessionId().isBlank()) {
+
+                                Session sessionExistente = stripeService.obtenerSesionCheckout(
+                                                pedido.getStripeSessionId());
+
+                                String estadoSesion = sessionExistente.getStatus();
+
+                                if ("open".equals(estadoSesion)) {
+
+                                        return ResponseEntity.ok(
+                                                        Map.of(
+                                                                        "url", sessionExistente.getUrl(),
+                                                                        "stripeSessionId", sessionExistente.getId()));
+                                }
+
+                                if ("complete".equals(estadoSesion)) {
+
+                                        throw new IllegalStateException(
+                                                        "El pago de este pedido ya ha sido completado en Stripe y está pendiente de confirmación.");
+                                }
+
+                                if (!"expired".equals(estadoSesion)) {
+
+                                        throw new IllegalStateException(
+                                                        "El estado de la sesión de Stripe no permite iniciar un nuevo pago.");
+                                }
+                        }
+
+                        String idempotencyKey;
+
+                        if (pedido.getStripeSessionId() == null
+                                        || pedido.getStripeSessionId().isBlank()) {
+
+                                idempotencyKey = "checkout-pedido-"
+                                                + pedido.getIdPedido()
+                                                + "-inicial";
+
+                        } else {
+
+                                idempotencyKey = "checkout-pedido-"
+                                                + pedido.getIdPedido()
+                                                + "-reintento-"
+                                                + pedido.getStripeSessionId();
+                        }
+
+                        Session session = stripeService.crearSesionCheckoutPedido(
+                                        pedido,
+                                        idempotencyKey);
+
+                        pedidoService.guardarStripeSessionId(
+                                        pedido,
+                                        session.getId());
+
+                        return ResponseEntity.ok(
+                                        Map.of(
+                                                        "url", session.getUrl(),
+                                                        "stripeSessionId", session.getId()));
+
+                } catch (IllegalArgumentException | IllegalStateException e) {
+
+                        return ResponseEntity
+                                        .badRequest()
+                                        .body(Map.of(
+                                                        "error",
+                                                        e.getMessage()));
+
+                } catch (SecurityException e) {
+
+                        return ResponseEntity
+                                        .status(403)
+                                        .body(Map.of(
+                                                        "error",
+                                                        e.getMessage()));
+
+                } catch (StripeException e) {
+
+                        return ResponseEntity
+                                        .internalServerError()
+                                        .body(Map.of(
+                                                        "error",
+                                                        "No se pudo crear la sesión de pago."));
+                }
+        }
 }
