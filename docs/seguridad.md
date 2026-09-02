@@ -20,7 +20,7 @@ Este documento describe exclusivamente las medidas incluidas en el Bloque 1:
 - validación de firma del webhook de Stripe;
 - ocultación de información interna en errores estándar.
 
-Otros bloques de la hoja de ruta continúan pendientes y deben analizarse de forma independiente: Stripe y pagos en profundidad, idempotencia, transacciones, concurrencia, carrito, stock, modelo y restricciones de base de datos, testing automatizado, logging, configuración por entornos, Docker, CI/CD, OpenAPI, documentación adicional y despliegue.
+Los demás bloques de la hoja de ruta se analizan de forma independiente. El **Bloque 2 — Stripe y pagos** está en progreso: la prevención de Checkout duplicado y la eliminación de endpoints legacy ya fueron validadas, mientras que el endurecimiento del webhook, la confirmación del pago, los efectos sobre el carrito y otros casos permanecen pendientes. Su estado se documenta en [stripe-pagos.md](stripe-pagos.md). También continúan pendientes stock, modelo y restricciones de base de datos, testing automatizado, logging, configuración por entornos, Docker, CI/CD, OpenAPI y despliegue.
 
 ## 3. Medidas implementadas
 
@@ -173,7 +173,7 @@ flowchart TD
 | `GET` | `/cliente/perfil/pedidos/{idPedido}/factura` | CLIENTE |
 | `GET`, `POST`, `DELETE` | `/carrito` y `/carrito/**` | CLIENTE |
 | `GET`, `POST` | `/pedido` y `/pedido/**` | CLIENTE |
-| `POST` | `/api/stripe/checkout` y `/api/stripe/checkout/**` | CLIENTE |
+| `POST` | `/api/stripe/checkout/pedido` | CLIENTE |
 | `GET`, `PATCH` | `/admin/pedidos` y `/admin/pedidos/**` | TRABAJADOR, JEFE o ADMIN |
 | `GET`, `POST`, `PUT` | `/admin/productos` y `/admin/productos/**` | TRABAJADOR, JEFE o ADMIN |
 | `PUT` | `/admin/mi-cuenta/nombre` | TRABAJADOR, JEFE o ADMIN |
@@ -190,7 +190,7 @@ El matcher específico de `/admin/usuarios/**` aparece antes que el matcher gene
 
 Su autenticidad se comprueba mediante el encabezado `Stripe-Signature` y `Webhook.constructEvent(payload, signature, webhookSecret)`. Un evento con firma no válida se rechaza.
 
-Esta medida no sustituye el futuro análisis específico de Stripe. Idempotencia, duplicados, concurrencia, transacciones, sesiones de Checkout y efectos posteriores al webhook pertenecen a otro bloque técnico.
+Esta medida no sustituye el análisis específico de Stripe. El Bloque 2 ya validó la idempotencia de creación de Checkout, la reutilización controlada de sesiones y la eliminación de endpoints legacy. La idempotencia y concurrencia completas del webhook, las validaciones adicionales del pago, las transacciones y sus efectos posteriores permanecen pendientes.
 
 ### 3.10 Manejo seguro de errores
 
@@ -350,6 +350,6 @@ flowchart LR
 
 ## 6. Estado del bloque
 
-El código y las pruebas manuales documentadas permiten considerar cerrado el **Bloque 1 — Seguridad inmediata**. Esta validación se limita a su alcance y no adelanta el resultado de los bloques técnicos pendientes.
+El código y las pruebas manuales documentadas permiten considerar cerrado el **Bloque 1 — Seguridad inmediata**. Esta validación se limita a su alcance; el avance parcial del Bloque 2 se mantiene documentado y validado de forma independiente.
 
 **Estado final: BLOQUE 1 VALIDADO.**

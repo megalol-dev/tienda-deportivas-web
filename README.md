@@ -107,7 +107,7 @@ Las rutas de las siguientes capturas ya están preparadas. Al guardar las imáge
 | Envío | Gratuito desde 100 € de subtotal; 4,99 € en pedidos inferiores. |
 | Identificador público | Código con formato `PED-XXXXXXXX`, independiente del identificador interno de base de datos. |
 | Estado inicial | Pedido y pago se crean como `PENDIENTE`. |
-| Pago confirmado | El webhook firmado de Stripe cambia el pago a `PAGADO` y el pedido a `PREPARANDO`. |
+| Procesamiento actual de Stripe | El webhook firmado procesa `checkout.session.completed` y actualiza el pago a `PAGADO` y el pedido a `PREPARANDO`; las validaciones adicionales del pago siguen pendientes en el Bloque 2. |
 | Factura | Se crea tras confirmar el pago y se genera en PDF bajo demanda. |
 | Conservación histórica | Cada línea del pedido guarda una copia del nombre, talla, color, cantidad y precio de compra. |
 
@@ -164,11 +164,12 @@ flowchart LR
 │   ├── usuario/
 │   └── tienda.html
 ├── docs/
-│   └── seguridad.md
+│   ├── seguridad.md
+│   └── stripe-pagos.md
 └── imgReadme/
 ```
 
-La carpeta `docs/` reúne la documentación técnica utilizada durante el proceso de validación y profesionalización de UrbanSneakers. Actualmente contiene la documentación del único bloque validado, el [Bloque 1 — Seguridad inmediata](docs/seguridad.md). A medida que los siguientes bloques técnicos sean revisados y validados, se incorporarán progresivamente sus documentos correspondientes.
+La carpeta `docs/` reúne la documentación técnica utilizada durante el proceso de validación y profesionalización de UrbanSneakers. Incluye el [Bloque 1 — Seguridad inmediata](docs/seguridad.md), ya cerrado, y el [Bloque 2 — Stripe y pagos](docs/stripe-pagos.md), actualmente en progreso con sus dos primeros puntos validados. Los documentos se ampliarán a medida que los siguientes puntos técnicos sean implementados, probados y auditados.
 
 ## Flujo de compra y pago
 
@@ -187,15 +188,17 @@ sequenceDiagram
     Web->>API: Crea el pedido
     API->>DB: Recalcula importes y guarda el pedido pendiente
     Web->>API: Solicita el checkout del pedido
-    API->>Stripe: Crea una sesión con el pedido validado
+    API->>Stripe: Crea o reutiliza una sesión del pedido validado
     Stripe-->>Web: Redirección a Stripe Checkout
     Cliente->>Stripe: Autoriza el pago
     Stripe->>API: checkout.session.completed + firma
-    API->>DB: Marca pago y pedido, crea factura y vacía carrito
+    API->>DB: Procesa el evento y actualiza el pedido
     Stripe-->>Web: Regresa a la tienda
 ```
 
-La redirección del navegador no se considera una prueba de pago. La confirmación efectiva llega de servidor a servidor mediante el webhook de Stripe, cuya firma se valida antes de modificar el pedido. El procesamiento comprueba además la sesión asociada y el estado actual para que una repetición del evento no duplique la confirmación.
+El Checkout solo puede iniciarse para un `Pedido` persistido. Si ya existe una sesión `OPEN`, se reutiliza; una sesión `COMPLETE` bloquea una nueva creación y una sesión `EXPIRED` permite un reintento controlado. Las creaciones utilizan claves idempotentes deterministas por pedido e intento para que solicitudes concurrentes equivalentes se resuelvan sobre la misma operación de Stripe.
+
+La redirección del navegador no modifica por sí sola el estado del pedido. El backend recibe el evento de Stripe mediante un webhook cuya firma se valida antes de procesarlo y comprueba que la sesión coincida con la almacenada. La validación completa del resultado económico y el endurecimiento integral de idempotencia y concurrencia del webhook continúan pendientes dentro del Bloque 2. El alcance validado y sus límites se detallan en [docs/stripe-pagos.md](docs/stripe-pagos.md).
 
 ## Modelo de datos
 
@@ -229,7 +232,11 @@ Para una aplicación web del mismo dominio funcional se eligió una sesión admi
 
 ### Checkout alojado y webhook firmado
 
-Los datos sensibles de tarjeta se introducen en Stripe Checkout y no atraviesan la aplicación. El webhook es la autoridad final sobre el resultado del pago; su firma se verifica con `STRIPE_WEBHOOK_SECRET`.
+Los datos sensibles de tarjeta se introducen en Stripe Checkout y no atraviesan la aplicación. El backend recibe los eventos mediante un webhook y verifica su firma con `STRIPE_WEBHOOK_SECRET`; las validaciones adicionales del pago pertenecen a los puntos pendientes del Bloque 2.
+
+### Checkout vinculado al pedido
+
+La aplicación conserva un único camino para iniciar pagos: `POST /api/stripe/checkout/pedido`. El controller valida el propietario y el estado del pedido, recupera la sesión previa cuando existe y aplica una clave idempotente al crear una nueva. Los antiguos Checkouts directos desde parámetros o desde el carrito fueron eliminados para evitar pagos sin un pedido reconciliable.
 
 ### Carrito persistente
 
@@ -267,7 +274,7 @@ Las claves de Stripe se inyectan mediante variables de entorno. La configuració
 | `CarritoController` | Consulta, alta, eliminación y vaciado de líneas del carrito autenticado. |
 | `PedidoController` | Calcula el resumen y crea pedidos para el cliente conectado. |
 | `ClienteController` | Gestiona el perfil, pedidos propios y descarga segura de facturas. |
-| `StripeController` | Crea sesiones de Stripe Checkout; incluye el flujo basado en un pedido ya persistido. |
+| `StripeController` | Expone exclusivamente el Checkout basado en un pedido persistido, con control de estado, reutilización e idempotencia de creación. |
 | `StripeWebhookController` | Recibe eventos de Stripe, verifica su firma y coordina la confirmación de pagos. |
 | `AdminPedidoController` | Lista pedidos y permite actualizar su estado desde el panel interno. |
 | `AdminProductoController` | Gestiona el alta y la edición del catálogo. |
@@ -283,7 +290,7 @@ Las claves de Stripe se inyectan mediante variables de entorno. La configuració
 | `ProductoService` | Consulta, creación, edición y validación de productos. |
 | `CarritoService` | Crea o recupera el carrito, consolida variantes y controla sus líneas. |
 | `PedidoService` | Construye pedidos, calcula importes, consulta pedidos y registra cambios de estado. |
-| `StripeService` | Traduce carritos o pedidos validados a sesiones y líneas de Stripe Checkout. |
+| `StripeService` | Recupera sesiones existentes y construye Stripe Checkout exclusivamente desde pedidos validados. |
 | `FacturaService` | Crea numeraciones de factura, comprueba la propiedad del pedido y coordina la descarga. |
 | `FacturaPdfService` | Compone el documento PDF con datos del cliente, líneas e importes. |
 
@@ -377,6 +384,7 @@ UrbanSneakers aplica Spring Security sobre sesiones HTTP y separa el acceso medi
 - DTOs de entrada y respuesta que limitan los campos aceptados y evitan exponer entidades completas cuando no son necesarias.
 - Construcción segura del DOM con `createElement`, `textContent` y propiedades DOM en catálogo, carrito, checkout, perfil y panel.
 - Verificación del encabezado `Stripe-Signature` mediante `Webhook.constructEvent()` antes de procesar un webhook.
+- Autorización exclusiva de `POST /api/stripe/checkout/pedido` para `CLIENTE`; las rutas Stripe no declaradas quedan alcanzadas por `denyAll()`.
 - Gestión estándar de errores sin incluir stack traces, excepciones, binding errors ni mensajes internos.
 
 ### Flujo de autenticación segura
@@ -509,9 +517,11 @@ Además del test automatizado, el flujo completo puede validarse manualmente en 
 2. Añadir variantes al carrito y comprobar su persistencia.
 3. Crear un pedido y abrir Stripe Checkout.
 4. Completar un pago de prueba y verificar la recepción del webhook.
-5. Confirmar el cambio a `PAGADO`/`PREPARANDO` y el vaciado del carrito.
+5. Confirmar el cambio observado a `PAGADO`/`PREPARANDO` y revisar el comportamiento actual del carrito.
 6. Descargar la factura desde el perfil.
 7. Acceder con personal autorizado y gestionar pedidos, productos y empleados según el rol.
+
+Durante la validación del Bloque 2 también se comprobaron dos solicitudes concurrentes de Checkout sobre el mismo pedido, que devolvieron la misma sesión de Stripe, y el bloqueo con `403 Forbidden` de los dos endpoints legacy eliminados. El detalle y los límites de estas pruebas están documentados en [docs/stripe-pagos.md](docs/stripe-pagos.md).
 
 La cobertura automatizada es deliberadamente un área de mejora; no se presenta como una suite completa.
 
@@ -520,7 +530,7 @@ La cobertura automatizada es deliberadamente un área de mejora; no se presenta 
 - Diseño de una aplicación full stack con separación clara de responsabilidades.
 - Modelado de un dominio de comercio electrónico y sus relaciones.
 - Implementación de autenticación, autorización, CSRF y gestión segura de sesión.
-- Integración de pagos asíncronos sin confiar en la redirección del navegador.
+- Integración de Stripe Checkout asociada a pedidos persistidos y procesamiento asíncrono mediante webhook firmado.
 - Manejo de dinero con precisión decimal y preservación del histórico comercial.
 - Construcción de una API REST consumida por JavaScript sin framework.
 - Persistencia relacional, validación de entradas, generación de PDF y panel basado en roles.

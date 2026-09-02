@@ -163,9 +163,7 @@ public class SecurityConfig {
                                                 .hasRole("CLIENTE")
 
                                                 // Checkout de Stripe.
-                                                .requestMatchers(
-                                                                "/api/stripe/checkout",
-                                                                "/api/stripe/checkout/**")
+                                                .requestMatchers("/api/stripe/checkout/pedido")
                                                 .hasRole("CLIENTE")
 
                                                 // Todo lo no declarado explícitamente queda bloqueado.
