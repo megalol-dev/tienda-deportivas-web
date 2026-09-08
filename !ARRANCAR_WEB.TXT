@@ -26,7 +26,8 @@ Incia la web en el siguiente URL para que cuadre spring y la web
 http://localhost:5500/frontend/tienda.html
 
 Paso 5 -> 
-Cierra live server y trabaja en la URL http://localhost:5500/frontend/tienda.html
+Cierra live server y trabaja en la URL
+http://localhost:5500/frontend/tienda.html
 
 Paso 6-> 
 4. Iniciar Stripe CLI: Abre una terminal como power shell y escribe lo siguiente para que stripe pueda funcionar en modo local. 
