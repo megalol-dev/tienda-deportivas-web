@@ -558,9 +558,8 @@ async function guardarMiCuenta(event) {
 
   const nombreCambiado = nombre !== usuarioActual.nombre;
 
-  const emailCambiado =
-    email !== usuarioActual.email.toLowerCase();
-  
+  const emailCambiado = email !== usuarioActual.email.toLowerCase();
+
   if (emailCambiado && passwordActual.length === 0) {
     mostrarErrorMiCuenta(
       miCuentaPasswordActual,
@@ -572,10 +571,7 @@ async function guardarMiCuenta(event) {
   }
 
   if (!nombreCambiado && !emailCambiado) {
-    mostrarModalPanel(
-      "Sin cambios",
-      "No has modificado ningún dato.",
-    );
+    mostrarModalPanel("Sin cambios", "No has modificado ningún dato.");
 
     return;
   }
@@ -614,11 +610,7 @@ async function guardarMiCuenta(event) {
           }
         } catch {}
 
-        mostrarErrorMiCuenta(
-          miCuentaNombre,
-          errorMiCuentaNombre,
-          mensaje,
-        );
+        mostrarErrorMiCuenta(miCuentaNombre, errorMiCuentaNombre, mensaje);
 
         return;
       }
@@ -675,7 +667,7 @@ async function guardarMiCuenta(event) {
         } else {
           mostrarErrorMiCuenta(miCuentaEmail, errorMiCuentaEmail, mensaje);
         }
-        
+
         return;
       }
 
@@ -690,15 +682,9 @@ async function guardarMiCuenta(event) {
       "Tus datos se han actualizado correctamente.",
     );
   } catch (error) {
-    console.error(
-      "Error actualizando los datos de la cuenta:",
-      error,
-    );
+    console.error("Error actualizando los datos de la cuenta:", error);
 
-    mostrarModalPanel(
-      "Error",
-      "No se han podido actualizar tus datos.",
-    );
+    mostrarModalPanel("Error", "No se han podido actualizar tus datos.");
   }
 }
 
@@ -746,9 +732,9 @@ async function mostrarGestionPedidos() {
     seccionUsuarios.classList.add("oculto");
   }
 
-   if (seccionMiCuenta) {
-     seccionMiCuenta.classList.add("oculto");
-   }
+  if (seccionMiCuenta) {
+    seccionMiCuenta.classList.add("oculto");
+  }
 
   seccionPedidos.classList.remove("oculto");
 
@@ -837,7 +823,9 @@ function renderizarPedidos(pedidos) {
 
     selectEstado.id = `estado-pedido-${pedido.id}`;
 
-    crearOpcionesEstado(selectEstado, pedido.estado);
+    const tieneTransiciones = crearOpcionesEstado(selectEstado, pedido.estado);
+
+    selectEstado.disabled = !tieneTransiciones;
 
     celdaEstado.appendChild(selectEstado);
 
@@ -848,7 +836,9 @@ function renderizarPedidos(pedidos) {
     botonGuardar.type = "button";
     botonGuardar.className = "btn-guardar-estado";
     botonGuardar.dataset.id = String(pedido.id);
+    botonGuardar.dataset.version = String(pedido.version);
     botonGuardar.textContent = "Guardar";
+    botonGuardar.disabled = !tieneTransiciones;
 
     celdaAcciones.appendChild(botonGuardar);
 
@@ -865,23 +855,38 @@ function renderizarPedidos(pedidos) {
 
 // Crea las transiciones de estado permitidas.
 function crearOpcionesEstado(select, estadoActual) {
-  const estados = [
-    "PREPARANDO",
-    "ENVIADO",
-    "ENTREGADO",
-    "DEVUELTO",
-    "CANCELADO",
+  const transicionesPermitidas = {
+    PENDIENTE: [],
+    PREPARANDO: ["ENVIADO"],
+    ENVIADO: ["ENTREGADO", "DEVUELTO_A_TIENDA"],
+    DEVUELTO_A_TIENDA: ["PREPARANDO"],
+    ENTREGADO: [],
+  };
+
+  const nombresEstado = {
+    PENDIENTE: "PENDIENTE",
+    PREPARANDO: "PREPARANDO",
+    ENVIADO: "ENVIADO",
+    ENTREGADO: "ENTREGADO",
+    DEVUELTO_A_TIENDA: "DEVUELTO A TIENDA",
+  };
+
+  const estadosDisponibles = [
+    estadoActual,
+    ...(transicionesPermitidas[estadoActual] || []),
   ];
 
-  estados.forEach((estado) => {
+  estadosDisponibles.forEach((estado) => {
     const opcion = document.createElement("option");
 
     opcion.value = estado;
-    opcion.textContent = estado;
+    opcion.textContent = nombresEstado[estado] || estado;
     opcion.selected = estado === estadoActual;
 
     select.appendChild(opcion);
   });
+
+  return estadosDisponibles.length > 1;
 }
 
 if (tablaPedidosBody) {
@@ -893,6 +898,7 @@ if (tablaPedidosBody) {
     }
 
     const pedidoId = boton.dataset.id;
+    const version = Number(boton.dataset.version);
 
     const select = document.getElementById(`estado-pedido-${pedidoId}`);
 
@@ -900,12 +906,12 @@ if (tablaPedidosBody) {
       return;
     }
 
-    await cambiarEstadoPedido(pedidoId, select.value);
+    await cambiarEstadoPedido(pedidoId, select.value, version);
   });
 }
 
 // Guarda el nuevo estado de un pedido.
-async function cambiarEstadoPedido(pedidoId, nuevoEstado) {
+async function cambiarEstadoPedido(pedidoId, nuevoEstado, version) {
   try {
     const respuesta = await fetchConCsrf(
       `${API_URL}/admin/pedidos/${pedidoId}/estado`,
@@ -918,6 +924,7 @@ async function cambiarEstadoPedido(pedidoId, nuevoEstado) {
 
         body: JSON.stringify({
           estado: nuevoEstado,
+          version,
         }),
       },
     );
@@ -927,7 +934,20 @@ async function cambiarEstadoPedido(pedidoId, nuevoEstado) {
     }
 
     if (!respuesta.ok) {
-      throw new Error("No se pudo modificar el estado del pedido.");
+      if (respuesta.status === 409) {
+        mostrarModalPanel(
+          "Pedido actualizado por otro usuario",
+          "Otro trabajador ha modificado este pedido antes que tú. Se recargarán los datos actualizados.",
+        );
+      } else {
+        mostrarModalPanel(
+          "Cambio no permitido",
+          "No se ha podido realizar el cambio de estado.",
+        );
+      }
+
+      await cargarPedidos();
+      return;
     }
 
     const pedidoActualizado = await respuesta.json();

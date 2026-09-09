@@ -15,6 +15,10 @@ public class Pedido {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Version
+    @Column(nullable = false)
+    private Long version;
+
     private String idPedido;
     private String nombre;
     private String apellidos;
@@ -64,6 +68,11 @@ public class Pedido {
     // Devuelve el identificador.
     public Long getId() {
         return id;
+    }
+
+    // Devuelve la versión usada para controlar modificaciones concurrentes.
+    public Long getVersion() {
+        return version;
     }
 
     // Devuelve el identificador público del pedido.

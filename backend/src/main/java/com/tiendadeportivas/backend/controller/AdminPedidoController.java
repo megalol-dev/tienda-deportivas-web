@@ -39,7 +39,8 @@ public class AdminPedidoController {
 
         Pedido pedido = pedidoService.cambiarEstadoPedido(
                 id,
-                request.getEstado());
+                request.getEstado(),
+                request.getVersion());
 
         return new CambioEstadoPedidoRespuesta(
                 pedido.getId(),

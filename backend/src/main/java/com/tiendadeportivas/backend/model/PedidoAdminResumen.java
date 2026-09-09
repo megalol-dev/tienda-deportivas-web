@@ -7,16 +7,19 @@ import java.time.LocalDateTime;
 public class PedidoAdminResumen {
 
     private Long id;
+    private Long version;
     private String idPedido;
     private String nombre;
     private String apellidos;
     private LocalDateTime fechaPedido;
     private BigDecimal total;
     private EstadoPedido estado;
+    
 
     // Crea una instancia de PedidoAdminResumen.
     public PedidoAdminResumen(
             Long id,
+            Long version,
             String idPedido,
             String nombre,
             String apellidos,
@@ -25,6 +28,7 @@ public class PedidoAdminResumen {
             EstadoPedido estado) {
 
         this.id = id;
+        this.version = version;
         this.idPedido = idPedido;
         this.nombre = nombre;
         this.apellidos = apellidos;
@@ -36,6 +40,11 @@ public class PedidoAdminResumen {
     // Devuelve el identificador.
     public Long getId() {
         return id;
+    }
+
+    // Devuelve la versión usada para controlar modificaciones concurrentes.
+    public Long getVersion() {
+        return version;
     }
 
     // Devuelve el identificador público del pedido.

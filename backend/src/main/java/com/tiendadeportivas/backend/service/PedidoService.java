@@ -33,6 +33,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 
+import com.tiendadeportivas.backend.exception.PedidoConcurrenteException;
+
 @Service
 public class PedidoService {
 
@@ -275,6 +277,7 @@ public class PedidoService {
                                 .stream()
                                 .map(pedido -> new PedidoAdminResumen(
                                                 pedido.getId(),
+                                                pedido.getVersion(),
                                                 pedido.getIdPedido(),
                                                 pedido.getNombre(),
                                                 pedido.getApellidos(),
@@ -337,14 +340,20 @@ public class PedidoService {
         }
 
         // Valida y guarda un cambio de estado.
+        @Transactional
         public Pedido cambiarEstadoPedido(
                         Long pedidoId,
-                        EstadoPedido nuevoEstado) {
+                        EstadoPedido nuevoEstado,
+                        Long versionEsperada) {
 
                 Pedido pedido = pedidoRepository
                                 .findById(pedidoId)
                                 .orElseThrow(() -> new IllegalArgumentException(
                                                 "El pedido no existe."));
+                if (!pedido.getVersion().equals(versionEsperada)) {
+                        throw new PedidoConcurrenteException(
+                                        "El pedido ha sido modificado por otro usuario.");
+                }
 
                 EstadoPedido estadoAnterior = pedido.getEstado();
 
@@ -391,7 +400,7 @@ public class PedidoService {
                 pedido.setEstado(nuevoEstado);
 
                 Pedido pedidoActualizado = pedidoRepository.save(pedido);
-
+                
                 HistorialPedido historial = new HistorialPedido();
 
                 historial.setPedido(pedido);
@@ -414,17 +423,17 @@ public class PedidoService {
                 boolean transicionValida = switch (estadoActual) {
 
                         case PREPARANDO ->
-                                nuevoEstado == EstadoPedido.ENVIADO
-                                                || nuevoEstado == EstadoPedido.CANCELADO;
+                                nuevoEstado == EstadoPedido.ENVIADO;
 
                         case ENVIADO ->
                                 nuevoEstado == EstadoPedido.ENTREGADO
-                                                || nuevoEstado == EstadoPedido.DEVUELTO;
+                                                || nuevoEstado == EstadoPedido.DEVUELTO_A_TIENDA;
+
+                        case DEVUELTO_A_TIENDA ->
+                                nuevoEstado == EstadoPedido.PREPARANDO;
 
                         case PENDIENTE,
-                                        ENTREGADO,
-                                        DEVUELTO,
-                                        CANCELADO ->
+                                        ENTREGADO ->
                                 false;
                 };
 
@@ -530,6 +539,13 @@ public class PedidoService {
 
                 if (pedido.getEstadoPago() == EstadoPago.PAGADO) {
                         return;
+                }
+
+                if (pedido.getEstado() != EstadoPedido.PENDIENTE
+                                || pedido.getEstadoPago() != EstadoPago.PENDIENTE) {
+
+                        throw new IllegalStateException(
+                                        "El pedido no se encuentra en un estado válido para confirmar el pago.");
                 }
 
                 pedido.setEstadoPago(EstadoPago.PAGADO);

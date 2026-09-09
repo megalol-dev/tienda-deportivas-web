@@ -7,6 +7,5 @@ public enum EstadoPedido {
     PREPARANDO,
     ENVIADO,
     ENTREGADO,
-    DEVUELTO,
-    CANCELADO
+    DEVUELTO_A_TIENDA
 }

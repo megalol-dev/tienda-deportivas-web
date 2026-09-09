@@ -8,6 +8,9 @@ public class CambioEstadoPedidoRequest {
     @NotNull
     private EstadoPedido estado;
 
+    @NotNull
+    private Long version;
+
     // Crea una instancia de CambioEstadoPedidoRequest.
     public CambioEstadoPedidoRequest() {
     }
@@ -20,5 +23,15 @@ public class CambioEstadoPedidoRequest {
     // Actualiza el valor de estado.
     public void setEstado(EstadoPedido estado) {
         this.estado = estado;
+    }
+
+    // Devuelve la versión del pedido que vio el trabajador.
+    public Long getVersion() {
+        return version;
+    }
+
+    // Actualiza la versión del pedido que vio el trabajador.
+    public void setVersion(Long version) {
+        this.version = version;
     }
 }

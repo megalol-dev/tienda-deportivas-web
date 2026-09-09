@@ -208,15 +208,18 @@ function mostrarPedidos(pedidos) {
 
     estadoPedido.className = "estado-pedido";
 
-    const estadoSeguro = String(pedido.estado || "").toLowerCase();
+   const clasesEstado = {
+     PREPARANDO: "estado-preparando",
+     ENVIADO: "estado-enviado",
+     ENTREGADO: "estado-entregado",
+     DEVUELTO_A_TIENDA: "estado-devuelto",
+   };
 
-    if (
-      ["preparando", "enviado", "entregado", "devuelto", "cancelado"].includes(
-        estadoSeguro,
-      )
-    ) {
-      estadoPedido.classList.add(`estado-${estadoSeguro}`);
-    }
+   const claseEstado = clasesEstado[pedido.estado];
+
+   if (claseEstado) {
+     estadoPedido.classList.add(claseEstado);
+   }
 
     estadoPedido.textContent = estado;
 
@@ -454,11 +457,11 @@ function formatearPrecio(precio) {
 // Convierte un estado en texto legible.
 function formatearEstadoPedido(estadoPedido) {
   const estados = {
+    PENDIENTE: "Pendiente de pago",
     PREPARANDO: "Preparando",
     ENVIADO: "Enviado",
     ENTREGADO: "Entregado",
-    DEVUELTO: "Devuelto",
-    CANCELADO: "Cancelado",
+    DEVUELTO_A_TIENDA: "Devuelto a tienda",
   };
 
   return estados[estadoPedido] || estadoPedido || "-";
