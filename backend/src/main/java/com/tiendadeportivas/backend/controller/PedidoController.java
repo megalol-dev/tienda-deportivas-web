@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import com.tiendadeportivas.backend.model.PedidoRequest;
 import com.tiendadeportivas.backend.model.PedidoResumen;
 import com.tiendadeportivas.backend.service.PedidoService;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 @RestController
 @RequestMapping("/pedido")
@@ -33,9 +34,12 @@ public class PedidoController {
 
     // Crea un pedido con el carrito autenticado.
     @PostMapping
-    public PedidoResumen crearPedido(
-            @Valid @RequestBody PedidoRequest pedido) {
+public PedidoResumen crearPedido(
+        @RequestHeader("Idempotency-Key") String idempotencyKey,
+        @Valid @RequestBody PedidoRequest pedido) {
 
-        return pedidoService.crearPedido(pedido);
-    }
+    return pedidoService.crearPedido(
+            pedido,
+            idempotencyKey);
+}
 }

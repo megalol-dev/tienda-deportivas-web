@@ -15,4 +15,9 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
     // Busca un pedido por su identificador público.
     Optional<Pedido> findByIdPedido(String idPedido);
+
+    // Busca un pedido creado con la misma clave de idempotencia por un usuario.
+    Optional<Pedido> findByUsuarioIdAndIdempotencyKey(
+            Long usuarioId,
+            String idempotencyKey);
 }

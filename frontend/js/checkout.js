@@ -11,6 +11,7 @@ const btnCancelarCheckout = document.getElementById("btn-cancelar-checkout");
 const confirmacionSection = document.getElementById("checkout-confirmacion");
 const confirmIdEl = document.getElementById("confirm-id");
 const btnConfirmVolver = document.getElementById("confirm-volver");
+let idempotencyKeyPedido = null;
 
 // Oculta el catálogo durante el checkout.
 function bloquearNavegacionCheckout() {
@@ -356,6 +357,10 @@ if (formularioCheckout) {
     e.preventDefault();
     if (!validarFormularioCheckout()) return;
 
+    if (!idempotencyKeyPedido) {
+      idempotencyKeyPedido = crypto.randomUUID();
+    }
+
     const pedidoRequest = {
       nombre: document.getElementById("nombre-c")?.value.trim(),
 
@@ -379,11 +384,11 @@ if (formularioCheckout) {
     };
 
     try {
-
       const respuesta = await fetchConCsrf(`${API_URL}/pedido`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Idempotency-Key": idempotencyKeyPedido,
         },
 
         body: JSON.stringify(pedidoRequest),
@@ -410,7 +415,6 @@ if (formularioCheckout) {
       console.log("URL Stripe creada:", urlStripe);
 
       window.location.href = urlStripe;
-
     } catch (error) {
       console.error("Error al crear el pedido:", error);
 

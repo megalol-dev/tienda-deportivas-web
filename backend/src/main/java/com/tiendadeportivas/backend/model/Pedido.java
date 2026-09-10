@@ -19,6 +19,7 @@ public class Pedido {
     @Column(nullable = false)
     private Long version;
 
+    @Column(name = "id_pedido", nullable = false, unique = true, length = 40)
     private String idPedido;
     private String nombre;
     private String apellidos;
@@ -53,6 +54,9 @@ public class Pedido {
 
     @Column(name = "stripe_session_id", length = 255)
     private String stripeSessionId;
+
+    @Column(name = "idempotency_key", length = 36)
+    private String idempotencyKey;
 
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PedidoItem> items = new ArrayList<>();
@@ -253,6 +257,16 @@ public class Pedido {
     // Actualiza el identificador de sesión de Stripe.
     public void setStripeSessionId(String stripeSessionId) {
         this.stripeSessionId = stripeSessionId;
+    }
+
+    // Devuelve la clave de idempotencia usada para crear el pedido.
+    public String getIdempotencyKey() {
+        return idempotencyKey;
+    }
+
+    // Actualiza la clave de idempotencia usada para crear el pedido.
+    public void setIdempotencyKey(String idempotencyKey) {
+        this.idempotencyKey = idempotencyKey;
     }
 
     // Devuelve el valor de items.

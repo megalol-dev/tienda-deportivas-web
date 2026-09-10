@@ -64,7 +64,9 @@ public class PedidoService {
 
         // Crea un pedido con el carrito autenticado.
         @Transactional
-        public PedidoResumen crearPedido(PedidoRequest pedido) {
+        public PedidoResumen crearPedido(
+                        PedidoRequest request,
+                        String idempotencyKey) {
 
                 Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -79,9 +81,46 @@ public class PedidoService {
                 String emailUsuario = authentication.getName();
 
                 Usuario usuario = usuarioRepository
-                                .findByEmail(emailUsuario)
+                                .findByEmailForUpdate(emailUsuario)
                                 .orElseThrow(() -> new SecurityException(
                                                 "No se ha encontrado el usuario autenticado."));
+
+                if (idempotencyKey == null || idempotencyKey.isBlank()) {
+                        throw new IllegalArgumentException(
+                                        "La clave de idempotencia es obligatoria.");
+                }
+
+                if (idempotencyKey.length() > 36) {
+                        throw new IllegalArgumentException(
+                                        "La clave de idempotencia no es válida.");
+                }
+
+                Pedido pedidoExistente = pedidoRepository
+                                .findByUsuarioIdAndIdempotencyKey(
+                                                usuario.getId(),
+                                                idempotencyKey)
+                                .orElse(null);
+
+                if (pedidoExistente != null) {
+                        PedidoResumen resumenExistente = new PedidoResumen();
+
+                        resumenExistente.setIdPedido(
+                                        pedidoExistente.getIdPedido());
+
+                        resumenExistente.setSubtotal(
+                                        pedidoExistente.getSubtotal().doubleValue());
+
+                        resumenExistente.setIva(
+                                        pedidoExistente.getIva().doubleValue());
+
+                        resumenExistente.setEnvio(
+                                        pedidoExistente.getEnvio().doubleValue());
+
+                        resumenExistente.setTotal(
+                                        pedidoExistente.getTotal().doubleValue());
+
+                        return resumenExistente;
+                }
 
                 List<CarritoItem> carrito = carritoService.obtenerItemsEntidad(emailUsuario);
 
@@ -125,29 +164,24 @@ public class PedidoService {
                                 .add(envio)
                                 .setScale(2, RoundingMode.HALF_UP);
 
-                String idPedido = "PED-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+                String idPedido = "PED-" + UUID.randomUUID().toString().toUpperCase();
 
                 Pedido pedidoEntidad = new Pedido();
-
                 pedidoEntidad.setFechaPedido(LocalDateTime.now());
-
                 pedidoEntidad.setEstado(EstadoPedido.PENDIENTE);
-
                 pedidoEntidad.setEstadoPago(EstadoPago.PENDIENTE);
-
                 pedidoEntidad.setUsuario(usuario);
-
+                pedidoEntidad.setIdempotencyKey(idempotencyKey);
                 pedidoEntidad.setIdPedido(idPedido);
-                pedidoEntidad.setNombre(pedido.getNombre());
-                pedidoEntidad.setApellidos(pedido.getApellidos());
-                pedidoEntidad.setEmail(pedido.getEmail());
-                pedidoEntidad.setTelefono(pedido.getTelefono());
-                pedidoEntidad.setDireccion(pedido.getDireccion());
-                pedidoEntidad.setCiudad(pedido.getCiudad());
-                pedidoEntidad.setProvincia(pedido.getProvincia());
-                pedidoEntidad.setCp(pedido.getCp());
-                pedidoEntidad.setPais(pedido.getPais());
-
+                pedidoEntidad.setNombre(request.getNombre());
+                pedidoEntidad.setApellidos(request.getApellidos());
+                pedidoEntidad.setEmail(request.getEmail());
+                pedidoEntidad.setTelefono(request.getTelefono());
+                pedidoEntidad.setDireccion(request.getDireccion());
+                pedidoEntidad.setCiudad(request.getCiudad());
+                pedidoEntidad.setProvincia(request.getProvincia());
+                pedidoEntidad.setCp(request.getCp());
+                pedidoEntidad.setPais(request.getPais());
                 pedidoEntidad.setSubtotal(subtotal);
                 pedidoEntidad.setIva(iva);
                 pedidoEntidad.setEnvio(envio);
