@@ -453,6 +453,20 @@ if (btnCerrarModalPanel) {
 
 const tablaPedidosBody = document.getElementById("tabla-pedidos-body");
 
+const historialPedidoContenedor = document.getElementById(
+  "historial-pedido-contenedor",
+);
+
+const historialPedidoTitulo = document.getElementById(
+  "historial-pedido-titulo",
+);
+
+const historialPedidoLista = document.getElementById("historial-pedido-lista");
+
+const btnCerrarHistorialPedido = document.getElementById(
+  "btn-cerrar-historial-pedido",
+);
+
 if (btnGestionPedidos) {
   btnGestionPedidos.addEventListener("click", mostrarGestionPedidos);
 }
@@ -831,6 +845,8 @@ function renderizarPedidos(pedidos) {
 
     const celdaAcciones = document.createElement("td");
 
+    celdaAcciones.className = "acciones-pedido";
+
     const botonGuardar = document.createElement("button");
 
     botonGuardar.type = "button";
@@ -840,7 +856,16 @@ function renderizarPedidos(pedidos) {
     botonGuardar.textContent = "Guardar";
     botonGuardar.disabled = !tieneTransiciones;
 
+    const botonHistorial = document.createElement("button");
+
+    botonHistorial.type = "button";
+    botonHistorial.className = "btn-ver-historial";
+    botonHistorial.dataset.id = String(pedido.id);
+    botonHistorial.dataset.idPedido = pedido.idPedido;
+    botonHistorial.textContent = "Historial";
+
     celdaAcciones.appendChild(botonGuardar);
+    celdaAcciones.appendChild(botonHistorial);
 
     fila.appendChild(celdaIdPedido);
     fila.appendChild(celdaCliente);
@@ -850,6 +875,301 @@ function renderizarPedidos(pedidos) {
     fila.appendChild(celdaAcciones);
 
     tablaPedidosBody.appendChild(fila);
+  });
+}
+
+// =====================================================
+// ABRIR HISTORIAL DE UN PEDIDO
+// =====================================================
+
+if (tablaPedidosBody) {
+  tablaPedidosBody.addEventListener("click", (event) => {
+    const boton = event.target.closest(".btn-ver-historial");
+
+    if (!boton) {
+      return;
+    }
+
+    const pedidoId = boton.dataset.id;
+    const idPedido = boton.dataset.idPedido;
+
+    cargarHistorialPedido(pedidoId, idPedido);
+  });
+}
+
+// =====================================================
+// CARGAR HISTORIAL DE UN PEDIDO
+// =====================================================
+
+async function cargarHistorialPedido(pedidoId, idPedido) {
+  try {
+    const respuesta = await fetch(
+      `${API_URL}/admin/pedidos/${pedidoId}/historial`,
+      {
+        method: "GET",
+        credentials: "include",
+      },
+    );
+
+    if (await comprobarSesionExpirada(respuesta)) {
+      return;
+    }
+
+    if (!respuesta.ok) {
+      throw new Error("No se pudo cargar el historial del pedido.");
+    }
+
+    const historial = await respuesta.json();
+
+    renderizarHistorialPedido(historial, idPedido);
+  } catch (error) {
+    console.error("Error cargando historial del pedido:", error);
+
+    mostrarModalPanel(
+      "Error",
+      "No se pudo cargar el historial del pedido.",
+    );
+  }
+}
+
+// =====================================================
+// RENDERIZAR HISTORIAL DE UN PEDIDO
+// =====================================================
+
+// Convierte un valor técnico en una etiqueta legible sin alterar el dato original.
+function formatearValorTecnico(valor, textoAlternativo) {
+  if (typeof valor !== "string" || !valor.trim()) {
+    return textoAlternativo;
+  }
+
+  const palabras = valor.trim().toLowerCase().split("_");
+
+  return palabras
+    .map((palabra, indice) =>
+      indice === 0
+        ? palabra.charAt(0).toUpperCase() + palabra.slice(1)
+        : palabra,
+    )
+    .join(" ");
+}
+
+// Presenta los estados del backend con lenguaje natural.
+function formatearEstado(estado) {
+  const estados = {
+    PENDIENTE: "Pendiente",
+    PREPARANDO: "En preparación",
+    ENVIADO: "Enviado",
+    ENTREGADO: "Entregado",
+    DEVUELTO_A_TIENDA: "Devuelto a tienda",
+  };
+
+  return estados[estado] ?? formatearValorTecnico(estado, "Inicio");
+}
+
+// Presenta el canal desde el que se registró el cambio.
+function formatearOrigen(origen) {
+  const origenes = {
+    PANEL_ADMIN: "Panel de administración",
+    STRIPE: "Stripe",
+  };
+
+  return origenes[origen] ?? formatearValorTecnico(origen, "No disponible");
+}
+
+// Describe las transiciones conocidas y mantiene un mensaje seguro para las demás.
+function obtenerDescripcionCambio(estadoAnterior, estadoNuevo) {
+  const transiciones = {
+    "INICIO->PENDIENTE": "Pedido creado",
+    "PENDIENTE->PREPARANDO":
+      "Pago confirmado y pedido enviado a preparación",
+    "PREPARANDO->ENVIADO": "Pedido enviado",
+    "ENVIADO->ENTREGADO": "Pedido entregado",
+    "ENVIADO->DEVUELTO_A_TIENDA": "Pedido devuelto a tienda",
+    "DEVUELTO_A_TIENDA->PREPARANDO":
+      "Pedido enviado nuevamente a preparación",
+  };
+
+  const clave = `${estadoAnterior ?? "INICIO"}->${estadoNuevo ?? ""}`;
+
+  return (
+    transiciones[clave] ??
+    `Estado actualizado a ${formatearEstado(estadoNuevo).toLowerCase()}`
+  );
+}
+
+// Devuelve una clase visual conocida sin incorporar valores del backend al selector.
+function obtenerClaseEstado(estado) {
+  const clases = {
+    PENDIENTE: "historial-estado--pendiente",
+    PREPARANDO: "historial-estado--preparando",
+    ENVIADO: "historial-estado--enviado",
+    ENTREGADO: "historial-estado--entregado",
+    DEVUELTO_A_TIENDA: "historial-estado--devuelto",
+  };
+
+  return clases[estado] ?? "historial-estado--neutro";
+}
+
+// Formatea fecha y hora conservando un fallback para valores ausentes o inválidos.
+function formatearFechaHistorial(fechaCambio) {
+  if (!fechaCambio) {
+    return "Fecha no disponible";
+  }
+
+  const fecha = new Date(fechaCambio);
+
+  if (Number.isNaN(fecha.getTime())) {
+    return "Fecha no disponible";
+  }
+
+  return new Intl.DateTimeFormat("es-ES", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(fecha);
+}
+
+// Obtiene exclusivamente la representación visual del actor recibido.
+function obtenerNombreActor(registro) {
+  if (registro.tipoActor === "SISTEMA") {
+    return "Sistema";
+  }
+
+  if (
+    typeof registro.usuarioNombre === "string" &&
+    registro.usuarioNombre.trim()
+  ) {
+    return registro.usuarioNombre.trim();
+  }
+
+  return formatearValorTecnico(registro.tipoActor, "Usuario");
+}
+
+function renderizarHistorialPedido(historial, idPedido) {
+  if (
+    !historialPedidoContenedor ||
+    !historialPedidoTitulo ||
+    !historialPedidoLista
+  ) {
+    return;
+  }
+
+  historialPedidoTitulo.textContent = `Historial del pedido ${idPedido}`;
+
+  historialPedidoLista.replaceChildren();
+
+  if (!Array.isArray(historial) || historial.length === 0) {
+    const estadoVacio = document.createElement("div");
+    const tituloVacio = document.createElement("p");
+    const mensaje = document.createElement("p");
+
+    estadoVacio.className = "historial-vacio";
+    tituloVacio.className = "historial-vacio-titulo";
+    mensaje.className = "historial-vacio-texto";
+
+    tituloVacio.textContent = "Sin movimientos todavía";
+    mensaje.textContent = "Este pedido todavía no tiene cambios registrados.";
+
+    estadoVacio.appendChild(tituloVacio);
+    estadoVacio.appendChild(mensaje);
+    historialPedidoLista.appendChild(estadoVacio);
+  } else {
+    historial.forEach((registro) => {
+      const entrada = document.createElement("article");
+      const marcador = document.createElement("span");
+      const contenido = document.createElement("div");
+      const fecha = document.createElement("time");
+      const descripcion = document.createElement("p");
+      const transicion = document.createElement("div");
+      const estadoAnterior = document.createElement("span");
+      const flecha = document.createElement("span");
+      const estadoNuevo = document.createElement("span");
+      const metadatos = document.createElement("dl");
+      const grupoActor = document.createElement("div");
+      const etiquetaActor = document.createElement("dt");
+      const valorActor = document.createElement("dd");
+      const grupoOrigen = document.createElement("div");
+      const etiquetaOrigen = document.createElement("dt");
+      const valorOrigen = document.createElement("dd");
+
+      const textoEstadoAnterior = formatearEstado(registro.estadoAnterior);
+      const textoEstadoNuevo = formatearEstado(registro.estadoNuevo);
+
+      entrada.className = "historial-entrada";
+      entrada.setAttribute("role", "listitem");
+      marcador.className = "historial-marcador";
+      marcador.setAttribute("aria-hidden", "true");
+      contenido.className = "historial-entrada-contenido";
+      fecha.className = "historial-fecha";
+      descripcion.className = "historial-descripcion";
+      transicion.className = "historial-transicion";
+      transicion.setAttribute(
+        "aria-label",
+        `${textoEstadoAnterior} a ${textoEstadoNuevo}`,
+      );
+      estadoAnterior.className = `historial-estado ${obtenerClaseEstado(registro.estadoAnterior)}`;
+      flecha.className = "historial-flecha";
+      flecha.setAttribute("aria-hidden", "true");
+      estadoNuevo.className = `historial-estado ${obtenerClaseEstado(registro.estadoNuevo)}`;
+      metadatos.className = "historial-metadatos";
+
+      fecha.textContent = formatearFechaHistorial(registro.fechaCambio);
+      if (registro.fechaCambio) {
+        fecha.dateTime = registro.fechaCambio;
+      }
+
+      descripcion.textContent = obtenerDescripcionCambio(
+        registro.estadoAnterior,
+        registro.estadoNuevo,
+      );
+      estadoAnterior.textContent = textoEstadoAnterior;
+      flecha.textContent = "→";
+      estadoNuevo.textContent = textoEstadoNuevo;
+
+      etiquetaActor.textContent = "Realizado por";
+      valorActor.textContent = obtenerNombreActor(registro);
+      etiquetaOrigen.textContent = "Origen";
+      valorOrigen.textContent = formatearOrigen(registro.origen);
+
+      grupoActor.appendChild(etiquetaActor);
+      grupoActor.appendChild(valorActor);
+      grupoOrigen.appendChild(etiquetaOrigen);
+      grupoOrigen.appendChild(valorOrigen);
+      metadatos.appendChild(grupoActor);
+      metadatos.appendChild(grupoOrigen);
+
+      transicion.appendChild(estadoAnterior);
+      transicion.appendChild(flecha);
+      transicion.appendChild(estadoNuevo);
+      contenido.appendChild(fecha);
+      contenido.appendChild(descripcion);
+      contenido.appendChild(transicion);
+      contenido.appendChild(metadatos);
+      entrada.appendChild(marcador);
+      entrada.appendChild(contenido);
+
+      historialPedidoLista.appendChild(entrada);
+    });
+  }
+
+  historialPedidoContenedor.classList.remove("oculto");
+
+  historialPedidoContenedor.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+}
+
+// =====================================================
+// CERRAR HISTORIAL DEL PEDIDO
+// =====================================================
+
+if (btnCerrarHistorialPedido) {
+  btnCerrarHistorialPedido.addEventListener("click", () => {
+    if (!historialPedidoContenedor) {
+      return;
+    }
+
+    historialPedidoContenedor.classList.add("oculto");
   });
 }
 

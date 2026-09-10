@@ -35,6 +35,10 @@ import java.time.LocalDateTime;
 
 import com.tiendadeportivas.backend.exception.PedidoConcurrenteException;
 
+import com.tiendadeportivas.backend.model.TipoActorHistorial;
+import com.tiendadeportivas.backend.model.OrigenCambioPedido;
+import com.tiendadeportivas.backend.model.HistorialPedidoRespuesta;
+
 @Service
 public class PedidoService {
 
@@ -434,11 +438,13 @@ public class PedidoService {
                 pedido.setEstado(nuevoEstado);
 
                 Pedido pedidoActualizado = pedidoRepository.save(pedido);
-                
+
                 HistorialPedido historial = new HistorialPedido();
 
                 historial.setPedido(pedido);
                 historial.setUsuario(usuario);
+                historial.setTipoActor(TipoActorHistorial.USUARIO);
+                historial.setOrigen(OrigenCambioPedido.PANEL_ADMIN);
                 historial.setEstadoAnterior(estadoAnterior);
                 historial.setEstadoNuevo(nuevoEstado);
                 historial.setFechaCambio(LocalDateTime.now());
@@ -447,6 +453,44 @@ public class PedidoService {
 
                 return pedidoActualizado;
 
+        }
+        
+        // Devuelve el historial de cambios de estado de un pedido para administración.
+        @Transactional(readOnly = true)
+        public List<HistorialPedidoRespuesta> obtenerHistorialPedidoAdmin(Long pedidoId) {
+
+                if (!pedidoRepository.existsById(pedidoId)) {
+                        throw new IllegalArgumentException(
+                                        "No existe el pedido solicitado.");
+                }
+
+                List<HistorialPedido> historial = historialPedidoRepository
+                                .findByPedidoIdOrderByFechaCambioDesc(pedidoId);
+
+                return historial.stream()
+                                .map(registro -> {
+
+                                        Usuario usuario = registro.getUsuario();
+
+                                        Long usuarioId = usuario != null
+                                                        ? usuario.getId()
+                                                        : null;
+
+                                        String usuarioNombre = usuario != null
+                                                        ? usuario.getNombre()
+                                                        : null;
+
+                                        return new HistorialPedidoRespuesta(
+                                                        registro.getId(),
+                                                        registro.getEstadoAnterior(),
+                                                        registro.getEstadoNuevo(),
+                                                        registro.getFechaCambio(),
+                                                        registro.getTipoActor(),
+                                                        registro.getOrigen(),
+                                                        usuarioId,
+                                                        usuarioNombre);
+                                })
+                                .toList();
         }
 
         // Comprueba que el cambio de estado sea válido.
@@ -577,15 +621,28 @@ public class PedidoService {
 
                 if (pedido.getEstado() != EstadoPedido.PENDIENTE
                                 || pedido.getEstadoPago() != EstadoPago.PENDIENTE) {
-
                         throw new IllegalStateException(
-                                        "El pedido no se encuentra en un estado válido para confirmar el pago.");
+                                        "El pedido no se encuentra pendiente de pago.");
                 }
+
+                EstadoPedido estadoAnterior = pedido.getEstado();
 
                 pedido.setEstadoPago(EstadoPago.PAGADO);
                 pedido.setEstado(EstadoPedido.PREPARANDO);
 
                 pedidoRepository.save(pedido);
+
+                HistorialPedido historial = new HistorialPedido();
+
+                historial.setPedido(pedido);
+                historial.setUsuario(null);
+                historial.setTipoActor(TipoActorHistorial.SISTEMA);
+                historial.setOrigen(OrigenCambioPedido.STRIPE);
+                historial.setEstadoAnterior(estadoAnterior);
+                historial.setEstadoNuevo(EstadoPedido.PREPARANDO);
+                historial.setFechaCambio(LocalDateTime.now());
+
+                historialPedidoRepository.save(historial);
 
                 facturaService.crearFactura(pedido);
 

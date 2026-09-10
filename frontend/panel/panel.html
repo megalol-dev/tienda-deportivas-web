@@ -274,6 +274,42 @@
             --></tbody>
           </table>
         </div>
+
+        <!-- =====================================
+           HISTORIAL DEL PEDIDO
+           ===================================== -->
+
+        <div
+          id="historial-pedido-contenedor"
+          class="historial-pedido-panel oculto"
+        >
+          <div class="historial-pedido-cabecera">
+            <p class="historial-pedido-etiqueta">Seguimiento del pedido</p>
+
+            <h3 id="historial-pedido-titulo">Historial del pedido</h3>
+
+            <p class="historial-pedido-introduccion">
+              Consulta la secuencia de cambios, quién los realizó y desde dónde.
+            </p>
+          </div>
+
+          <div
+            id="historial-pedido-lista"
+            class="historial-pedido-timeline"
+            role="list"
+            aria-live="polite"
+          ></div>
+
+          <div class="historial-pedido-acciones">
+            <button
+              type="button"
+              id="btn-cerrar-historial-pedido"
+              class="btn-login-form btn-cerrar-historial"
+            >
+              Cerrar historial
+            </button>
+          </div>
+        </div>
       </section>
 
       <!-- =========================================

@@ -17,13 +17,22 @@ public class HistorialPedido {
     @JoinColumn(name = "pedido_id", nullable = false)
     private Pedido pedido;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "usuario_id", nullable = false)
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "usuario_id", nullable = true)
     private Usuario usuario;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_actor", nullable = false)
+    private TipoActorHistorial tipoActor;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "origen", nullable = false)
+    private OrigenCambioPedido origen;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estado_anterior")
     private EstadoPedido estadoAnterior;
+
 
     @Enumerated(EnumType.STRING)
     @Column(name = "estado_nuevo", nullable = false)
@@ -89,5 +98,25 @@ public class HistorialPedido {
     // Actualiza el valor de fecha cambio.
     public void setFechaCambio(LocalDateTime fechaCambio) {
         this.fechaCambio = fechaCambio;
+    }
+
+    // Devuelve el tipo de actor que realizó el cambio.
+    public TipoActorHistorial getTipoActor() {
+        return tipoActor;
+    }
+
+    // Actualiza el tipo de actor que realizó el cambio.
+    public void setTipoActor(TipoActorHistorial tipoActor) {
+        this.tipoActor = tipoActor;
+    }
+
+    // Devuelve el origen del cambio.
+    public OrigenCambioPedido getOrigen() {
+        return origen;
+    }
+
+    // Actualiza el origen del cambio.
+    public void setOrigen(OrigenCambioPedido origen) {
+        this.origen = origen;
     }
 }

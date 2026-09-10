@@ -34,12 +34,12 @@ public class PedidoController {
 
     // Crea un pedido con el carrito autenticado.
     @PostMapping
-public PedidoResumen crearPedido(
-        @RequestHeader("Idempotency-Key") String idempotencyKey,
-        @Valid @RequestBody PedidoRequest pedido) {
+    public PedidoResumen crearPedido(
+            @RequestHeader("Idempotency-Key") String idempotencyKey,
+            @Valid @RequestBody PedidoRequest pedido) {
 
-    return pedidoService.crearPedido(
-            pedido,
-            idempotencyKey);
-}
+        return pedidoService.crearPedido(
+                pedido,
+                idempotencyKey);
+    }
 }

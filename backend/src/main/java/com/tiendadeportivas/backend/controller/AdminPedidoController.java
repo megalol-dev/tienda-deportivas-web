@@ -11,6 +11,7 @@ import com.tiendadeportivas.backend.model.CambioEstadoPedidoRequest;
 import com.tiendadeportivas.backend.model.CambioEstadoPedidoRespuesta;
 import com.tiendadeportivas.backend.model.Pedido;
 import com.tiendadeportivas.backend.model.PedidoAdminResumen;
+import com.tiendadeportivas.backend.model.HistorialPedidoRespuesta;
 import com.tiendadeportivas.backend.service.PedidoService;
 
 @RestController
@@ -29,6 +30,14 @@ public class AdminPedidoController {
     public List<PedidoAdminResumen> obtenerPedidos() {
 
         return pedidoService.obtenerResumenPedidosAdmin();
+    }
+
+    // Devuelve el historial de cambios de estado de un pedido.
+    @GetMapping("/{id}/historial")
+    public List<HistorialPedidoRespuesta> obtenerHistorial(
+            @PathVariable Long id) {
+
+        return pedidoService.obtenerHistorialPedidoAdmin(id);
     }
 
     // Actualiza el estado y devuelve únicamente los datos necesarios.
