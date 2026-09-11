@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 10-09-2026 a las 05:32:58
+-- Tiempo de generación: 11-09-2026 a las 17:42:57
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -32,6 +32,17 @@ CREATE TABLE `carritos` (
   `usuario_id` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `carritos`
+--
+
+INSERT INTO `carritos` (`id`, `usuario_id`) VALUES
+(6, 4),
+(7, 5),
+(8, 9),
+(10, 10),
+(9, 11);
+
 -- --------------------------------------------------------
 
 --
@@ -47,6 +58,17 @@ CREATE TABLE `carrito_items` (
   `producto_id` bigint(20) NOT NULL
 ) ;
 
+--
+-- Volcado de datos para la tabla `carrito_items`
+--
+
+INSERT INTO `carrito_items` (`id`, `cantidad`, `color`, `talla`, `carrito_id`, `producto_id`) VALUES
+(100, 1, 'Blanco', 36, 6, 13),
+(101, 1, 'Blanco', 37, 6, 12),
+(110, 1, 'Blanco', 37, 9, 12),
+(111, 1, 'Blanco', 36, 9, 13),
+(112, 1, 'Blanco', 38, 9, 11);
+
 -- --------------------------------------------------------
 
 --
@@ -61,6 +83,23 @@ CREATE TABLE `facturas` (
   `pedido_id` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `facturas`
+--
+
+INSERT INTO `facturas` (`id`, `numero_factura`, `fecha_emision`, `metodo_pago`, `pedido_id`) VALUES
+(16, 'FAC-2026-000040', '2026-09-10 05:41:13', 'TARJETA', 40),
+(17, 'FAC-2026-000041', '2026-09-10 18:24:33', 'TARJETA', 41),
+(18, 'FAC-2026-000042', '2026-09-10 18:37:00', 'TARJETA', 42),
+(19, 'FAC-2026-000043', '2026-09-10 19:28:46', 'TARJETA', 43),
+(20, 'FAC-2026-000044', '2026-09-10 20:23:54', 'TARJETA', 44),
+(21, 'FAC-2026-000046', '2026-09-11 02:57:37', 'TARJETA', 46),
+(22, 'FAC-2026-000050', '2026-09-11 03:23:42', 'TARJETA', 50),
+(23, 'FAC-2026-000051', '2026-09-11 03:31:21', 'TARJETA', 51),
+(24, 'FAC-2026-000052', '2026-09-11 17:19:48', 'TARJETA', 52),
+(25, 'FAC-2026-000053', '2026-09-11 17:23:38', 'TARJETA', 53),
+(26, 'FAC-2026-000054', '2026-09-11 17:32:33', 'TARJETA', 54);
+
 -- --------------------------------------------------------
 
 --
@@ -73,8 +112,36 @@ CREATE TABLE `historial_pedidos` (
   `estado_nuevo` enum('PENDIENTE','PREPARANDO','ENVIADO','ENTREGADO','DEVUELTO_A_TIENDA') NOT NULL,
   `fecha_cambio` datetime(6) NOT NULL,
   `pedido_id` bigint(20) NOT NULL,
-  `usuario_id` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `usuario_id` bigint(20) DEFAULT NULL,
+  `tipo_actor` enum('USUARIO','SISTEMA') NOT NULL,
+  `origen` enum('PANEL_ADMIN','STRIPE') NOT NULL
+) ;
+
+--
+-- Volcado de datos para la tabla `historial_pedidos`
+--
+
+INSERT INTO `historial_pedidos` (`id`, `estado_anterior`, `estado_nuevo`, `fecha_cambio`, `pedido_id`, `usuario_id`, `tipo_actor`, `origen`) VALUES
+(41, 'PREPARANDO', 'ENVIADO', '2026-09-10 05:42:27.590237', 40, 1, 'USUARIO', 'PANEL_ADMIN'),
+(42, 'ENVIADO', 'ENTREGADO', '2026-09-10 05:42:32.772482', 40, 1, 'USUARIO', 'PANEL_ADMIN'),
+(43, 'PREPARANDO', 'ENVIADO', '2026-09-10 18:25:38.313585', 41, 1, 'USUARIO', 'PANEL_ADMIN'),
+(44, 'PENDIENTE', 'PREPARANDO', '2026-09-10 18:37:00.048243', 42, NULL, 'SISTEMA', 'STRIPE'),
+(45, 'PREPARANDO', 'ENVIADO', '2026-09-10 18:39:50.229423', 42, 1, 'USUARIO', 'PANEL_ADMIN'),
+(46, 'PENDIENTE', 'PREPARANDO', '2026-09-10 19:28:46.310148', 43, NULL, 'SISTEMA', 'STRIPE'),
+(47, 'PREPARANDO', 'ENVIADO', '2026-09-10 19:29:52.655935', 43, 1, 'USUARIO', 'PANEL_ADMIN'),
+(48, 'ENVIADO', 'DEVUELTO_A_TIENDA', '2026-09-10 19:30:27.430317', 43, 1, 'USUARIO', 'PANEL_ADMIN'),
+(49, 'DEVUELTO_A_TIENDA', 'PREPARANDO', '2026-09-10 19:54:30.898987', 43, 1, 'USUARIO', 'PANEL_ADMIN'),
+(50, 'PREPARANDO', 'ENVIADO', '2026-09-10 19:54:34.078124', 43, 1, 'USUARIO', 'PANEL_ADMIN'),
+(51, 'ENVIADO', 'ENTREGADO', '2026-09-10 19:54:38.398959', 43, 1, 'USUARIO', 'PANEL_ADMIN'),
+(52, 'ENVIADO', 'ENTREGADO', '2026-09-10 20:19:52.729162', 42, 1, 'USUARIO', 'PANEL_ADMIN'),
+(53, 'PENDIENTE', 'PREPARANDO', '2026-09-10 20:23:54.259008', 44, NULL, 'SISTEMA', 'STRIPE'),
+(57, 'PENDIENTE', 'PREPARANDO', '2026-09-11 02:57:37.080094', 46, NULL, 'SISTEMA', 'STRIPE'),
+(58, 'PENDIENTE', 'PREPARANDO', '2026-09-11 03:23:42.923222', 50, NULL, 'SISTEMA', 'STRIPE'),
+(59, 'PREPARANDO', 'ENVIADO', '2026-09-11 03:29:21.098397', 50, 1, 'USUARIO', 'PANEL_ADMIN'),
+(60, 'PENDIENTE', 'PREPARANDO', '2026-09-11 03:31:21.836958', 51, NULL, 'SISTEMA', 'STRIPE'),
+(61, 'PENDIENTE', 'PREPARANDO', '2026-09-11 17:19:48.585716', 52, NULL, 'SISTEMA', 'STRIPE'),
+(62, 'PENDIENTE', 'PREPARANDO', '2026-09-11 17:23:38.033282', 53, NULL, 'SISTEMA', 'STRIPE'),
+(63, 'PENDIENTE', 'PREPARANDO', '2026-09-11 17:32:33.065796', 54, NULL, 'SISTEMA', 'STRIPE');
 
 -- --------------------------------------------------------
 
@@ -107,6 +174,27 @@ CREATE TABLE `pedidos` (
   `idempotency_key` varchar(36) NOT NULL
 ) ;
 
+--
+-- Volcado de datos para la tabla `pedidos`
+--
+
+INSERT INTO `pedidos` (`id`, `apellidos`, `ciudad`, `cp`, `direccion`, `email`, `envio`, `estado`, `fecha_pedido`, `id_pedido`, `iva`, `nombre`, `pais`, `provincia`, `subtotal`, `telefono`, `total`, `usuario_id`, `estado_pago`, `stripe_session_id`, `version`, `idempotency_key`) VALUES
+(40, 'García García', 'Madrid', '22222', 'calle pino número 12', 'luisito@gmail.com', 0.00, 'ENTREGADO', '2026-09-10 05:40:27.902136', 'PED-3C6C2212-1730-4F7A-A475-78569C98446B', 42.00, 'Luis', 'España', 'Madrid', 199.99, '111222111', 241.99, 4, 'PAGADO', 'cs_test_b1lsBPkrN9u3iiKY9BLdYMESeVkOgrXRQjNtNxtajRDHLMvcTrTiN55dii', 4, 'f08e99cb-83c8-44b0-960a-101c9f3439a4'),
+(41, 'Herrera Herrara', 'Madrid', '11111', 'Calle el faro, numero 13', 'pepe@gmail.com', 0.00, 'ENVIADO', '2026-09-10 18:23:53.229474', 'PED-4885F665-AD85-4DC9-A3E0-CAEF524CAA71', 49.35, 'Pepe', 'España', 'Madrid', 234.98, '111222111', 284.33, 5, 'PAGADO', 'cs_test_b1PzSdqnsIq0xKXBcR0TtzzEgjYNZyGZ2wu3JBGgE2DkZggFnuE2yPDrcd', 3, '6e436c90-97c7-49eb-a65d-d92ae8eefcfb'),
+(42, 'García García', 'Madrid', '11111', 'calle princesa n 12', 'arturo@gmail.com', 4.99, 'ENTREGADO', '2026-09-10 18:36:35.781347', 'PED-E8FC2683-0889-4AE6-9F8A-EFEFEF8C4672', 18.90, 'Arturo', 'España', 'Madrid', 89.99, '111222111', 113.88, 9, 'PAGADO', 'cs_test_b1zXVPoVnyuvHmGozl5TGKVX9YxIwGIoZk1ZUfcSVwXFYtQcZiblVcdS7U', 4, '885151ae-5fc4-435a-bc0b-33b9e398015e'),
+(43, 'García García', 'Madrid', '33222', 'Calle viento', 'berta@gmail.com', 0.00, 'ENTREGADO', '2026-09-10 19:28:26.653058', 'PED-19736BDD-6BAB-4A67-BFE7-73564CF65A43', 55.65, 'Berta', 'España', 'Madrid', 264.98, '111222111', 320.63, 11, 'PAGADO', 'cs_test_b1uwTdBP5yEp6adfQMhWpn0bjIpvSyRJFVxvV3IZxHthhCHXVYwX0KyZ5L', 7, '60fb626c-6ab9-413f-9886-067b9246bc4f'),
+(44, 'Monserrrat Caballero', 'Madrid', '44111', 'Calle Ave María', 'manu@gmail.com', 0.00, 'PREPARANDO', '2026-09-10 20:23:12.090172', 'PED-225944FE-B02D-4CF9-8B5D-6E34679FB802', 40.95, 'Manu', 'España', 'Madrid', 194.98, '111222111', 235.93, 10, 'PAGADO', 'cs_test_b1WPUMJpd8YCv4LfMQ6zg3XG7BAkSlAPfLT0I2xICxHj1IXeoRAMVQOiMQ', 2, '0274f778-7572-4f16-980c-314c679d9883'),
+(45, 'Escudero Polo', 'Madrid', '11111', 'calle pino número 12', 'luis@gmail.com', 0.00, 'PENDIENTE', '2026-09-10 20:59:22.716156', 'PED-F9B2284F-B405-40BF-9DF6-412796FC0307', 39.90, 'Luis', 'España', 'Madrid', 189.98, '111222111', 229.88, 4, 'PENDIENTE', 'cs_test_b1Ck9K6g5ao7WI0jr8d6kTGnG4ogPHBjZkZKIy2cIxItcMCa9TdZYOzUde', 1, 'b429bf81-68aa-4aaf-96fd-61f349ab50b2'),
+(46, 'Herrera Herrara', 'Madrid', '11223', 'calle princesa n 12', 'berta@gmail.com', 0.00, 'PREPARANDO', '2026-09-11 02:57:11.960072', 'PED-2D0E5BAB-729C-43A5-A0ED-CD9C3118C6D5', 65.10, 'Berta', 'España', 'Madrid', 309.98, '111222111', 375.08, 11, 'PAGADO', 'cs_test_b11MuoH3hdwaNjlXh2OpPaTxMqRGLhQd0ITipc45wZz4E0MJvUQcFPitEg', 2, 'd06f5594-b4cc-49a1-b90d-a00fde5e971f'),
+(47, 'García García', 'Madrid', '11111', 'Calle Ave María', 'berta@gmail.com', 0.00, 'PENDIENTE', '2026-09-11 03:01:47.038554', 'PED-06ADC235-8A2F-4854-9603-123913034681', 80.84, 'berta', 'España', 'Madrid', 384.97, '111222111', 465.81, 11, 'PENDIENTE', 'cs_test_b1cqfgl6ZElPSE53qTE7DIQNeRuZ2oG4AkWkrrRePTCAUbCqusZHM1VsBT', 1, '8294b749-be46-4383-ad0f-68d0a248c7eb'),
+(48, 'García García', 'Madrid', '11111', 'Calle el faro, número 13', 'berta@gmail.com', 0.00, 'PENDIENTE', '2026-09-11 03:11:01.420159', 'PED-C8B4C6F3-61ED-4D19-9212-C2E3402D10E7', 61.94, 'Berta', 'España', 'Madrid', 294.97, '111222111', 356.91, 11, 'PENDIENTE', 'cs_test_b1JJ5iffJiBqhH0E5ilYvQtgvQfTK1Mx9TA8MvPRSNeVEx4NaoLvL0E7NL', 1, 'eaa23910-ab23-4056-969c-d158dc9ba8fa'),
+(49, 'García García', 'Madrid', '11111', 'Calle el faro, número 13', 'berta@gmail.com', 0.00, 'PENDIENTE', '2026-09-11 03:17:08.298257', 'PED-6BA6D6BA-64B3-4877-8263-9FC52EA4EAF8', 69.29, 'Berta', 'España', 'Madrid', 329.97, '111222111', 399.26, 11, 'PENDIENTE', 'cs_test_b1dXtBQ85I9cq6zlRUOuPCaOArZwXmbMqqyFC9ZkMKBkiUGL85jh29CFlb', 1, 'a5a99a27-14b8-41a9-b280-8c228c944f6e'),
+(50, 'Herrera Herrara', 'Madrid', '11111', 'calle real número 1', 'manu@gmail.com', 0.00, 'ENVIADO', '2026-09-11 03:23:16.378336', 'PED-6A738811-24D8-497E-86A1-4A5DD85436BB', 65.10, 'Manu', 'España', 'Madrid', 309.98, '111222111', 375.08, 10, 'PAGADO', 'cs_test_b1dr0Z7LEn4kzf9NPBM38fyFLOdjs5LgQ5XCVmxV1GYohjlCAWRc90x1qb', 3, '39cfca82-f5c8-4036-98bd-31e66156b838'),
+(51, 'García García', 'Madrid', '11111', 'Calle la oliva, número 13', 'arturo@gmail.com', 0.00, 'PREPARANDO', '2026-09-11 03:31:02.478490', 'PED-B407298B-2E90-4FDA-8A3F-AD6C79AE0204', 47.25, 'Arturo', 'España', 'Madrid', 224.98, '111222111', 272.23, 9, 'PAGADO', 'cs_test_b1HbCR0a1zROIywbVDGrKlZqUMZ4Cgvi6KgVAYuKuqPR1bCYvo79EftkGx', 2, '8454bc74-aa8b-48d4-9738-2fc0ca37a6da'),
+(52, 'García García', 'Madrid', '22222', 'calle princesa n 12', 'pepito@gmail.com', 0.00, 'PREPARANDO', '2026-09-11 17:19:19.909243', 'PED-73C95867-FC98-46D5-8E8C-AB3FF94A1B1B', 31.50, 'Pepe', 'España', 'Madrid', 149.99, '111222111', 181.49, 5, 'PAGADO', 'cs_test_b18O0wUmKvnZMlRzNS01mPy0UD6BcwokYF17vVBXLkOlK4NRCP8IVwDNdQ', 2, '90a7f225-8fe8-471a-afd0-6e2f344e7e87'),
+(53, 'García García', 'Toledo', '24322', 'Calle Barco, número 2', 'García@gmail.com', 0.00, 'PREPARANDO', '2026-09-11 17:23:00.669993', 'PED-50947133-A73D-478A-B7D8-E09D186C5191', 31.50, 'Luis', 'España', 'Toledo', 149.99, '111222111', 181.49, 5, 'PAGADO', 'cs_test_b1giK1pndRQyruo41pF4XDnstEo0Vdo9lZwVclE6CJcAvZx0muluqEq1SF', 2, '39d3920c-6cbb-44ec-9ba7-5a41a8aa0e59'),
+(54, 'García García', 'Madrid', '11111', 'Calle Barco, número 2', 'arturo@gmail.com', 0.00, 'PREPARANDO', '2026-09-11 17:32:09.326206', 'PED-27A08E73-EF16-4AC8-974A-7AC0386D45B5', 109.19, 'Arturo', 'España', 'Madrid', 519.96, '111222111', 629.15, 9, 'PAGADO', 'cs_test_b1R9GYRfdApSEoTxbNWEpNnnDF2S9cf74gif1oK0Dx0fiSnGhMrzY0CZMI', 2, '595db91d-9a4f-48bd-a98d-7347d50073e2');
+
 -- --------------------------------------------------------
 
 --
@@ -124,6 +212,43 @@ CREATE TABLE `pedido_items` (
   `talla` varchar(255) DEFAULT NULL,
   `pedido_id` bigint(20) NOT NULL
 ) ;
+
+--
+-- Volcado de datos para la tabla `pedido_items`
+--
+
+INSERT INTO `pedido_items` (`id`, `cantidad`, `color`, `nombre_producto`, `precio_unitario`, `producto_id`, `subtotal_linea`, `talla`, `pedido_id`) VALUES
+(71, 1, 'Blanco', 'Nike Air 90 Mix', 199.99, 1, 199.99, '38', 40),
+(72, 1, 'Verde', 'Nike Pegasus Trail', 134.99, 6, 134.99, '38', 41),
+(73, 1, 'Amarillo', 'Nike Waffle Trainer', 99.99, 7, 99.99, '37', 41),
+(74, 1, 'Rosa', 'Reebok Royal Glide', 89.99, 36, 89.99, '36', 42),
+(75, 1, 'Negro', 'Nike Zoom Fly', 129.99, 3, 129.99, '39', 43),
+(76, 1, 'Verde', 'Nike Pegasus Trail', 134.99, 6, 134.99, '38', 43),
+(77, 1, 'Blanco', 'Reebok Classic Leather', 94.99, 31, 94.99, '37', 44),
+(78, 1, 'Blanco', 'Reebok Club C 85', 99.99, 32, 99.99, '36', 44),
+(79, 1, 'Blanco', 'Adidas Stan Smith', 89.99, 13, 89.99, '36', 45),
+(80, 1, 'Blanco', 'Adidas Superstar', 99.99, 12, 99.99, '37', 45),
+(81, 1, 'Blanco', 'Nike Air 90 Mix', 199.99, 1, 199.99, '38', 46),
+(82, 1, 'Blanco', 'Nike Air Force 1', 109.99, 2, 109.99, '37', 46),
+(83, 1, 'Rojo', 'Nike Air Jordan 1', 149.99, 5, 149.99, '40', 47),
+(84, 1, 'Verde', 'Nike Pegasus Trail', 134.99, 6, 134.99, '38', 47),
+(85, 1, 'Amarillo', 'Nike Waffle Trainer', 99.99, 7, 99.99, '37', 47),
+(86, 1, 'Negro', 'Puma Suede Classic', 89.99, 21, 89.99, '37', 48),
+(87, 1, 'Verde', 'Puma X-Ray 2', 114.99, 27, 114.99, '39', 48),
+(88, 1, 'Gris', 'Puma R78', 89.99, 28, 89.99, '37', 48),
+(89, 1, 'Blanco', 'Adidas Superstar', 99.99, 12, 99.99, '37', 49),
+(90, 1, 'Blanco', 'Adidas Stan Smith', 89.99, 13, 89.99, '36', 49),
+(91, 1, 'Blanco', 'Adidas Ultraboost', 139.99, 11, 139.99, '38', 49),
+(92, 1, 'Blanco', 'Nike Air 90 Mix', 199.99, 1, 199.99, '38', 50),
+(93, 1, 'Blanco', 'Nike Air Force 1', 109.99, 2, 109.99, '37', 50),
+(94, 1, 'Azul', 'Puma Future Rider', 109.99, 24, 109.99, '38', 51),
+(95, 1, 'Verde', 'Puma X-Ray 2', 114.99, 27, 114.99, '39', 51),
+(96, 1, 'Rojo', 'Nike Air Jordan 1', 149.99, 5, 149.99, '40', 52),
+(97, 1, 'Rojo', 'Nike Air Jordan 1', 149.99, 5, 149.99, '40', 53),
+(98, 1, 'Blanco', 'Nike Air 90 Mix', 199.99, 1, 199.99, '38', 54),
+(99, 1, 'Blanco', 'Nike Air Force 1', 109.99, 2, 109.99, '37', 54),
+(100, 1, 'Negro', 'Puma Suede Classic', 89.99, 21, 89.99, '37', 54),
+(101, 1, 'Blanco', 'Puma RS-X', 119.99, 22, 119.99, '38', 54);
 
 -- --------------------------------------------------------
 
@@ -796,7 +921,7 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT de la tabla `carritos`
 --
 ALTER TABLE `carritos`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de la tabla `carrito_items`
@@ -808,13 +933,13 @@ ALTER TABLE `carrito_items`
 -- AUTO_INCREMENT de la tabla `facturas`
 --
 ALTER TABLE `facturas`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT de la tabla `historial_pedidos`
 --
 ALTER TABLE `historial_pedidos`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `pedidos`

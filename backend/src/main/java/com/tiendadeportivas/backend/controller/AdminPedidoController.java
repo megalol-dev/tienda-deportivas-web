@@ -13,6 +13,7 @@ import com.tiendadeportivas.backend.model.Pedido;
 import com.tiendadeportivas.backend.model.PedidoAdminResumen;
 import com.tiendadeportivas.backend.model.HistorialPedidoRespuesta;
 import com.tiendadeportivas.backend.service.PedidoService;
+import com.tiendadeportivas.backend.model.PedidoAdminDetalle;
 
 @RestController
 @RequestMapping("/admin/pedidos")
@@ -30,6 +31,14 @@ public class AdminPedidoController {
     public List<PedidoAdminResumen> obtenerPedidos() {
 
         return pedidoService.obtenerResumenPedidosAdmin();
+    }
+
+    // Devuelve el detalle de un pedido para su preparación y gestión.
+    @GetMapping("/{id}")
+    public PedidoAdminDetalle obtenerDetallePedido(
+            @PathVariable Long id) {
+
+        return pedidoService.obtenerDetallePedidoAdmin(id);
     }
 
     // Devuelve el historial de cambios de estado de un pedido.

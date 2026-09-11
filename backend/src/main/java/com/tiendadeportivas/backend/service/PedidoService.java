@@ -38,6 +38,8 @@ import com.tiendadeportivas.backend.exception.PedidoConcurrenteException;
 import com.tiendadeportivas.backend.model.TipoActorHistorial;
 import com.tiendadeportivas.backend.model.OrigenCambioPedido;
 import com.tiendadeportivas.backend.model.HistorialPedidoRespuesta;
+import com.tiendadeportivas.backend.model.PedidoAdminDetalle;
+import com.tiendadeportivas.backend.model.PedidoItemAdminDetalle;
 
 @Service
 public class PedidoService {
@@ -325,6 +327,47 @@ public class PedidoService {
                                 .toList();
         }
 
+        // Devuelve el detalle de un pedido para su gestión administrativa.
+        @Transactional(readOnly = true)
+        public PedidoAdminDetalle obtenerDetallePedidoAdmin(Long pedidoId) {
+
+                Pedido pedido = pedidoRepository
+                                .findById(pedidoId)
+                                .orElseThrow(() -> new IllegalArgumentException(
+                                                "El pedido no existe."));
+
+                List<PedidoItemAdminDetalle> items = pedido.getItems()
+                                .stream()
+                                .map(item -> new PedidoItemAdminDetalle(
+                                                item.getProductoId(),
+                                                item.getNombreProducto(),
+                                                item.getTalla(),
+                                                item.getColor(),
+                                                item.getCantidad(),
+                                                item.getPrecioUnitario(),
+                                                item.getSubtotalLinea()))
+                                .toList();
+
+                return new PedidoAdminDetalle(
+                                pedido.getId(),
+                                pedido.getIdPedido(),
+                                pedido.getNombre(),
+                                pedido.getApellidos(),
+                                pedido.getFechaPedido(),
+                                pedido.getEstado(),
+                                pedido.getEstadoPago(),
+                                pedido.getDireccion(),
+                                pedido.getCiudad(),
+                                pedido.getProvincia(),
+                                pedido.getCp(),
+                                pedido.getPais(),
+                                pedido.getSubtotal(),
+                                pedido.getIva(),
+                                pedido.getEnvio(),
+                                pedido.getTotal(),
+                                items);
+        }
+
         // Devuelve los pedidos de un cliente.
         @Transactional(readOnly = true)
         public List<PedidoClienteRespuesta> obtenerPedidosCliente(
@@ -439,22 +482,18 @@ public class PedidoService {
 
                 Pedido pedidoActualizado = pedidoRepository.save(pedido);
 
-                HistorialPedido historial = new HistorialPedido();
-
-                historial.setPedido(pedido);
-                historial.setUsuario(usuario);
-                historial.setTipoActor(TipoActorHistorial.USUARIO);
-                historial.setOrigen(OrigenCambioPedido.PANEL_ADMIN);
-                historial.setEstadoAnterior(estadoAnterior);
-                historial.setEstadoNuevo(nuevoEstado);
-                historial.setFechaCambio(LocalDateTime.now());
-
-                historialPedidoRepository.save(historial);
+                registrarCambioEstado(
+                                pedido,
+                                estadoAnterior,
+                                nuevoEstado,
+                                usuario,
+                                TipoActorHistorial.USUARIO,
+                                OrigenCambioPedido.PANEL_ADMIN);
 
                 return pedidoActualizado;
 
         }
-        
+
         // Devuelve el historial de cambios de estado de un pedido para administración.
         @Transactional(readOnly = true)
         public List<HistorialPedidoRespuesta> obtenerHistorialPedidoAdmin(Long pedidoId) {
@@ -526,6 +565,79 @@ public class PedidoService {
                 }
         }
 
+        // Registra de forma centralizada un cambio de estado de un pedido.
+        private void registrarCambioEstado(
+                        Pedido pedido,
+                        EstadoPedido estadoAnterior,
+                        EstadoPedido estadoNuevo,
+                        Usuario usuario,
+                        TipoActorHistorial tipoActor,
+                        OrigenCambioPedido origen) {
+
+                validarActorHistorial(
+                                usuario,
+                                tipoActor,
+                                origen);
+
+                HistorialPedido historial = new HistorialPedido();
+
+                historial.setPedido(pedido);
+                historial.setUsuario(usuario);
+                historial.setTipoActor(tipoActor);
+                historial.setOrigen(origen);
+                historial.setEstadoAnterior(estadoAnterior);
+                historial.setEstadoNuevo(estadoNuevo);
+                historial.setFechaCambio(LocalDateTime.now());
+
+                historialPedidoRepository.save(historial);
+        }
+
+        // Comprueba que el actor y el origen del historial sean coherentes.
+        private void validarActorHistorial(
+                        Usuario usuario,
+                        TipoActorHistorial tipoActor,
+                        OrigenCambioPedido origen) {
+
+                if (tipoActor == null) {
+                        throw new IllegalArgumentException(
+                                        "El tipo de actor del historial es obligatorio.");
+                }
+
+                if (origen == null) {
+                        throw new IllegalArgumentException(
+                                        "El origen del cambio de estado es obligatorio.");
+                }
+
+                switch (tipoActor) {
+
+                        case USUARIO -> {
+
+                                if (usuario == null) {
+                                        throw new IllegalStateException(
+                                                        "Un cambio realizado por un usuario debe tener un usuario asociado.");
+                                }
+
+                                if (origen != OrigenCambioPedido.PANEL_ADMIN) {
+                                        throw new IllegalStateException(
+                                                        "Un usuario solo puede modificar pedidos desde el panel administrativo.");
+                                }
+                        }
+
+                        case SISTEMA -> {
+
+                                if (usuario != null) {
+                                        throw new IllegalStateException(
+                                                        "Un cambio automático del sistema no debe tener un usuario asociado.");
+                                }
+
+                                if (origen != OrigenCambioPedido.STRIPE) {
+                                        throw new IllegalStateException(
+                                                        "Un cambio automático del sistema debe proceder de Stripe.");
+                                }
+                        }
+                }
+        }
+
         // Busca un pedido y comprueba su propietario.
         @Transactional(readOnly = true)
         public Pedido obtenerPedidoPorIdPedido(
@@ -591,7 +703,10 @@ public class PedidoService {
         @Transactional
         public void confirmarPagoStripe(
                         String stripeSessionId,
-                        String idPedido) {
+                        String idPedido,
+                        String paymentStatus,
+                        Long amountTotal,
+                        String currency) {
 
                 if (stripeSessionId == null || stripeSessionId.isBlank()) {
                         throw new IllegalArgumentException(
@@ -603,10 +718,41 @@ public class PedidoService {
                                         "El identificador del pedido no puede estar vacío.");
                 }
 
+                if (paymentStatus == null
+                                || !"paid".equalsIgnoreCase(paymentStatus)) {
+
+                        throw new IllegalStateException(
+                                        "Stripe no ha confirmado el pago del pedido.");
+                }
+
+                if (amountTotal == null || amountTotal < 0) {
+
+                        throw new IllegalStateException(
+                                        "Stripe no ha enviado un importe de pago válido.");
+                }
+
+                if (currency == null
+                                || !"eur".equalsIgnoreCase(currency)) {
+
+                        throw new IllegalStateException(
+                                        "La moneda recibida desde Stripe no es válida.");
+                }
+
                 Pedido pedido = pedidoRepository
                                 .findByIdPedido(idPedido)
                                 .orElseThrow(() -> new IllegalArgumentException(
                                                 "No existe el pedido asociado al pago de Stripe."));
+
+                long totalPedidoEnCentimos = pedido.getTotal()
+                                .multiply(BigDecimal.valueOf(100))
+                                .setScale(0, RoundingMode.HALF_UP)
+                                .longValueExact();
+
+                if (amountTotal.longValue() != totalPedidoEnCentimos) {
+
+                        throw new IllegalStateException(
+                                        "El importe recibido desde Stripe no coincide con el pedido.");
+                }
 
                 if (pedido.getStripeSessionId() == null
                                 || !pedido.getStripeSessionId().equals(stripeSessionId)) {
@@ -632,17 +778,13 @@ public class PedidoService {
 
                 pedidoRepository.save(pedido);
 
-                HistorialPedido historial = new HistorialPedido();
-
-                historial.setPedido(pedido);
-                historial.setUsuario(null);
-                historial.setTipoActor(TipoActorHistorial.SISTEMA);
-                historial.setOrigen(OrigenCambioPedido.STRIPE);
-                historial.setEstadoAnterior(estadoAnterior);
-                historial.setEstadoNuevo(EstadoPedido.PREPARANDO);
-                historial.setFechaCambio(LocalDateTime.now());
-
-                historialPedidoRepository.save(historial);
+                registrarCambioEstado(
+                                pedido,
+                                estadoAnterior,
+                                EstadoPedido.PREPARANDO,
+                                null,
+                                TipoActorHistorial.SISTEMA,
+                                OrigenCambioPedido.STRIPE);
 
                 facturaService.crearFactura(pedido);
 
@@ -657,5 +799,6 @@ public class PedidoService {
                         carritoService.vaciarCarrito(
                                         pedido.getUsuario().getEmail());
                 }
+
         }
 }

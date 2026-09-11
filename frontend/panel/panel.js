@@ -453,6 +453,24 @@ if (btnCerrarModalPanel) {
 
 const tablaPedidosBody = document.getElementById("tabla-pedidos-body");
 
+const detallePedidoContenedor = document.getElementById(
+  "detalle-pedido-contenedor",
+);
+
+const detallePedidoTitulo = document.getElementById("detalle-pedido-titulo");
+
+const detallePedidoIdPublico = document.getElementById(
+  "detalle-pedido-id-publico",
+);
+
+const detallePedidoContenido = document.getElementById(
+  "detalle-pedido-contenido",
+);
+
+const btnCerrarDetallePedido = document.getElementById(
+  "btn-cerrar-detalle-pedido",
+);
+
 const historialPedidoContenedor = document.getElementById(
   "historial-pedido-contenedor",
 );
@@ -856,6 +874,13 @@ function renderizarPedidos(pedidos) {
     botonGuardar.textContent = "Guardar";
     botonGuardar.disabled = !tieneTransiciones;
 
+    const botonVerPedido = document.createElement("button");
+
+    botonVerPedido.type = "button";
+    botonVerPedido.className = "btn-ver-pedido";
+    botonVerPedido.dataset.id = String(pedido.id);
+    botonVerPedido.textContent = "Ver pedido";
+
     const botonHistorial = document.createElement("button");
 
     botonHistorial.type = "button";
@@ -865,6 +890,7 @@ function renderizarPedidos(pedidos) {
     botonHistorial.textContent = "Historial";
 
     celdaAcciones.appendChild(botonGuardar);
+    celdaAcciones.appendChild(botonVerPedido);
     celdaAcciones.appendChild(botonHistorial);
 
     fila.appendChild(celdaIdPedido);
@@ -876,6 +902,47 @@ function renderizarPedidos(pedidos) {
 
     tablaPedidosBody.appendChild(fila);
   });
+}
+
+// =====================================================
+// ABRIR Y CARGAR EL DETALLE DE UN PEDIDO
+// =====================================================
+
+if (tablaPedidosBody) {
+  tablaPedidosBody.addEventListener("click", (event) => {
+    const boton = event.target.closest(".btn-ver-pedido");
+
+    if (!boton) {
+      return;
+    }
+
+    cargarDetallePedido(boton.dataset.id);
+  });
+}
+
+async function cargarDetallePedido(pedidoId) {
+  try {
+    const respuesta = await fetch(`${API_URL}/admin/pedidos/${pedidoId}`, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    if (await comprobarSesionExpirada(respuesta)) {
+      return;
+    }
+
+    if (!respuesta.ok) {
+      throw new Error("No se pudo cargar el detalle del pedido.");
+    }
+
+    const pedido = await respuesta.json();
+
+    renderizarDetallePedido(pedido);
+  } catch (error) {
+    console.error("Error cargando el detalle del pedido:", error);
+
+    mostrarModalPanel("Error", "No se pudo cargar el detalle del pedido.");
+  }
 }
 
 // =====================================================
@@ -1042,6 +1109,287 @@ function obtenerNombreActor(registro) {
   }
 
   return formatearValorTecnico(registro.tipoActor, "Usuario");
+}
+
+// =====================================================
+// RENDERIZAR EL DETALLE DE UN PEDIDO
+// =====================================================
+
+// Mantiene fallbacks legibles para los campos informativos del detalle.
+function obtenerTextoDetalle(valor, textoAlternativo = "No disponible") {
+  if (valor === null || valor === undefined) {
+    return textoAlternativo;
+  }
+
+  const texto = String(valor).trim();
+
+  return texto || textoAlternativo;
+}
+
+// Presenta importes administrativos con formato monetario español.
+function formatearImporteDetalle(valor) {
+  if (valor === null || valor === undefined || valor === "") {
+    return "No disponible";
+  }
+
+  const importe = Number(valor);
+
+  if (!Number.isFinite(importe)) {
+    return "No disponible";
+  }
+
+  return new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "EUR",
+  }).format(importe);
+}
+
+// Presenta el estado económico sin modificar el valor recibido.
+function formatearEstadoPago(estadoPago) {
+  const estadosPago = {
+    PENDIENTE: "Pendiente",
+    PAGADO: "Pagado",
+    FALLIDO: "Fallido",
+    CANCELADO: "Cancelado",
+  };
+
+  return (
+    estadosPago[estadoPago] ??
+    formatearValorTecnico(estadoPago, "No disponible")
+  );
+}
+
+// Limita las clases de pago a una lista visual controlada.
+function obtenerClaseEstadoPago(estadoPago) {
+  const clases = {
+    PENDIENTE: "detalle-badge--pendiente",
+    PAGADO: "detalle-badge--pagado",
+    FALLIDO: "detalle-badge--fallido",
+    CANCELADO: "detalle-badge--cancelado",
+  };
+
+  return clases[estadoPago] ?? "detalle-badge--neutro";
+}
+
+// Crea una pareja etiqueta/valor reutilizable para los distintos bloques.
+function crearDatoDetalle(etiqueta, valor, claseValor = "") {
+  const dato = document.createElement("div");
+  const termino = document.createElement("dt");
+  const descripcion = document.createElement("dd");
+
+  dato.className = "detalle-pedido-dato";
+  termino.textContent = etiqueta;
+  descripcion.textContent = valor;
+
+  if (claseValor) {
+    descripcion.className = claseValor;
+  }
+
+  dato.appendChild(termino);
+  dato.appendChild(descripcion);
+
+  return dato;
+}
+
+// Construye una sección visual y devuelve su zona de contenido.
+function crearSeccionDetalle(titulo, claseAdicional = "") {
+  const seccion = document.createElement("section");
+  const encabezado = document.createElement("h4");
+  const contenido = document.createElement("div");
+
+  seccion.className = `detalle-pedido-seccion ${claseAdicional}`.trim();
+  encabezado.textContent = titulo;
+  contenido.className = "detalle-pedido-seccion-contenido";
+
+  seccion.appendChild(encabezado);
+  seccion.appendChild(contenido);
+
+  return { seccion, contenido };
+}
+
+function renderizarDetallePedido(pedido) {
+  if (
+    !detallePedidoContenedor ||
+    !detallePedidoTitulo ||
+    !detallePedidoIdPublico ||
+    !detallePedidoContenido
+  ) {
+    return;
+  }
+
+  const idPedido = obtenerTextoDetalle(pedido?.idPedido, "Pedido sin ID");
+  const partesNombre = [pedido?.nombre, pedido?.apellidos]
+    .filter((parte) => typeof parte === "string" && parte.trim())
+    .map((parte) => parte.trim());
+  const nombreCliente = partesNombre.join(" ") || "No disponible";
+
+  detallePedidoTitulo.textContent = "Detalle del pedido";
+  detallePedidoIdPublico.textContent = idPedido;
+  detallePedidoContenido.replaceChildren();
+
+  const datosPrincipales = crearSeccionDetalle(
+    "Datos principales",
+    "detalle-pedido-seccion--principal",
+  );
+  const rejillaPrincipal = document.createElement("dl");
+
+  rejillaPrincipal.className = "detalle-pedido-datos detalle-pedido-datos--principal";
+  rejillaPrincipal.appendChild(crearDatoDetalle("Cliente", nombreCliente));
+  rejillaPrincipal.appendChild(
+    crearDatoDetalle(
+      "Fecha del pedido",
+      formatearFechaHistorial(pedido?.fechaPedido),
+    ),
+  );
+  rejillaPrincipal.appendChild(
+    crearDatoDetalle(
+      "Estado del pedido",
+      pedido?.estado ? formatearEstado(pedido.estado) : "No disponible",
+      `detalle-badge ${obtenerClaseEstado(pedido?.estado)}`,
+    ),
+  );
+  rejillaPrincipal.appendChild(
+    crearDatoDetalle(
+      "Estado del pago",
+      formatearEstadoPago(pedido?.estadoPago),
+      `detalle-badge ${obtenerClaseEstadoPago(pedido?.estadoPago)}`,
+    ),
+  );
+  datosPrincipales.contenido.appendChild(rejillaPrincipal);
+
+  const envio = crearSeccionDetalle(
+    "Dirección de envío",
+    "detalle-pedido-seccion--envio",
+  );
+  const rejillaEnvio = document.createElement("dl");
+  const datoDireccion = crearDatoDetalle(
+    "Dirección",
+    obtenerTextoDetalle(pedido?.direccion),
+  );
+
+  rejillaEnvio.className = "detalle-pedido-datos detalle-pedido-datos--envio";
+  datoDireccion.classList.add("detalle-pedido-dato--ancho");
+  rejillaEnvio.appendChild(datoDireccion);
+  rejillaEnvio.appendChild(
+    crearDatoDetalle("Código postal", obtenerTextoDetalle(pedido?.cp)),
+  );
+  rejillaEnvio.appendChild(
+    crearDatoDetalle("Ciudad", obtenerTextoDetalle(pedido?.ciudad)),
+  );
+  rejillaEnvio.appendChild(
+    crearDatoDetalle("Provincia", obtenerTextoDetalle(pedido?.provincia)),
+  );
+  rejillaEnvio.appendChild(
+    crearDatoDetalle("País", obtenerTextoDetalle(pedido?.pais)),
+  );
+  envio.contenido.appendChild(rejillaEnvio);
+
+  const productos = crearSeccionDetalle(
+    "Productos del pedido",
+    "detalle-pedido-seccion--productos",
+  );
+  const listaProductos = document.createElement("div");
+  const items = Array.isArray(pedido?.items) ? pedido.items : [];
+
+  listaProductos.className = "detalle-productos-lista";
+  listaProductos.setAttribute("role", "list");
+
+  if (items.length === 0) {
+    const mensaje = document.createElement("p");
+
+    mensaje.className = "detalle-productos-vacio";
+    mensaje.textContent = "Este pedido no contiene productos disponibles.";
+    listaProductos.appendChild(mensaje);
+  } else {
+    items.forEach((item) => {
+      const producto = document.createElement("article");
+      const cabeceraProducto = document.createElement("div");
+      const nombreProducto = document.createElement("h5");
+      const subtotalLinea = document.createElement("strong");
+      const datosProducto = document.createElement("dl");
+
+      producto.className = "detalle-producto";
+      producto.setAttribute("role", "listitem");
+      cabeceraProducto.className = "detalle-producto-cabecera";
+      nombreProducto.textContent = obtenerTextoDetalle(item?.nombreProducto);
+      subtotalLinea.textContent = formatearImporteDetalle(item?.subtotalLinea);
+      datosProducto.className = "detalle-producto-datos";
+
+      datosProducto.appendChild(
+        crearDatoDetalle("Talla", obtenerTextoDetalle(item?.talla)),
+      );
+      datosProducto.appendChild(
+        crearDatoDetalle("Color", obtenerTextoDetalle(item?.color)),
+      );
+      datosProducto.appendChild(
+        crearDatoDetalle("Cantidad", obtenerTextoDetalle(item?.cantidad)),
+      );
+      datosProducto.appendChild(
+        crearDatoDetalle(
+          "Precio unitario",
+          formatearImporteDetalle(item?.precioUnitario),
+        ),
+      );
+
+      cabeceraProducto.appendChild(nombreProducto);
+      cabeceraProducto.appendChild(subtotalLinea);
+      producto.appendChild(cabeceraProducto);
+      producto.appendChild(datosProducto);
+      listaProductos.appendChild(producto);
+    });
+  }
+
+  productos.contenido.appendChild(listaProductos);
+
+  const resumen = crearSeccionDetalle(
+    "Resumen económico",
+    "detalle-pedido-seccion--resumen",
+  );
+  const resumenImportes = document.createElement("dl");
+
+  resumenImportes.className = "detalle-pedido-resumen";
+  resumenImportes.appendChild(
+    crearDatoDetalle("Subtotal", formatearImporteDetalle(pedido?.subtotal)),
+  );
+  resumenImportes.appendChild(
+    crearDatoDetalle("IVA", formatearImporteDetalle(pedido?.iva)),
+  );
+  resumenImportes.appendChild(
+    crearDatoDetalle(
+      "Gastos de envío",
+      formatearImporteDetalle(pedido?.envio),
+    ),
+  );
+
+  const total = crearDatoDetalle(
+    "Total",
+    formatearImporteDetalle(pedido?.total),
+  );
+
+  total.classList.add("detalle-pedido-total");
+  resumenImportes.appendChild(total);
+  resumen.contenido.appendChild(resumenImportes);
+
+  detallePedidoContenido.appendChild(datosPrincipales.seccion);
+  detallePedidoContenido.appendChild(envio.seccion);
+  detallePedidoContenido.appendChild(productos.seccion);
+  detallePedidoContenido.appendChild(resumen.seccion);
+
+  detallePedidoContenedor.classList.remove("oculto");
+  detallePedidoContenedor.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+}
+
+if (btnCerrarDetallePedido) {
+  btnCerrarDetallePedido.addEventListener("click", () => {
+    if (!detallePedidoContenedor) {
+      return;
+    }
+
+    detallePedidoContenedor.classList.add("oculto");
+  });
 }
 
 function renderizarHistorialPedido(historial, idPedido) {

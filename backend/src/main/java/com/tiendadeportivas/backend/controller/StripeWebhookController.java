@@ -66,14 +66,20 @@ public class StripeWebhookController {
                 }
 
                 String idPedido = session
-                        .getMetadata()
-                        .get("idPedido");
+                                .getMetadata()
+                                .get("idPedido");
 
                 String stripeSessionId = session.getId();
+                String paymentStatus = session.getPaymentStatus();
+                Long amountTotal = session.getAmountTotal();
+                String currency = session.getCurrency();
 
                 pedidoService.confirmarPagoStripe(
-                        stripeSessionId,
-                        idPedido);
+                                stripeSessionId,
+                                idPedido,
+                                paymentStatus,
+                                amountTotal,
+                                currency);
 
                 System.out.println(
                         "Pago confirmado correctamente: "

@@ -12,6 +12,7 @@ const confirmacionSection = document.getElementById("checkout-confirmacion");
 const confirmIdEl = document.getElementById("confirm-id");
 const btnConfirmVolver = document.getElementById("confirm-volver");
 let idempotencyKeyPedido = null;
+const CHECKOUT_INTENTO_STORAGE_KEY = "urbanSneakersCheckoutAttempt";
 
 // Oculta el catálogo durante el checkout.
 function bloquearNavegacionCheckout() {
@@ -319,6 +320,100 @@ function validarFormularioCheckout() {
   return true;
 }
 
+// Construye una huella estable del intento actual de compra.
+function construirFingerprintPedido(pedidoRequest) {
+
+  const carritoNormalizado = [...carrito]
+    .map((item) => ({
+      productoId: item.id,
+      talla: item.talla ?? null,
+      color: item.color ?? null,
+      cantidad: item.cantidad,
+    }))
+    .sort((a, b) => {
+
+      const claveA =
+        `${a.productoId}|${a.talla ?? ""}|${a.color ?? ""}`;
+
+      const claveB =
+        `${b.productoId}|${b.talla ?? ""}|${b.color ?? ""}`;
+
+      return claveA.localeCompare(claveB);
+    });
+
+  const intento = {
+    pedido: {
+      nombre: pedidoRequest.nombre,
+      apellidos: pedidoRequest.apellidos,
+      email: pedidoRequest.email,
+      telefono: pedidoRequest.telefono,
+      direccion: pedidoRequest.direccion,
+      ciudad: pedidoRequest.ciudad,
+      provincia: pedidoRequest.provincia,
+      cp: pedidoRequest.cp,
+      pais: pedidoRequest.pais,
+    },
+
+    carrito: carritoNormalizado,
+  };
+
+  return JSON.stringify(intento);
+}
+
+// Recupera la clave del mismo intento o crea una nueva para otra compra.
+function obtenerIdempotencyKeyPedido(fingerprintActual) {
+
+  let intentoGuardado = null;
+
+  try {
+
+    const intentoSerializado = sessionStorage.getItem(
+      CHECKOUT_INTENTO_STORAGE_KEY,
+    );
+
+    if (intentoSerializado) {
+      intentoGuardado = JSON.parse(intentoSerializado);
+    }
+
+  } catch (error) {
+
+    console.warn(
+      "No se pudo recuperar el intento de checkout guardado:",
+      error,
+    );
+
+    sessionStorage.removeItem(
+      CHECKOUT_INTENTO_STORAGE_KEY,
+    );
+  }
+
+  if (
+    intentoGuardado &&
+    intentoGuardado.idempotencyKey &&
+    intentoGuardado.fingerprint === fingerprintActual
+  ) {
+
+    idempotencyKeyPedido =
+      intentoGuardado.idempotencyKey;
+
+    return idempotencyKeyPedido;
+  }
+
+  idempotencyKeyPedido = crypto.randomUUID();
+
+  const nuevoIntento = {
+    idempotencyKey: idempotencyKeyPedido,
+    fingerprint: fingerprintActual,
+  };
+
+  sessionStorage.setItem(
+    CHECKOUT_INTENTO_STORAGE_KEY,
+    JSON.stringify(nuevoIntento),
+  );
+
+  return idempotencyKeyPedido;
+}
+
 // Solicita la URL de pago de un pedido.
 async function crearCheckoutStripe(idPedido) {
 
@@ -357,10 +452,6 @@ if (formularioCheckout) {
     e.preventDefault();
     if (!validarFormularioCheckout()) return;
 
-    if (!idempotencyKeyPedido) {
-      idempotencyKeyPedido = crypto.randomUUID();
-    }
-
     const pedidoRequest = {
       nombre: document.getElementById("nombre-c")?.value.trim(),
 
@@ -383,12 +474,16 @@ if (formularioCheckout) {
       aceptaTerminos: document.getElementById("acepto-terminos")?.checked,
     };
 
+    const fingerprintActual = construirFingerprintPedido(pedidoRequest);
+
+    const idempotencyKeyActual = obtenerIdempotencyKeyPedido(fingerprintActual);
+
     try {
       const respuesta = await fetchConCsrf(`${API_URL}/pedido`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Idempotency-Key": idempotencyKeyPedido,
+          "Idempotency-Key": idempotencyKeyActual,
         },
 
         body: JSON.stringify(pedidoRequest),
