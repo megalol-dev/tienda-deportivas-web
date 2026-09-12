@@ -10,7 +10,7 @@
 
 UrbanSneakers reproduce el ciclo principal de una tienda online: descubrimiento de producto, selección de variantes, carrito, identificación del cliente, captura de la dirección de envío, pago externo seguro, preparación del pedido y descarga de factura.
 
-El proyecto está construido sin un framework de frontend para mostrar el dominio de JavaScript y de la comunicación HTTP, mientras que el backend concentra la seguridad, las reglas de negocio y la persistencia. El resultado es una aplicación modular, con responsabilidades separadas y preparada para evolucionar hacia un despliegue real.
+El proyecto está construido sin un framework de frontend para mostrar el dominio de JavaScript y de la comunicación HTTP, mientras que el backend concentra la seguridad, las reglas de negocio y la persistencia. Sus bloques de seguridad, Stripe/pagos y pedidos/transacciones/concurrencia han sido revisados y validados de forma independiente; la hoja de ruta global continúa con áreas como stock, testing automatizado y despliegue.
 
 ## Índice
 
@@ -105,9 +105,11 @@ Las rutas de las siguientes capturas ya están preparadas. Al guardar las imáge
 | Fuente de precios | El backend recupera el producto y calcula los importes; no confía en el precio enviado por el navegador. |
 | IVA | 21 % calculado con `BigDecimal`. |
 | Envío | Gratuito desde 100 € de subtotal; 4,99 € en pedidos inferiores. |
-| Identificador público | Código con formato `PED-XXXXXXXX`, independiente del identificador interno de base de datos. |
+| Identificador público | Código con formato `PED-` seguido de un UUID completo, independiente de la clave primaria interna. |
 | Estado inicial | Pedido y pago se crean como `PENDIENTE`. |
-| Procesamiento actual de Stripe | El webhook firmado procesa `checkout.session.completed` y actualiza el pago a `PAGADO` y el pedido a `PREPARANDO`; las validaciones adicionales del pago siguen pendientes en el Bloque 2. |
+| Creación idempotente | `Idempotency-Key`, fingerprint calculado por el backend y unicidad por usuario evitan que un reintento cree pedidos distintos o reutilice una key para otra solicitud. |
+| Concurrencia | Un bloqueo pesimista serializa la creación por usuario y `@Version` evita sobrescrituras silenciosas en la gestión administrativa. |
+| Procesamiento de Stripe | El webhook firmado valida sesión, estado de pago, importe y moneda antes de actualizar el pago a `PAGADO` y el pedido a `PREPARANDO`. |
 | Factura | Se crea tras confirmar el pago y se genera en PDF bajo demanda. |
 | Conservación histórica | Cada línea del pedido guarda una copia del nombre, talla, color, cantidad y precio de compra. |
 
@@ -165,11 +167,12 @@ flowchart LR
 │   └── tienda.html
 ├── docs/
 │   ├── seguridad.md
-│   └── stripe-pagos.md
+│   ├── stripe-pagos.md
+│   └── pedidos-transacciones-concurrencia.md
 └── imgReadme/
 ```
 
-La carpeta `docs/` reúne la documentación técnica utilizada durante el proceso de validación y profesionalización de UrbanSneakers. Incluye el [Bloque 1 — Seguridad inmediata](docs/seguridad.md), ya cerrado, y el [Bloque 2 — Stripe y pagos](docs/stripe-pagos.md), actualmente en progreso con sus dos primeros puntos validados. Los documentos se ampliarán a medida que los siguientes puntos técnicos sean implementados, probados y auditados.
+La carpeta `docs/` reúne la documentación técnica utilizada durante el proceso de validación y profesionalización de UrbanSneakers. Actualmente contiene el [Bloque 1 — Seguridad inmediata](docs/seguridad.md), el [Bloque 2 — Stripe y pagos](docs/stripe-pagos.md) y el [Bloque 3 — Pedidos, transacciones y concurrencia](docs/pedidos-transacciones-concurrencia.md), todos cerrados y validados dentro de su alcance. Se incorporarán documentos adicionales a medida que los siguientes bloques técnicos sean implementados, probados y auditados.
 
 ## Flujo de compra y pago
 
@@ -185,20 +188,20 @@ sequenceDiagram
     Web->>API: Añade el producto al carrito
     API->>DB: Persiste el carrito del usuario
     Cliente->>Web: Completa dirección y confirma
-    Web->>API: Crea el pedido
-    API->>DB: Recalcula importes y guarda el pedido pendiente
+    Web->>API: Crea el pedido con Idempotency-Key
+    API->>DB: Valida fingerprint, recalcula importes y guarda pedido y líneas
     Web->>API: Solicita el checkout del pedido
     API->>Stripe: Crea o reutiliza una sesión del pedido validado
     Stripe-->>Web: Redirección a Stripe Checkout
     Cliente->>Stripe: Autoriza el pago
     Stripe->>API: checkout.session.completed + firma
-    API->>DB: Procesa el evento y actualiza el pedido
+    API->>DB: Valida el pago, actualiza estados, factura y vacía el carrito
     Stripe-->>Web: Regresa a la tienda
 ```
 
-El Checkout solo puede iniciarse para un `Pedido` persistido. Si ya existe una sesión `OPEN`, se reutiliza; una sesión `COMPLETE` bloquea una nueva creación y una sesión `EXPIRED` permite un reintento controlado. Las creaciones utilizan claves idempotentes deterministas por pedido e intento para que solicitudes concurrentes equivalentes se resuelvan sobre la misma operación de Stripe.
+La creación del pedido y la creación de Stripe Checkout aplican mecanismos idempotentes distintos. En `POST /pedido`, el backend asocia la `Idempotency-Key` al usuario y a un fingerprint SHA-256 de la intención de compra; un reintento idéntico devuelve el mismo pedido y un uso incompatible responde con conflicto. Después, Checkout solo puede iniciarse para ese pedido persistido. Si ya existe una sesión `OPEN`, se reutiliza; una sesión `COMPLETE` bloquea una nueva creación y una sesión `EXPIRED` permite un reintento controlado. Stripe recibe además una clave idempotente determinista por pedido e intento.
 
-La redirección del navegador no modifica por sí sola el estado del pedido. El backend recibe el evento de Stripe mediante un webhook cuya firma se valida antes de procesarlo y comprueba que la sesión coincida con la almacenada. La validación completa del resultado económico y el endurecimiento integral de idempotencia y concurrencia del webhook continúan pendientes dentro del Bloque 2. El alcance validado y sus límites se detallan en [docs/stripe-pagos.md](docs/stripe-pagos.md).
+La redirección del navegador no demuestra por sí sola que el pago se haya completado. La fuente de verdad es el webhook: el backend valida su firma y comprueba el estado pagado, la sesión asociada, el importe total, la moneda y la transición permitida antes de persistir los efectos. La transacción agrupa estados, historial, factura y un único vaciado del carrito. El alcance y los límites de pagos se detallan en [docs/stripe-pagos.md](docs/stripe-pagos.md); las garantías del pedido se documentan en [docs/pedidos-transacciones-concurrencia.md](docs/pedidos-transacciones-concurrencia.md).
 
 ## Modelo de datos
 
@@ -214,10 +217,11 @@ erDiagram
     USUARIO ||--o{ HISTORIAL_PEDIDO : ejecuta
 ```
 
-- `CarritoItem` referencia el producto actual y evita duplicar una misma combinación de carrito, producto, talla y color.
+- `CarritoItem` representa una variante concreta del producto dentro del carrito mediante talla, color y cantidad.
 - `PedidoItem` funciona como una instantánea: protege la integridad histórica aunque después cambie el catálogo.
 - `Factura` mantiene una relación única con el pedido.
-- `HistorialPedido` registra estado anterior, estado nuevo, fecha y usuario responsable.
+- `Pedido` separa la clave primaria del identificador público, incorpora versión para concurrencia optimista y conserva la key y el fingerprint de idempotencia.
+- `HistorialPedido` registra estado anterior, estado nuevo, fecha, actor y origen, diferenciando acciones humanas de procesos automáticos.
 - Los importes monetarios se almacenan con precisión decimal, evitando los errores propios de `float` o `double`.
 
 ## Decisiones técnicas
@@ -232,11 +236,15 @@ Para una aplicación web del mismo dominio funcional se eligió una sesión admi
 
 ### Checkout alojado y webhook firmado
 
-Los datos sensibles de tarjeta se introducen en Stripe Checkout y no atraviesan la aplicación. El backend recibe los eventos mediante un webhook y verifica su firma con `STRIPE_WEBHOOK_SECRET`; las validaciones adicionales del pago pertenecen a los puntos pendientes del Bloque 2.
+Los datos sensibles de tarjeta se introducen en Stripe Checkout y no atraviesan la aplicación. El backend recibe los eventos mediante un webhook, verifica su firma con `STRIPE_WEBHOOK_SECRET` y contrasta los datos económicos y la sesión con el pedido persistido antes de aplicar efectos.
 
 ### Checkout vinculado al pedido
 
 La aplicación conserva un único camino para iniciar pagos: `POST /api/stripe/checkout/pedido`. El controller valida el propietario y el estado del pedido, recupera la sesión previa cuando existe y aplica una clave idempotente al crear una nueva. Los antiguos Checkouts directos desde parámetros o desde el carrito fueron eliminados para evitar pagos sin un pedido reconciliable.
+
+### Idempotencia y concurrencia de pedidos
+
+`POST /pedido` exige una `Idempotency-Key` y el backend calcula un fingerprint canónico de los datos de envío y del carrito. La combinación única `(usuario_id, idempotency_key)`, el bloqueo pesimista del usuario y la transacción hacen que solicitudes simultáneas equivalentes converjan en un solo pedido. Si la misma key intenta representar otra dirección o carrito, la API responde con `409 Conflict`. En el panel, la versión recibida por el cliente administrativo debe coincidir con la actual para evitar actualizaciones perdidas.
 
 ### Carrito persistente
 
@@ -272,11 +280,11 @@ Las claves de Stripe se inyectan mediante variables de entorno. La configuració
 | `AuthController` | Registro, login, consulta del usuario autenticado, entrega del token CSRF y logout. |
 | `ProductoController` | Expone el catálogo público de productos activos. |
 | `CarritoController` | Consulta, alta, eliminación y vaciado de líneas del carrito autenticado. |
-| `PedidoController` | Calcula el resumen y crea pedidos para el cliente conectado. |
+| `PedidoController` | Calcula el resumen y crea pedidos idempotentes para el cliente conectado, exigiendo y validando `Idempotency-Key`. |
 | `ClienteController` | Gestiona el perfil, pedidos propios y descarga segura de facturas. |
 | `StripeController` | Expone exclusivamente el Checkout basado en un pedido persistido, con control de estado, reutilización e idempotencia de creación. |
-| `StripeWebhookController` | Recibe eventos de Stripe, verifica su firma y coordina la confirmación de pagos. |
-| `AdminPedidoController` | Lista pedidos y permite actualizar su estado desde el panel interno. |
+| `StripeWebhookController` | Recibe eventos de Stripe, verifica su firma y coordina la confirmación transaccional de pagos. |
+| `AdminPedidoController` | Lista pedidos, expone su detalle e historial y actualiza estados con control de versión. |
 | `AdminProductoController` | Gestiona el alta y la edición del catálogo. |
 | `AdminUsuarioController` | Gestiona las cuentas y roles del personal autorizado. |
 | `AdminPerfilController` | Gestiona el nombre, email y contraseña propios del personal autenticado. |
@@ -289,7 +297,7 @@ Las claves de Stripe se inyectan mediante variables de entorno. La configuració
 | `UsuarioService` | Registro y mantenimiento de clientes y empleados, validación de credenciales y reglas de roles. |
 | `ProductoService` | Consulta, creación, edición y validación de productos. |
 | `CarritoService` | Crea o recupera el carrito, consolida variantes y controla sus líneas. |
-| `PedidoService` | Construye pedidos, calcula importes, consulta pedidos y registra cambios de estado. |
+| `PedidoService` | Construye pedidos idempotentes, calcula importes, controla transacciones y concurrencia, confirma pagos y registra el historial. |
 | `StripeService` | Recupera sesiones existentes y construye Stripe Checkout exclusivamente desde pedidos validados. |
 | `FacturaService` | Crea numeraciones de factura, comprueba la propiedad del pedido y coordina la descarga. |
 | `FacturaPdfService` | Compone el documento PDF con datos del cliente, líneas e importes. |
@@ -303,20 +311,20 @@ Los repositorios `UsuarioRepository`, `ProductoRepository`, `CarritoRepository`,
 | Clase | Responsabilidad |
 |---|---|
 | `CustomUserDetailsService` | Busca al usuario por correo y lo adapta al modelo de autenticación de Spring Security. |
-| `GlobalExceptionHandler` | Convierte errores de seguridad, negocio y validación en respuestas HTTP coherentes. |
+| `GlobalExceptionHandler` | Convierte errores de seguridad, negocio, validación, idempotencia y concurrencia en respuestas HTTP coherentes. |
 
 ### Entidades, enumeraciones y DTO
 
 | Grupo | Clases |
 |---|---|
 | Entidades JPA | `Usuario`, `Producto`, `Carrito`, `CarritoItem`, `Pedido`, `PedidoItem`, `Factura`, `HistorialPedido`. |
-| Estados y roles | `RolUsuario`, `EstadoPedido`, `EstadoPago`. |
+| Estados, roles y trazabilidad | `RolUsuario`, `EstadoPedido`, `EstadoPago`, `TipoActorHistorial`, `OrigenCambioPedido`. |
 | Entrada de autenticación | `RegistroUsuarioRequest`, `LoginRequest`. |
 | Entrada de cliente | `ActualizarNombreClienteRequest`, `ActualizarEmailClienteRequest`, `ActualizarPasswordClienteRequest`. |
 | Entrada de personal | `ActualizarEmailPersonalRequest`, `ActualizarPasswordPersonalRequest`. |
 | Entrada de compra | `CarritoItemRequest`, `PedidoRequest`. |
 | Entrada de administración | `ProductoRequest`, `CambioEstadoPedidoRequest`, `CrearEmpleadoRequest`, `ActualizarEmpleadoRequest`. |
-| Respuestas | `UsuarioRespuesta`, `EmpleadoRespuesta`, `CarritoItemRespuesta`, `PedidoResumen`, `PedidoAdminResumen`, `CambioEstadoPedidoRespuesta`, `PedidoClienteRespuesta`, `PedidoItemClienteRespuesta`. |
+| Respuestas | `UsuarioRespuesta`, `EmpleadoRespuesta`, `CarritoItemRespuesta`, `PedidoResumen`, `PedidoAdminResumen`, `PedidoAdminDetalle`, `PedidoItemAdminDetalle`, `CambioEstadoPedidoRespuesta`, `HistorialPedidoRespuesta`, `PedidoClienteRespuesta`, `PedidoItemClienteRespuesta`. |
 | Apoyo | `Saludo`, usado por el endpoint básico de verificación. |
 
 ## Frontend
@@ -329,7 +337,7 @@ El frontend utiliza módulos JavaScript por responsabilidad y una API común:
 | `frontend/js/api.js` | URL base, peticiones con credenciales y gestión del token CSRF. |
 | `frontend/js/catalogo.js` y `productos.js` | Carga, filtrado y presentación de productos y variantes. |
 | `frontend/js/carrito.js` | Estado visual del carrito y sincronización con el backend. |
-| `frontend/js/checkout.js` | Validación, creación de pedido e inicio del pago. |
+| `frontend/js/checkout.js` | Validación, ciclo UX de la `Idempotency-Key`, creación del pedido e inicio del pago. |
 | `frontend/js/usuario.js` | Estado de sesión y adaptación de la interfaz al usuario. |
 | `frontend/usuario/` | Registro, login, perfil, pedidos y facturas. |
 | `frontend/panel/` | Gestión interna de pedidos, productos y empleados. |
@@ -352,7 +360,7 @@ Resumen de los principales endpoints:
 | `DELETE` | `/carrito` | Cliente | Eliminar una variante. |
 | `DELETE` | `/carrito/todo` | Cliente | Vaciar el carrito. |
 | `GET` | `/pedido/resumen` | Cliente | Obtener totales calculados por el servidor. |
-| `POST` | `/pedido` | Cliente | Validar el checkout y crear el pedido. |
+| `POST` | `/pedido` | Cliente | Validar el checkout y crear o recuperar idempotentemente el pedido. |
 | `POST` | `/api/stripe/checkout/pedido` | Cliente | Crear la sesión de pago del pedido. |
 | `POST` | `/api/stripe/webhook` | Stripe/firma | Confirmar eventos de pago. |
 | `GET` | `/cliente/perfil/pedidos` | Cliente | Consultar los pedidos propios. |
@@ -364,6 +372,8 @@ Resumen de los principales endpoints:
 | `PUT` | `/admin/mi-cuenta/email` | Personal | Actualizar el email propio y cerrar la sesión. |
 | `PUT` | `/admin/mi-password` | Personal | Cambiar la contraseña propia. |
 | `GET` | `/admin/pedidos` | Personal | Listar pedidos. |
+| `GET` | `/admin/pedidos/{id}` | Personal | Consultar el detalle del pedido. |
+| `GET` | `/admin/pedidos/{id}/historial` | Personal | Consultar la trazabilidad de estados. |
 | `PATCH` | `/admin/pedidos/{id}/estado` | Personal | Cambiar el estado del pedido. |
 | `GET/POST` | `/admin/productos` | Personal | Listar o crear productos. |
 | `PUT` | `/admin/productos/{id}` | Personal | Editar un producto. |
@@ -420,7 +430,7 @@ flowchart TD
 
 Los cambios propios del personal solo aceptan nombre, email y contraseña; el rol y el estado no forman parte de esos DTOs. El cambio administrativo de rol o la desactivación de otra cuenta provoca la expiración de sus sesiones registradas.
 
-La documentación detallada de las medidas, pruebas manuales y dos auditorías del primer bloque se encuentra en [docs/seguridad.md](docs/seguridad.md).
+La documentación detallada de las medidas, pruebas manuales y auditorías se encuentra en [docs/seguridad.md](docs/seguridad.md), [docs/stripe-pagos.md](docs/stripe-pagos.md) y [docs/pedidos-transacciones-concurrencia.md](docs/pedidos-transacciones-concurrencia.md).
 
 > La configuración incluida está pensada para desarrollo local. En producción, la cookie debe usar `Secure`, los orígenes CORS deben restringirse al dominio definitivo y toda la aplicación debe servirse mediante HTTPS.
 
@@ -517,11 +527,13 @@ Además del test automatizado, el flujo completo puede validarse manualmente en 
 2. Añadir variantes al carrito y comprobar su persistencia.
 3. Crear un pedido y abrir Stripe Checkout.
 4. Completar un pago de prueba y verificar la recepción del webhook.
-5. Confirmar el cambio observado a `PAGADO`/`PREPARANDO` y revisar el comportamiento actual del carrito.
+5. Confirmar el cambio observado a `PAGADO`/`PREPARANDO`, la factura y el vaciado del carrito.
 6. Descargar la factura desde el perfil.
 7. Acceder con personal autorizado y gestionar pedidos, productos y empleados según el rol.
 
 Durante la validación del Bloque 2 también se comprobaron dos solicitudes concurrentes de Checkout sobre el mismo pedido, que devolvieron la misma sesión de Stripe, y el bloqueo con `403 Forbidden` de los dos endpoints legacy eliminados. El detalle y los límites de estas pruebas están documentados en [docs/stripe-pagos.md](docs/stripe-pagos.md).
+
+El Bloque 3 añadió pruebas dirigidas de idempotencia y concurrencia: reintentos idénticos, reutilización incompatible de una key, aislamiento entre usuarios, creación simultánea, carrito vacío posterior al pago y pedidos legacy sin fingerprint. Los escenarios y resultados se recogen en [docs/pedidos-transacciones-concurrencia.md](docs/pedidos-transacciones-concurrencia.md).
 
 La cobertura automatizada es deliberadamente un área de mejora; no se presenta como una suite completa.
 
@@ -531,6 +543,7 @@ La cobertura automatizada es deliberadamente un área de mejora; no se presenta 
 - Modelado de un dominio de comercio electrónico y sus relaciones.
 - Implementación de autenticación, autorización, CSRF y gestión segura de sesión.
 - Integración de Stripe Checkout asociada a pedidos persistidos y procesamiento asíncrono mediante webhook firmado.
+- Creación idempotente de pedidos, control de concurrencia y límites transaccionales orientados a preservar consistencia.
 - Manejo de dinero con precisión decimal y preservación del histórico comercial.
 - Construcción de una API REST consumida por JavaScript sin framework.
 - Persistencia relacional, validación de entradas, generación de PDF y panel basado en roles.

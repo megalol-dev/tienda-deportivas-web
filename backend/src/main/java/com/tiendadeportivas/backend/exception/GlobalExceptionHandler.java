@@ -73,6 +73,20 @@ public class GlobalExceptionHandler {
                             .body(respuesta);
     }
 
+    // Devuelve conflicto cuando una Idempotency-Key ya pertenece
+    // a una solicitud lógica diferente.
+    @ExceptionHandler(ConflictoIdempotenciaException.class)
+    public ResponseEntity<Map<String, String>> manejarConflictoIdempotencia(
+                    ConflictoIdempotenciaException ex) {
+
+            Map<String, String> respuesta = new HashMap<>();
+            respuesta.put("error", ex.getMessage());
+
+            return ResponseEntity
+                            .status(HttpStatus.CONFLICT)
+                            .body(respuesta);
+    }
+
     // Devuelve conflicto cuando Hibernate detecta una actualización concurrente.
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     public ResponseEntity<Map<String, String>> manejarOptimisticLock(

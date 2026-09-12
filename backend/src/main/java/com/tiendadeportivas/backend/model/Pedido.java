@@ -6,9 +6,15 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "pedidos")
+@Table(name = "pedidos", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_pedidos_usuario_idempotency_key", columnNames = {
+                "usuario_id",
+                "idempotency_key"
+        })
+})
 public class Pedido {
 
     @Id
@@ -57,6 +63,9 @@ public class Pedido {
 
     @Column(name = "idempotency_key", length = 36)
     private String idempotencyKey;
+
+    @Column(name = "idempotency_fingerprint", length = 64)
+    private String idempotencyFingerprint;
 
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PedidoItem> items = new ArrayList<>();
@@ -267,6 +276,16 @@ public class Pedido {
     // Actualiza la clave de idempotencia usada para crear el pedido.
     public void setIdempotencyKey(String idempotencyKey) {
         this.idempotencyKey = idempotencyKey;
+    }
+
+    // Devuelve la huella de la solicitud asociada a la clave de idempotencia.
+    public String getIdempotencyFingerprint() {
+        return idempotencyFingerprint;
+    }
+
+    // Actualiza la huella de la solicitud asociada a la clave de idempotencia.
+    public void setIdempotencyFingerprint(String idempotencyFingerprint) {
+        this.idempotencyFingerprint = idempotencyFingerprint;
     }
 
     // Devuelve el valor de items.

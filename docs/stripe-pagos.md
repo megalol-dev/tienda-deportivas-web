@@ -2,31 +2,27 @@
 
 ## 1. Objetivo del bloque
 
-Stripe y los pagos se revisan como un bloque independiente porque combinan estado local, una operación externa y confirmaciones asíncronas. Una Checkout Session puede existir en Stripe antes de que su identificador quede persistido en MariaDB, y la redirección del navegador no garantiza por sí sola que el pedido haya sido pagado.
+Stripe y los pagos se revisaron como un bloque independiente porque combinan estado local, una operación externa y una confirmación asíncrona. Una Checkout Session puede existir en Stripe antes de que su identificador quede persistido en MariaDB, y la URL de retorno del navegador no demuestra por sí sola que el pedido haya sido pagado.
 
-El **Bloque 2 — Stripe y pagos** tiene como objetivo consolidar un único flujo de cobro basado en pedidos persistidos, reducir duplicados y preparar la confirmación posterior para que sea consistente, verificable y mantenible.
+El **Bloque 2 — Stripe y pagos** tuvo como objetivo consolidar un único flujo de cobro basado en pedidos persistidos, reducir sesiones duplicadas y hacer que la confirmación recibida por webhook sea verificable y consistente con la información económica guardada por UrbanSneakers.
 
-Este documento registra las decisiones, pruebas y auditorías del bloque. Se ampliará conforme se implementen y validen los siguientes puntos.
+## 2. Alcance y estado
 
-## 2. Alcance y estado actual
+**Estado del Bloque 2: TERMINADO Y VALIDADO para el alcance trabajado.**
 
-**Estado del Bloque 2: EN PROGRESO.**
+| Área | Estado |
+|---|---|
+| Evitar Checkout duplicado | **VALIDADO** |
+| Eliminar endpoints legacy | **VALIDADO** |
+| Validar la confirmación económica | **VALIDADO** |
+| Procesar reenvíos sin repetir efectos | **VALIDADO mediante el estado persistido** |
+| Aplicar factura y vaciado del carrito dentro de la operación confirmada | **VALIDADO** |
 
-| Punto | Objetivo | Estado |
-|---|---|---|
-| 1 | Cerrar duplicados de Checkout/pagos | **VALIDADO** |
-| 2 | Eliminar endpoints Stripe antiguos | **VALIDADO** |
-| 3 | Validar que el pago esté realmente confirmado | **PENDIENTE** |
-| 4 | Blindar webhook e idempotencia | **PENDIENTE** |
-| 5 | Corregir el vaciado del carrito | **PENDIENTE** |
-| 6 | Confirmar el éxito consultando al backend | **PENDIENTE** |
-| 7 | Limpiar efectos secundarios y casos menores | **PENDIENTE** |
+Esta validación no significa que toda posible evolución de pagos esté terminada. UrbanSneakers no mantiene actualmente un registro independiente por `event.id` de Stripe y el frontend no consulta al backend para convertir la URL de retorno en una confirmación adicional. Esas posibilidades quedan fuera del alcance cerrado y no se presentan como funcionalidades actuales.
 
-La validación de los Puntos 1 y 2 no implica que el bloque completo esté cerrado. En particular, todavía no se consideran resueltos `payment_status`, `amount_total`, `currency`, la persistencia de `event.id`, la concurrencia completa del webhook, el vaciado tardío del carrito, la confirmación frontend contra el backend ni los estados de pago adicionales.
+Las garantías transaccionales compartidas con pedidos, la concurrencia y la idempotencia de `POST /pedido` se documentan por separado en [pedidos-transacciones-concurrencia.md](pedidos-transacciones-concurrencia.md).
 
-## 3. Arquitectura actual del flujo de pago
-
-El pago parte siempre de un pedido persistido. El carrito no crea directamente una Checkout Session.
+## 3. Arquitectura del flujo actual
 
 ```mermaid
 sequenceDiagram
@@ -36,362 +32,199 @@ sequenceDiagram
     participant DB as MariaDB
     participant S as Stripe
 
-    C->>F: Confirma datos de envío
-    F->>API: POST /pedido
-    API->>DB: Persiste Pedido PENDIENTE
-    DB-->>API: idPedido
-    API-->>F: Resumen con idPedido
+    C->>F: Confirma los datos de envío
+    F->>API: POST /pedido + Idempotency-Key
+    API->>DB: Crea o recupera el pedido pendiente
     F->>API: POST /api/stripe/checkout/pedido
-    API->>DB: Recupera Pedido y stripeSessionId
-    API->>S: Recupera o crea Checkout Session
-    S-->>API: Session ID y URL
-    API->>DB: Guarda stripeSessionId
-    API-->>F: URL de Stripe Checkout
-    F->>S: Redirige al cliente
-    C->>S: Completa el Checkout
-    S->>API: POST /api/stripe/webhook
-    API->>DB: Procesa el evento sobre el Pedido
+    API->>DB: Comprueba propietario, estado y sesión previa
+    API->>S: Crea o recupera Checkout con clave idempotente
+    S-->>F: URL de Stripe Checkout
+    C->>S: Autoriza el pago
+    S->>API: checkout.session.completed + Stripe-Signature
+    API->>DB: Valida y confirma pago, historial, factura y carrito
+    S-->>F: Redirección de retorno
 ```
 
 Las responsabilidades principales son:
 
-- `PedidoController` crea el pedido a partir del carrito autenticado.
-- `StripeController` valida el pedido y decide si debe reutilizar o crear una sesión.
-- `StripeService` recupera sesiones existentes y construye Checkout Sessions desde `Pedido`.
-- `PedidoService` valida el estado, persiste `stripeSessionId` y procesa los efectos internos del webhook.
-- `StripeWebhookController` verifica la firma del evento antes de delegar su procesamiento.
-- `frontend/js/checkout.js` crea primero el pedido y después solicita el Checkout mediante su `idPedido`.
+- `StripeController` expone el único inicio de Checkout permitido y opera sobre un pedido persistido del cliente autenticado;
+- `StripeService` construye las líneas desde los importes guardados por el backend y aplica la clave idempotente a la llamada real de Stripe;
+- `StripeWebhookController` verifica la firma, extrae la sesión del evento y entrega al dominio los datos que deben contrastarse;
+- `PedidoService` valida el pago contra el pedido y ejecuta sus efectos dentro de una transacción;
+- `FacturaService` crea la factura asociada al pedido confirmado;
+- `CarritoService` vacía el carrito únicamente después de una confirmación válida.
 
-## 4. Punto 1 — Prevención de Checkout duplicado
+## 4. Checkout vinculado a un pedido
 
-### 4.1 Problema original
-
-Un mismo pedido podía provocar varias Checkout Sessions independientes. El riesgo aparecía ante doble clic, reintentos, llamadas concurrentes o un fallo local después de que Stripe hubiera creado una sesión.
-
-El escenario problemático era:
-
-```text
-Pedido PENDIENTE
-    → Stripe crea sesión A
-    → otra solicitud crea sesión B
-    → MariaDB conserva solo B
-    → A continúa siendo válida en Stripe
-```
-
-Si el cliente pagaba A, UrbanSneakers podía esperar B. También existía la posibilidad de intentar iniciar otro Checkout para un pedido ya marcado como pagado.
-
-### 4.2 Validación del pedido
-
-`PedidoService.validarPedidoPuedeIniciarPago()` impide iniciar otro pago cuando `EstadoPago` ya es `PAGADO`.
-
-`StripeController` ejecuta esta validación antes de:
-
-- recuperar una sesión existente;
-- crear una nueva Checkout Session;
-- modificar `stripeSessionId`.
-
-El pedido se obtiene además mediante el identificador público y el usuario autenticado, por lo que el Checkout queda vinculado al propietario.
-
-### 4.3 Reutilización y estados de la sesión
-
-Cuando el pedido ya contiene `stripeSessionId`, el backend consulta la sesión real mediante `StripeService.obtenerSesionCheckout()` y aplica estas reglas:
-
-| Estado de Stripe | Comportamiento |
-|---|---|
-| `open` | Devuelve la misma Session ID y la misma URL; no crea otra sesión. |
-| `complete` | Bloquea una nueva creación porque Stripe ya completó ese Checkout. |
-| `expired` | Permite un nuevo intento controlado. |
-| Desconocido o nulo | Falla de forma cerrada y no crea otro Checkout. |
-| Error al consultar Stripe | Devuelve error; no genera una sesión alternativa. |
-
-La decisión de consultar Stripe evita asumir que el identificador almacenado representa necesariamente una sesión reutilizable.
-
-### 4.4 Idempotencia de creación
-
-`StripeService.crearSesionCheckoutPedido()` recibe una `idempotencyKey` y construye las opciones de la petición:
-
-```java
-RequestOptions requestOptions = RequestOptions.builder()
-        .setIdempotencyKey(idempotencyKey)
-        .build();
-
-return Session.create(
-        paramsBuilder.build(),
-        requestOptions);
-```
-
-Las claves representan intentos lógicos, no peticiones HTTP individuales.
-
-Primer intento del pedido:
-
-```text
-checkout-pedido-{idPedido}-inicial
-```
-
-Reintento después de una sesión expirada:
-
-```text
-checkout-pedido-{idPedido}-reintento-{stripeSessionIdAnterior}
-```
-
-Dos solicitudes concurrentes que parten del mismo estado generan la misma clave y solicitan a Stripe la misma operación lógica. Cuando una sesión expirada es sustituida y la nueva Session ID queda persistida, un futuro reintento construirá una clave diferente a partir de esa nueva referencia.
-
-La misma propiedad protege el caso en el que Stripe crea una sesión pero falla la persistencia local: si MariaDB conserva el estado anterior, el siguiente intento reconstruye la misma clave en lugar de solicitar deliberadamente una operación distinta.
-
-Esta garantía se limita a la creación de Checkout Sessions. No documenta como resuelta la idempotencia integral del webhook.
-
-### 4.5 Pruebas y resultado
-
-Durante el Punto 1 se realizaron estas comprobaciones manuales:
-
-- un pedido ya `PAGADO` rechazó otra solicitud de Checkout con `HTTP 400`;
-- dos solicitudes consecutivas sobre una sesión `OPEN` devolvieron la misma Session ID;
-- una sesión expirada permitió crear una nueva y MariaDB guardó su identificador;
-- dos solicitudes simultáneas desde un pedido con `stripeSessionId = NULL` devolvieron exactamente la misma Checkout Session;
-- MariaDB terminó conservando esa misma Session ID.
-
-Una auditoría inicial detectó que la reutilización de `OPEN` no cerraba por sí sola la carrera de dos creaciones iniciales. Tras incorporar la clave idempotente a `Session.create()`, se repitió la prueba concurrente y una auditoría final de solo lectura validó el punto.
-
-**Resultado oficial: PUNTO 1 VALIDADO.**
-
-## 5. Punto 2 — Eliminación de flujos Stripe legacy
-
-### 5.1 Problema original
-
-Existían dos endpoints capaces de iniciar Stripe Checkout fuera del flujo basado en `Pedido`:
-
-```text
-POST /api/stripe/checkout
-POST /api/stripe/checkout/carrito
-```
-
-El primero recibía nombre, precio y cantidad desde la petición. El segundo construía el Checkout directamente desde el carrito autenticado. Ninguno formaba parte del frontend actual ni conciliaba la sesión con un pedido persistido.
-
-Estos caminos podían producir pagos sin:
-
-- `Pedido` como fuente de verdad;
-- metadata `idPedido`;
-- `stripeSessionId` persistido y reconciliado;
-- reglas de estado `OPEN`, `COMPLETE` y `EXPIRED`;
-- idempotencia de creación;
-- integración coherente con el webhook actual.
-
-El endpoint que recibía el precio desde la petición añadía además un riesgo directo de manipulación del importe.
-
-### 5.2 Código eliminado
-
-De `StripeController` se eliminaron:
-
-- `crearCheckout()`;
-- `crearCheckoutCarrito()`;
-- la inyección de `CarritoService`;
-- los imports `List`, `CarritoItem` y `CarritoService`.
-
-De `StripeService` se eliminaron:
-
-- `crearSesionCheckout()`;
-- `crearSesionCheckoutCarrito()`;
-- `expirarSesionCheckout()`, helper residual sin callers;
-- los imports y dependencias utilizados exclusivamente por esos métodos.
-
-También desaparecieron las antiguas referencias a `pago-exito.html` y `pago-cancelado.html`.
-
-### 5.3 Camino conservado
-
-`StripeController` expone exclusivamente:
+La aplicación conserva una única ruta de creación:
 
 ```text
 POST /api/stripe/checkout/pedido
 ```
 
-`StripeService` conserva:
+El cliente no envía líneas ni precios a Stripe por su cuenta. El controller localiza el pedido mediante su identificador público, comprueba que pertenece al usuario autenticado y valida su estado antes de delegar en el servicio.
 
-- `obtenerSesionCheckout()`;
-- `crearSesionCheckoutPedido()`.
+Esta decisión evita iniciar un cobro que no pueda reconciliarse con una entidad `Pedido`. Los importes y las líneas proceden del snapshot persistido, no de valores económicos manipulables desde JavaScript.
 
-La búsqueda global confirmó una única llamada a `Session.create()`, dentro de `crearSesionCheckoutPedido()`. `checkout.js` utiliza exclusivamente el endpoint basado en pedido y `carrito.js` no llama directamente a Stripe.
+## 5. Prevención de Checkout duplicado
 
-### 5.4 Autorización fail-closed
+### 5.1 Problema original
 
-`SecurityConfig` sustituyó el matcher amplio de Checkout por la ruta exacta:
+Un doble clic, un reintento de red o dos solicitudes simultáneas podían intentar crear más de una Checkout Session para el mismo pedido. Comprobar únicamente si `stripeSessionId` estaba relleno no cerraba la ventana en la que Stripe ya había creado una sesión pero la aplicación todavía no la había guardado.
+
+### 5.2 Estrategia actual
+
+El flujo combina estado local y la idempotencia proporcionada por Stripe:
+
+1. si el pedido contiene una sesión previa, el backend la recupera desde Stripe;
+2. una sesión `OPEN` se reutiliza;
+3. una sesión `COMPLETE` impide iniciar otro cobro para el mismo intento;
+4. una sesión `EXPIRED` permite un reintento controlado;
+5. al crear la sesión se utiliza una clave determinista basada en el pedido y el intento;
+6. esa clave se entrega en `RequestOptions.setIdempotencyKey()` a `Session.create()`.
+
+La llamada idempotente a Stripe es la garantía decisiva ante dos creaciones iniciales concurrentes: solicitudes equivalentes convergen en la misma operación externa.
+
+### 5.3 Alcance de esta idempotencia
+
+La clave de Stripe Checkout no es la `Idempotency-Key` utilizada al crear el pedido. Son mecanismos diferentes:
+
+| Mecanismo | Protege |
+|---|---|
+| Idempotencia de `POST /pedido` | La creación local del pedido y la identidad lógica de la compra por usuario. |
+| Idempotencia de Stripe Checkout | La creación externa de la Checkout Session de un pedido e intento concretos. |
+
+No se utiliza el fingerprint del frontend como autoridad en ninguno de los controles económicos del pago.
+
+## 6. Eliminación de rutas legacy
+
+Los Checkouts antiguos que partían directamente de parámetros o del carrito se eliminaron. Mantenerlos habría permitido iniciar un cobro sin pasar por el mismo pedido persistido y habría duplicado las reglas de cálculo, propiedad y reconciliación.
+
+La política `anyRequest().denyAll()` de Spring Security hace que una ruta Stripe no declarada expresamente quede bloqueada. El único inicio de pago autorizado para un cliente es el endpoint basado en pedido; el webhook permanece público porque Stripe debe invocarlo externamente, pero exige firma válida.
+
+## 7. Verificación del webhook
+
+`StripeWebhookController` recibe el cuerpo sin transformar y el encabezado `Stripe-Signature`. Antes de interpretar el evento ejecuta:
 
 ```java
-.requestMatchers("/api/stripe/checkout/pedido")
-.hasRole("CLIENTE")
+Webhook.constructEvent(payload, signature, webhookSecret)
 ```
 
-La cadena conserva `anyRequest().denyAll()`. De este modo, una ruta Stripe nueva o antigua no obtiene acceso por compartir un prefijo: debe declararse expresamente.
+Una firma inválida impide continuar. Para `checkout.session.completed`, el controller obtiene de la sesión:
 
-El webhook mantiene su configuración independiente:
+- identificador de Stripe;
+- identificador público del pedido incluido en los metadatos;
+- `payment_status`;
+- `amount_total`;
+- `currency`.
 
-- `/api/stripe/webhook` es público porque Stripe lo invoca externamente;
-- está excluido de CSRF;
-- su autenticidad se comprueba mediante `Stripe-Signature`.
+El endpoint es público y está excluido de CSRF por necesidad técnica, pero eso no equivale a confiar en cualquier petición: la firma de Stripe es su control de autenticidad.
 
-### 5.5 Pruebas y resultado
+## 8. Validación de la confirmación económica
 
-Tras eliminar los flujos antiguos se completó manualmente una compra en Stripe Test Mode:
+`PedidoService.confirmarPagoStripe()` no acepta el nombre del evento como prueba suficiente. Antes de modificar el pedido valida:
+
+1. que el identificador de la sesión y el identificador público del pedido estén presentes;
+2. que `payment_status` sea `paid`;
+3. que `amount_total` sea válido;
+4. que la moneda sea EUR;
+5. que el pedido exista;
+6. que el importe recibido en céntimos coincida exactamente con el total persistido;
+7. que `stripeSessionId` coincida con la sesión guardada en el pedido;
+8. que, si todavía no estaba pagado, el pedido y el pago estén ambos en estado `PENDIENTE`.
+
+Solo después de estas comprobaciones se realiza la transición:
 
 ```text
-Cliente
-    → Carrito
-    → POST /pedido
-    → Pedido persistido
-    → POST /api/stripe/checkout/pedido
-    → Stripe Checkout
-    → webhook
-    → Pedido actualizado
+EstadoPago: PENDIENTE → PAGADO
+EstadoPedido: PENDIENTE → PREPARANDO
 ```
 
-Se observó:
+El backend vuelve a calcular la comparación desde el `BigDecimal` persistido y no confía en precios, subtotal o total enviados por el navegador.
 
-- pedido creado y persistido en MariaDB;
-- mismo `idPedido` visible en el perfil;
-- `estado_pago = PAGADO`;
-- estado del pedido `PREPARANDO`;
-- factura disponible según el flujo actual.
+## 9. Reenvíos, idempotencia y concurrencia del webhook
 
-Con un cliente autenticado y un token CSRF válido también se probaron las rutas eliminadas:
+Stripe puede reenviar un evento si no recibe respuesta o si existe un fallo de red. El procesamiento actual utiliza el estado persistido del pedido como barrera de repetición:
 
-| Petición | Resultado |
-|---|---|
-| `POST /api/stripe/checkout` | `403 Forbidden` |
-| `POST /api/stripe/checkout/carrito` | `403 Forbidden` |
+- antes de reconocer un pedido ya pagado, vuelve a validar estado de pago recibido, moneda, importe y sesión;
+- si el pedido ya está `PAGADO`, finaliza sin volver a cambiar el estado, crear otra factura ni vaciar nuevamente el carrito;
+- si no está pendiente ni pagado de forma coherente, rechaza la transición;
+- `@Version` en `Pedido` permite detectar escrituras concurrentes sobre una versión obsoleta;
+- la relación única entre factura y pedido impide representar dos facturas para el mismo pedido;
+- la transacción evita conservar una confirmación parcial si falla uno de sus efectos.
 
-Ninguna prueba creó una Checkout Session legacy. Las búsquedas globales posteriores tampoco encontraron mappings, callers frontend, métodos de servicio ni URLs antiguas residuales.
+La estrategia validada es idempotencia por estado de dominio, no por un ledger de eventos. El `event.id` de Stripe no se persiste actualmente en una tabla de eventos procesados. Añadir ese registro solo debería plantearse en un bloque futuro si se necesita trazabilidad individual de todos los eventos o soportar más tipos con efectos independientes.
 
-La auditoría final de solo lectura no detectó hallazgos funcionales críticos, altos, medios o bajos dentro del alcance del Punto 2.
+## 10. Atomicidad de los efectos posteriores
 
-**Resultado oficial: PUNTO 2 VALIDADO.**
+`confirmarPagoStripe()` se ejecuta con `@Transactional`. Dentro de la misma operación se agrupan:
 
-## 6. Flujo Stripe actual
+1. actualización de `EstadoPago`;
+2. transición del pedido a `PREPARANDO`;
+3. registro del historial con actor `SISTEMA` y origen `STRIPE`;
+4. creación de la factura;
+5. vaciado del carrito del propietario.
 
-Existe un único camino legítimo para crear una Checkout Session:
+Si una excepción provoca rollback, no debe persistirse solamente una parte de ese conjunto. Esto evita, por ejemplo, dejar el pedido pagado sin su historial o consumir el carrito sin haber confirmado correctamente el resto de efectos.
 
-```mermaid
-flowchart TD
-    C[Carrito autenticado] --> P[POST /pedido]
-    P --> DB[(Pedido PENDIENTE en MariaDB)]
-    DB --> CP[POST /api/stripe/checkout/pedido]
-    CP --> OWNER[Validar propietario y estado de pago]
-    OWNER --> PREV{Existe stripeSessionId}
-    PREV -->|No| INITIAL[Clave inicial determinista]
-    PREV -->|Sí| STRIPE[Consultar sesión en Stripe]
-    STRIPE -->|OPEN| REUSE[Reutilizar Session ID y URL]
-    STRIPE -->|COMPLETE| BLOCK[Bloquear nueva creación]
-    STRIPE -->|EXPIRED| RETRY[Clave de reintento determinista]
-    STRIPE -->|Otro o error| CLOSED[Fail closed]
-    INITIAL --> CREATE[Session.create con RequestOptions]
-    RETRY --> CREATE
-    CREATE --> SAVE[Guardar stripeSessionId]
-    SAVE --> PAY[Stripe Checkout]
-    PAY --> WH[Webhook firmado]
-    WH --> UPDATE[Procesamiento interno del Pedido]
-```
+La implementación final contiene una única llamada efectiva a `vaciarCarrito()` y se encuentra después de las validaciones, la actualización de estado, el historial y la factura. Un duplicado detectado durante la revisión fue eliminado.
 
-No existe un endpoint directo para pagar un producto ni un endpoint que transforme el carrito en una Checkout Session sin crear previamente el pedido.
+## 11. Relación con el carrito y los reintentos
 
-## 7. Pruebas manuales realizadas
+El carrito se conserva durante la creación del pedido y durante la apertura de Checkout. Solo se vacía cuando el webhook confirma correctamente el pago. Esta secuencia permite reintentar el acceso a Stripe sin perder la selección antes de que exista una confirmación real.
 
-### Punto 1
+Después del pago, un reintento legítimo de `POST /pedido` puede encontrar el carrito vacío. Ese caso no pertenece a la idempotencia de Stripe: el Bloque 3 lo resuelve reconstruyendo la intención desde el request y el snapshot de `PedidoItem`, y sigue exigiendo que el fingerprint coincida. El detalle está en [pedidos-transacciones-concurrencia.md](pedidos-transacciones-concurrencia.md#12-carrito-vacío-reintentos-y-pedidos-legacy).
+
+## 12. URL de retorno y fuente de verdad
+
+Stripe redirige al navegador a una URL de éxito o cancelación. Esa navegación sirve para recuperar la experiencia de usuario, pero puede escribirse o recargarse manualmente y no certifica el pago.
+
+El frontend actual muestra el mensaje de retorno utilizando los parámetros de la URL. La garantía de negocio no depende de ese mensaje: el pago solo queda confirmado cuando el webhook válido actualiza el estado persistido. El perfil, la factura y la gestión administrativa consumen ese estado del backend.
+
+Consultar expresamente al backend al regresar de Stripe sería una mejora adicional de presentación y sincronización, no una sustitución del webhook. No forma parte del alcance validado del Bloque 2.
+
+## 13. Pruebas y revisiones realizadas
+
+Las pruebas manuales documentadas para la creación y reutilización de Checkout fueron:
 
 | Prueba | Evidencia observada |
 |---|---|
-| Nuevo Checkout para pedido `PAGADO` | Rechazado con `HTTP 400`; no se creó otra sesión. |
+| Nuevo Checkout para pedido `PAGADO` | Rechazado; no se creó otra sesión. |
 | Segunda solicitud sobre sesión `OPEN` | Misma Session ID y misma operación. |
-| Reintento sobre sesión `EXPIRED` | Nueva sesión y sustitución de `stripeSessionId` en MariaDB. |
+| Reintento sobre sesión `EXPIRED` | Nueva sesión y sustitución controlada de `stripeSessionId`. |
 | Dos solicitudes concurrentes desde `NULL` | Ambas devolvieron la misma Session ID. |
-| Persistencia posterior a concurrencia | MariaDB conservó la Session ID devuelta por ambas solicitudes. |
+| Persistencia posterior a concurrencia | MariaDB conservó la Session ID compartida. |
+| Compra completa mediante el flujo actual | Pedido persistido, pago `PAGADO`, pedido `PREPARANDO` y mismo `idPedido` en el perfil. |
+| Acceso a los dos endpoints legacy | `403 Forbidden`; no se creó Checkout. |
 
-### Punto 2
+La revisión del bloque fue incremental. Una primera auditoría detectó que reutilizar una sesión ya persistida no cerraba la carrera durante la creación inicial. La solución fue aplicar la clave idempotente en la llamada real a Stripe y repetir la prueba concurrente. Las revisiones posteriores comprobaron en el código la validación de firma, sesión, estado pagado, importe y moneda; también verificaron el límite transaccional, el retorno temprano de un pedido ya pagado y la existencia de una sola llamada al vaciado del carrito.
 
-| Prueba | Evidencia observada |
-|---|---|
-| Compra completa con el flujo moderno | Pedido persistido, pago `PAGADO`, pedido `PREPARANDO` y mismo `idPedido` en el perfil. |
-| Acceso autenticado a `/api/stripe/checkout` | `403 Forbidden`; no se creó Checkout. |
-| Acceso autenticado a `/api/stripe/checkout/carrito` | `403 Forbidden`; no se creó Checkout. |
-| Búsqueda de mappings y callers legacy | Sin resultados funcionales. |
-| Búsqueda de creadores de sesiones | Un único `Session.create()`, en el flujo basado en pedido. |
+Estas pruebas manuales documentan el comportamiento observado, pero no sustituyen la suite automatizada amplia que permanece en la hoja de ruta.
 
-Estas pruebas son manuales y no sustituyen una futura suite automatizada.
+## 14. Garantías y límites actuales
 
-## 8. Auditorías y validación
+El Bloque 2 permite afirmar dentro de su alcance que:
 
-Los dos puntos cerrados siguieron el mismo criterio de trabajo:
+- todo Checkout parte de un pedido persistido y perteneciente al cliente;
+- la aplicación no construye el cobro a partir de precios confiados al frontend;
+- las creaciones concurrentes equivalentes de Checkout utilizan idempotencia de Stripe;
+- las rutas de cobro legacy no permanecen accesibles;
+- la firma se verifica antes de procesar el webhook;
+- sesión, estado pagado, importe y moneda se contrastan con el pedido;
+- los reenvíos sobre un pedido pagado no repiten los efectos de dominio;
+- estado, historial, factura y carrito se coordinan transaccionalmente;
+- la redirección del navegador no se considera prueba de pago.
 
-```mermaid
-flowchart LR
-    I[Implementación] --> P[Pruebas manuales]
-    P --> A[Auditoría de solo lectura]
-    A --> D{Hallazgos dentro del alcance}
-    D -->|Sí| C[Correcciones y nuevas pruebas]
-    C --> A
-    D -->|No| V[Validación del punto]
-```
+Siguen fuera de este cierre:
 
-En el Punto 1, una primera auditoría detectó que faltaba cerrar el caso concurrente de creación inicial. La clave idempotente se incorporó a la llamada real a Stripe, se repitió la prueba concurrente y la auditoría final validó el resultado.
+- un registro persistente independiente para cada `event.id` recibido;
+- confirmación visual del retorno mediante una consulta específica del frontend al backend;
+- tests automatizados exhaustivos de Stripe y del webhook;
+- observabilidad centralizada, alertas y reconciliación operativa propia de producción;
+- configuración de despliegue y rotación de secretos por entornos.
 
-En el Punto 2, la auditoría final verificó controllers, servicio, seguridad, frontend y búsquedas globales. No encontró ningún camino funcional capaz de crear Checkout fuera del pedido persistido.
+## 15. Estado final
 
-Las auditorías fueron exclusivamente de lectura y no aplicaron correcciones automáticas.
+La implementación, las pruebas manuales y las auditorías permiten considerar **TERMINADO Y VALIDADO el Bloque 2 — Stripe y pagos para el alcance trabajado**.
 
-## 9. Garantías actuales
-
-Después de los Puntos 1 y 2 puede afirmarse que:
-
-- toda nueva Checkout Session del flujo de la aplicación parte de un `Pedido` persistido;
-- el único endpoint de creación es `POST /api/stripe/checkout/pedido`;
-- el endpoint exige `ROLE_CLIENTE` y valida el propietario del pedido;
-- un pedido marcado como `PAGADO` no inicia otro Checkout;
-- las sesiones `OPEN` se reutilizan;
-- `COMPLETE` bloquea otra creación;
-- `EXPIRED` permite un reintento controlado;
-- los estados desconocidos y errores de consulta fallan de forma cerrada;
-- la creación utiliza claves idempotentes deterministas;
-- dos creaciones concurrentes equivalentes se dirigen a la misma operación lógica de Stripe;
-- no existen endpoints ni callers frontend legacy;
-- la autorización de Checkout es exacta y `denyAll()` permanece activo;
-- solo existe un `Session.create()` en el código funcional;
-- el webhook continúa verificando la firma de Stripe.
-
-Estas garantías no deben interpretarse como una validación completa del webhook ni del resultado económico del pago.
-
-## 10. Riesgos y trabajo pendiente
-
-El Bloque 2 todavía debe abordar:
-
-### Punto 3 — Validar que el pago esté realmente confirmado
-
-Revisar las condiciones económicas y de estado que deben verificarse antes de considerar pagado un pedido, incluyendo los campos de Stripe que correspondan.
-
-### Punto 4 — Blindar webhook e idempotencia
-
-Completar la estrategia frente a reenvíos, eventos duplicados y ejecuciones concurrentes del webhook. La idempotencia validada hasta ahora corresponde a la creación de Checkout, no al procesamiento integral de eventos.
-
-### Punto 5 — Corregir el vaciado del carrito
-
-Definir el momento y las condiciones correctas para vaciar el carrito sin introducir efectos secundarios prematuros o repetidos.
-
-### Punto 6 — Confirmar el éxito consultando al backend
-
-Evitar que la interfaz presente el pago como confirmado basándose únicamente en los parámetros de la URL de retorno.
-
-### Punto 7 — Limpiar efectos secundarios y casos menores
-
-Revisar los efectos secundarios restantes, estados de pago, transacciones prolongadas y otros casos identificados durante el bloque.
-
-Fuera del alcance ya validado también permanecen la duplicación potencial de creación de pedidos, restricciones `UNIQUE`, stock y reservas. Deben tratarse en sus bloques correspondientes.
-
-## 11. Estado del bloque
-
-**BLOQUE 2 — STRIPE Y PAGOS: EN PROGRESO**
-
-- **PUNTO 1 — Cerrar duplicados de Checkout/pagos: VALIDADO**
-- **PUNTO 2 — Eliminar endpoints Stripe antiguos: VALIDADO**
-- **PUNTO 3 — Validar que el pago esté realmente confirmado: PENDIENTE**
-- **PUNTO 4 — Blindar webhook e idempotencia: PENDIENTE**
-- **PUNTO 5 — Corregir el vaciado del carrito: PENDIENTE**
-- **PUNTO 6 — Confirmar éxito consultando backend: PENDIENTE**
-- **PUNTO 7 — Limpiar efectos secundarios y casos menores: PENDIENTE**
-
-La validación oficial del Bloque 2 completo solo podrá realizarse cuando los puntos pendientes hayan sido implementados, probados y auditados.
+Este cierre no afirma que UrbanSneakers esté terminado ni que no existan ampliaciones posibles. La hoja de ruta continúa y las garantías de pedidos, transacciones y concurrencia se cerraron posteriormente en el [Bloque 3](pedidos-transacciones-concurrencia.md).

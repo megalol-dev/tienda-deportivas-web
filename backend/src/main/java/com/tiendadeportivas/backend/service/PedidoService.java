@@ -41,6 +41,11 @@ import com.tiendadeportivas.backend.model.HistorialPedidoRespuesta;
 import com.tiendadeportivas.backend.model.PedidoAdminDetalle;
 import com.tiendadeportivas.backend.model.PedidoItemAdminDetalle;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import com.tiendadeportivas.backend.exception.ConflictoIdempotenciaException;
+
 @Service
 public class PedidoService {
 
@@ -107,7 +112,77 @@ public class PedidoService {
                                                 idempotencyKey)
                                 .orElse(null);
 
+                List<CarritoItem> carrito = carritoService.obtenerItemsEntidad(emailUsuario);
+
+                if (carrito.isEmpty()) {
+
+                        if (pedidoExistente != null) {
+
+                                String fingerprintGuardado = pedidoExistente.getIdempotencyFingerprint();
+
+                                if (fingerprintGuardado == null) {
+
+                                        throw new ConflictoIdempotenciaException(
+                                                        "No se puede verificar de forma segura la solicitud asociada a esta clave de idempotencia.");
+                                }
+
+                                String representacionPedidoExistente = construirRepresentacionCanonicaPedidoExistente(
+                                                request,
+                                                pedidoExistente);
+
+                                String fingerprintReintento = calcularSha256(
+                                                representacionPedidoExistente);
+
+                                if (!fingerprintGuardado.equals(
+                                                fingerprintReintento)) {
+
+                                        throw new ConflictoIdempotenciaException(
+                                                        "La clave de idempotencia ya fue utilizada para una solicitud diferente.");
+                                }
+
+                                PedidoResumen resumenExistente = new PedidoResumen();
+
+                                resumenExistente.setIdPedido(
+                                                pedidoExistente.getIdPedido());
+
+                                resumenExistente.setSubtotal(
+                                                pedidoExistente.getSubtotal().doubleValue());
+
+                                resumenExistente.setIva(
+                                                pedidoExistente.getIva().doubleValue());
+
+                                resumenExistente.setEnvio(
+                                                pedidoExistente.getEnvio().doubleValue());
+
+                                resumenExistente.setTotal(
+                                                pedidoExistente.getTotal().doubleValue());
+
+                                return resumenExistente;
+                        }
+
+                        throw new IllegalStateException(
+                                        "No se puede crear un pedido con el carrito vacío.");
+                }
+
+                String representacionCanonica = construirRepresentacionCanonicaPedido(
+                                request,
+                                carrito);
+
+                String idempotencyFingerprint = calcularSha256(
+                                representacionCanonica);
+
                 if (pedidoExistente != null) {
+
+                        String fingerprintGuardado = pedidoExistente.getIdempotencyFingerprint();
+
+                        if (fingerprintGuardado == null
+                                        || !fingerprintGuardado.equals(
+                                                        idempotencyFingerprint)) {
+
+                                throw new ConflictoIdempotenciaException(
+                                                "La clave de idempotencia ya fue utilizada para una solicitud diferente.");
+                        }
+
                         PedidoResumen resumenExistente = new PedidoResumen();
 
                         resumenExistente.setIdPedido(
@@ -126,13 +201,6 @@ public class PedidoService {
                                         pedidoExistente.getTotal().doubleValue());
 
                         return resumenExistente;
-                }
-
-                List<CarritoItem> carrito = carritoService.obtenerItemsEntidad(emailUsuario);
-
-                if (carrito.isEmpty()) {
-                        throw new IllegalStateException(
-                                        "No se puede crear un pedido con el carrito vacío.");
                 }
 
                 BigDecimal subtotal = BigDecimal.ZERO;
@@ -178,6 +246,8 @@ public class PedidoService {
                 pedidoEntidad.setEstadoPago(EstadoPago.PENDIENTE);
                 pedidoEntidad.setUsuario(usuario);
                 pedidoEntidad.setIdempotencyKey(idempotencyKey);
+                pedidoEntidad.setIdempotencyFingerprint(
+                                idempotencyFingerprint);
                 pedidoEntidad.setIdPedido(idPedido);
                 pedidoEntidad.setNombre(request.getNombre());
                 pedidoEntidad.setApellidos(request.getApellidos());
@@ -237,6 +307,279 @@ public class PedidoService {
                 resumen.setTotal(total.doubleValue());
 
                 return resumen;
+        }
+
+        // Construye una representación estable de la solicitud lógica de creación.
+        // Construye una representación estable de la solicitud lógica de creación.
+        private String construirRepresentacionCanonicaPedido(
+                        PedidoRequest request,
+                        List<CarritoItem> carrito) {
+
+                if (request == null) {
+                        throw new IllegalArgumentException(
+                                        "La solicitud del pedido no puede ser nula.");
+                }
+
+                if (carrito == null) {
+                        throw new IllegalArgumentException(
+                                        "El carrito no puede ser nulo.");
+                }
+
+                StringBuilder representacion = new StringBuilder();
+
+                agregarCampoCanonico(
+                                representacion,
+                                "nombre",
+                                request.getNombre());
+
+                agregarCampoCanonico(
+                                representacion,
+                                "apellidos",
+                                request.getApellidos());
+
+                agregarCampoCanonico(
+                                representacion,
+                                "email",
+                                request.getEmail());
+
+                agregarCampoCanonico(
+                                representacion,
+                                "telefono",
+                                request.getTelefono());
+
+                agregarCampoCanonico(
+                                representacion,
+                                "direccion",
+                                request.getDireccion());
+
+                agregarCampoCanonico(
+                                representacion,
+                                "ciudad",
+                                request.getCiudad());
+
+                agregarCampoCanonico(
+                                representacion,
+                                "provincia",
+                                request.getProvincia());
+
+                agregarCampoCanonico(
+                                representacion,
+                                "cp",
+                                request.getCp());
+
+                agregarCampoCanonico(
+                                representacion,
+                                "pais",
+                                request.getPais());
+
+                List<String> itemsCanonicos = carrito.stream()
+                                .map(item -> {
+
+                                        StringBuilder itemCanonico = new StringBuilder();
+
+                                        agregarCampoCanonico(
+                                                        itemCanonico,
+                                                        "productoId",
+                                                        String.valueOf(
+                                                                        item.getProducto()
+                                                                                        .getId()));
+
+                                        agregarCampoCanonico(
+                                                        itemCanonico,
+                                                        "talla",
+                                                        String.valueOf(
+                                                                        item.getTalla()));
+
+                                        agregarCampoCanonico(
+                                                        itemCanonico,
+                                                        "color",
+                                                        item.getColor());
+
+                                        agregarCampoCanonico(
+                                                        itemCanonico,
+                                                        "cantidad",
+                                                        String.valueOf(
+                                                                        item.getCantidad()));
+
+                                        return itemCanonico.toString();
+                                })
+                                .sorted()
+                                .toList();
+
+                representacion.append("items:")
+                                .append(itemsCanonicos.size())
+                                .append(";");
+
+                for (String itemCanonico : itemsCanonicos) {
+
+                        agregarCampoCanonico(
+                                        representacion,
+                                        "item",
+                                        itemCanonico);
+                }
+
+                return representacion.toString();
+        }
+
+        // Reconstruye la representación canónica de un pedido ya persistido
+        // utilizando su snapshot inmutable de líneas.
+        private String construirRepresentacionCanonicaPedidoExistente(
+                        PedidoRequest request,
+                        Pedido pedido) {
+
+                if (request == null) {
+                        throw new IllegalArgumentException(
+                                        "La solicitud del pedido no puede ser nula.");
+                }
+
+                if (pedido == null) {
+                        throw new IllegalArgumentException(
+                                        "El pedido existente no puede ser nulo.");
+                }
+
+                StringBuilder representacion = new StringBuilder();
+
+                agregarCampoCanonico(
+                                representacion,
+                                "nombre",
+                                request.getNombre());
+
+                agregarCampoCanonico(
+                                representacion,
+                                "apellidos",
+                                request.getApellidos());
+
+                agregarCampoCanonico(
+                                representacion,
+                                "email",
+                                request.getEmail());
+
+                agregarCampoCanonico(
+                                representacion,
+                                "telefono",
+                                request.getTelefono());
+
+                agregarCampoCanonico(
+                                representacion,
+                                "direccion",
+                                request.getDireccion());
+
+                agregarCampoCanonico(
+                                representacion,
+                                "ciudad",
+                                request.getCiudad());
+
+                agregarCampoCanonico(
+                                representacion,
+                                "provincia",
+                                request.getProvincia());
+
+                agregarCampoCanonico(
+                                representacion,
+                                "cp",
+                                request.getCp());
+
+                agregarCampoCanonico(
+                                representacion,
+                                "pais",
+                                request.getPais());
+
+                List<String> itemsCanonicos = pedido.getItems()
+                                .stream()
+                                .map(item -> {
+
+                                        StringBuilder itemCanonico = new StringBuilder();
+
+                                        agregarCampoCanonico(
+                                                        itemCanonico,
+                                                        "productoId",
+                                                        String.valueOf(
+                                                                        item.getProductoId()));
+
+                                        agregarCampoCanonico(
+                                                        itemCanonico,
+                                                        "talla",
+                                                        item.getTalla());
+
+                                        agregarCampoCanonico(
+                                                        itemCanonico,
+                                                        "color",
+                                                        item.getColor());
+
+                                        agregarCampoCanonico(
+                                                        itemCanonico,
+                                                        "cantidad",
+                                                        String.valueOf(
+                                                                        item.getCantidad()));
+
+                                        return itemCanonico.toString();
+                                })
+                                .sorted()
+                                .toList();
+
+                representacion.append("items:")
+                                .append(itemsCanonicos.size())
+                                .append(";");
+
+                for (String itemCanonico : itemsCanonicos) {
+
+                        agregarCampoCanonico(
+                                        representacion,
+                                        "item",
+                                        itemCanonico);
+                }
+
+                return representacion.toString();
+        }
+
+        // Añade un campo a la representación canónica sin ambigüedad entre valores.
+        private void agregarCampoCanonico(
+                        StringBuilder destino,
+                        String nombreCampo,
+                        String valor) {
+
+                String valorSeguro = valor != null
+                                ? valor
+                                : "";
+
+                destino.append(nombreCampo)
+                                .append(":")
+                                .append(valorSeguro.length())
+                                .append(":")
+                                .append(valorSeguro)
+                                .append(";");
+        }
+
+        // Calcula la huella SHA-256 de una representación canónica.
+        private String calcularSha256(String valor) {
+
+                if (valor == null) {
+                        throw new IllegalArgumentException(
+                                        "El valor para calcular la huella no puede ser nulo.");
+                }
+
+                try {
+
+                        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+
+                        byte[] hash = digest.digest(
+                                        valor.getBytes(StandardCharsets.UTF_8));
+
+                        StringBuilder hexadecimal = new StringBuilder();
+
+                        for (byte b : hash) {
+                                hexadecimal.append(
+                                                String.format("%02x", b & 0xff));
+                        }
+
+                        return hexadecimal.toString();
+
+                } catch (NoSuchAlgorithmException e) {
+
+                        throw new IllegalStateException(
+                                        "El algoritmo SHA-256 no está disponible.",
+                                        e);
+                }
         }
 
         // Calcula el resumen del carrito actual.
@@ -787,12 +1130,6 @@ public class PedidoService {
                                 OrigenCambioPedido.STRIPE);
 
                 facturaService.crearFactura(pedido);
-
-                if (pedido.getUsuario() != null) {
-
-                        carritoService.vaciarCarrito(
-                                        pedido.getUsuario().getEmail());
-                }
 
                 if (pedido.getUsuario() != null) {
 

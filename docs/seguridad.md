@@ -20,7 +20,7 @@ Este documento describe exclusivamente las medidas incluidas en el Bloque 1:
 - validación de firma del webhook de Stripe;
 - ocultación de información interna en errores estándar.
 
-Los demás bloques de la hoja de ruta se analizan de forma independiente. El **Bloque 2 — Stripe y pagos** está en progreso: la prevención de Checkout duplicado y la eliminación de endpoints legacy ya fueron validadas, mientras que el endurecimiento del webhook, la confirmación del pago, los efectos sobre el carrito y otros casos permanecen pendientes. Su estado se documenta en [stripe-pagos.md](stripe-pagos.md). También continúan pendientes stock, modelo y restricciones de base de datos, testing automatizado, logging, configuración por entornos, Docker, CI/CD, OpenAPI y despliegue.
+Los demás bloques de la hoja de ruta se analizan de forma independiente. El [Bloque 2 — Stripe y pagos](stripe-pagos.md) y el [Bloque 3 — Pedidos, transacciones y concurrencia](pedidos-transacciones-concurrencia.md) fueron implementados, probados y validados posteriormente dentro de sus respectivos alcances. Continúan pendientes otros trabajos de la hoja de ruta, como stock, una cobertura amplia de testing automatizado, migraciones versionadas, logging, configuración por entornos, Docker, CI/CD, OpenAPI y despliegue.
 
 ## 3. Medidas implementadas
 
@@ -190,7 +190,7 @@ El matcher específico de `/admin/usuarios/**` aparece antes que el matcher gene
 
 Su autenticidad se comprueba mediante el encabezado `Stripe-Signature` y `Webhook.constructEvent(payload, signature, webhookSecret)`. Un evento con firma no válida se rechaza.
 
-Esta medida no sustituye el análisis específico de Stripe. El Bloque 2 ya validó la idempotencia de creación de Checkout, la reutilización controlada de sesiones y la eliminación de endpoints legacy. La idempotencia y concurrencia completas del webhook, las validaciones adicionales del pago, las transacciones y sus efectos posteriores permanecen pendientes.
+Esta medida fue el punto de partida del análisis específico de Stripe. El [Bloque 2](stripe-pagos.md) validó después la creación idempotente de Checkout, la reutilización controlada de sesiones, la eliminación de endpoints legacy y las comprobaciones del pago. El [Bloque 3](pedidos-transacciones-concurrencia.md) documenta la atomicidad de los efectos internos, la concurrencia y la idempotencia de creación del pedido. Estas validaciones son independientes y no convierten la URL de retorno del navegador en prueba de pago: la fuente de verdad continúa siendo el webhook y el estado persistido.
 
 ### 3.10 Manejo seguro de errores
 
@@ -350,6 +350,6 @@ flowchart LR
 
 ## 6. Estado del bloque
 
-El código y las pruebas manuales documentadas permiten considerar cerrado el **Bloque 1 — Seguridad inmediata**. Esta validación se limita a su alcance; el avance parcial del Bloque 2 se mantiene documentado y validado de forma independiente.
+El código y las pruebas manuales documentadas permiten considerar cerrado el **Bloque 1 — Seguridad inmediata**. Esta validación se limita a su alcance. Los bloques posteriores de [Stripe y pagos](stripe-pagos.md) y [pedidos, transacciones y concurrencia](pedidos-transacciones-concurrencia.md) cuentan con su propia documentación y validación independiente.
 
 **Estado final: BLOQUE 1 VALIDADO.**

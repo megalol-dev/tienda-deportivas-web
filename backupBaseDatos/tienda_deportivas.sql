@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 11-09-2026 a las 17:42:57
+-- Tiempo de generación: 12-09-2026 a las 02:27:57
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -63,11 +63,8 @@ CREATE TABLE `carrito_items` (
 --
 
 INSERT INTO `carrito_items` (`id`, `cantidad`, `color`, `talla`, `carrito_id`, `producto_id`) VALUES
-(100, 1, 'Blanco', 36, 6, 13),
-(101, 1, 'Blanco', 37, 6, 12),
-(110, 1, 'Blanco', 37, 9, 12),
-(111, 1, 'Blanco', 36, 9, 13),
-(112, 1, 'Blanco', 38, 9, 11);
+(129, 2, 'Blanco', 38, 8, 1),
+(130, 1, 'Blanco', 37, 8, 2);
 
 -- --------------------------------------------------------
 
@@ -98,7 +95,8 @@ INSERT INTO `facturas` (`id`, `numero_factura`, `fecha_emision`, `metodo_pago`, 
 (23, 'FAC-2026-000051', '2026-09-11 03:31:21', 'TARJETA', 51),
 (24, 'FAC-2026-000052', '2026-09-11 17:19:48', 'TARJETA', 52),
 (25, 'FAC-2026-000053', '2026-09-11 17:23:38', 'TARJETA', 53),
-(26, 'FAC-2026-000054', '2026-09-11 17:32:33', 'TARJETA', 54);
+(26, 'FAC-2026-000054', '2026-09-11 17:32:33', 'TARJETA', 54),
+(27, 'FAC-2026-000062', '2026-09-12 01:38:54', 'TARJETA', 62);
 
 -- --------------------------------------------------------
 
@@ -141,7 +139,8 @@ INSERT INTO `historial_pedidos` (`id`, `estado_anterior`, `estado_nuevo`, `fecha
 (60, 'PENDIENTE', 'PREPARANDO', '2026-09-11 03:31:21.836958', 51, NULL, 'SISTEMA', 'STRIPE'),
 (61, 'PENDIENTE', 'PREPARANDO', '2026-09-11 17:19:48.585716', 52, NULL, 'SISTEMA', 'STRIPE'),
 (62, 'PENDIENTE', 'PREPARANDO', '2026-09-11 17:23:38.033282', 53, NULL, 'SISTEMA', 'STRIPE'),
-(63, 'PENDIENTE', 'PREPARANDO', '2026-09-11 17:32:33.065796', 54, NULL, 'SISTEMA', 'STRIPE');
+(63, 'PENDIENTE', 'PREPARANDO', '2026-09-11 17:32:33.065796', 54, NULL, 'SISTEMA', 'STRIPE'),
+(64, 'PENDIENTE', 'PREPARANDO', '2026-09-12 01:38:54.841720', 62, NULL, 'SISTEMA', 'STRIPE');
 
 -- --------------------------------------------------------
 
@@ -171,29 +170,39 @@ CREATE TABLE `pedidos` (
   `estado_pago` enum('PENDIENTE','PAGADO','FALLIDO','CANCELADO') NOT NULL,
   `stripe_session_id` varchar(255) DEFAULT NULL,
   `version` bigint(20) NOT NULL DEFAULT 0,
-  `idempotency_key` varchar(36) NOT NULL
+  `idempotency_key` varchar(36) NOT NULL,
+  `idempotency_fingerprint` varchar(64) DEFAULT NULL
 ) ;
 
 --
 -- Volcado de datos para la tabla `pedidos`
 --
 
-INSERT INTO `pedidos` (`id`, `apellidos`, `ciudad`, `cp`, `direccion`, `email`, `envio`, `estado`, `fecha_pedido`, `id_pedido`, `iva`, `nombre`, `pais`, `provincia`, `subtotal`, `telefono`, `total`, `usuario_id`, `estado_pago`, `stripe_session_id`, `version`, `idempotency_key`) VALUES
-(40, 'García García', 'Madrid', '22222', 'calle pino número 12', 'luisito@gmail.com', 0.00, 'ENTREGADO', '2026-09-10 05:40:27.902136', 'PED-3C6C2212-1730-4F7A-A475-78569C98446B', 42.00, 'Luis', 'España', 'Madrid', 199.99, '111222111', 241.99, 4, 'PAGADO', 'cs_test_b1lsBPkrN9u3iiKY9BLdYMESeVkOgrXRQjNtNxtajRDHLMvcTrTiN55dii', 4, 'f08e99cb-83c8-44b0-960a-101c9f3439a4'),
-(41, 'Herrera Herrara', 'Madrid', '11111', 'Calle el faro, numero 13', 'pepe@gmail.com', 0.00, 'ENVIADO', '2026-09-10 18:23:53.229474', 'PED-4885F665-AD85-4DC9-A3E0-CAEF524CAA71', 49.35, 'Pepe', 'España', 'Madrid', 234.98, '111222111', 284.33, 5, 'PAGADO', 'cs_test_b1PzSdqnsIq0xKXBcR0TtzzEgjYNZyGZ2wu3JBGgE2DkZggFnuE2yPDrcd', 3, '6e436c90-97c7-49eb-a65d-d92ae8eefcfb'),
-(42, 'García García', 'Madrid', '11111', 'calle princesa n 12', 'arturo@gmail.com', 4.99, 'ENTREGADO', '2026-09-10 18:36:35.781347', 'PED-E8FC2683-0889-4AE6-9F8A-EFEFEF8C4672', 18.90, 'Arturo', 'España', 'Madrid', 89.99, '111222111', 113.88, 9, 'PAGADO', 'cs_test_b1zXVPoVnyuvHmGozl5TGKVX9YxIwGIoZk1ZUfcSVwXFYtQcZiblVcdS7U', 4, '885151ae-5fc4-435a-bc0b-33b9e398015e'),
-(43, 'García García', 'Madrid', '33222', 'Calle viento', 'berta@gmail.com', 0.00, 'ENTREGADO', '2026-09-10 19:28:26.653058', 'PED-19736BDD-6BAB-4A67-BFE7-73564CF65A43', 55.65, 'Berta', 'España', 'Madrid', 264.98, '111222111', 320.63, 11, 'PAGADO', 'cs_test_b1uwTdBP5yEp6adfQMhWpn0bjIpvSyRJFVxvV3IZxHthhCHXVYwX0KyZ5L', 7, '60fb626c-6ab9-413f-9886-067b9246bc4f'),
-(44, 'Monserrrat Caballero', 'Madrid', '44111', 'Calle Ave María', 'manu@gmail.com', 0.00, 'PREPARANDO', '2026-09-10 20:23:12.090172', 'PED-225944FE-B02D-4CF9-8B5D-6E34679FB802', 40.95, 'Manu', 'España', 'Madrid', 194.98, '111222111', 235.93, 10, 'PAGADO', 'cs_test_b1WPUMJpd8YCv4LfMQ6zg3XG7BAkSlAPfLT0I2xICxHj1IXeoRAMVQOiMQ', 2, '0274f778-7572-4f16-980c-314c679d9883'),
-(45, 'Escudero Polo', 'Madrid', '11111', 'calle pino número 12', 'luis@gmail.com', 0.00, 'PENDIENTE', '2026-09-10 20:59:22.716156', 'PED-F9B2284F-B405-40BF-9DF6-412796FC0307', 39.90, 'Luis', 'España', 'Madrid', 189.98, '111222111', 229.88, 4, 'PENDIENTE', 'cs_test_b1Ck9K6g5ao7WI0jr8d6kTGnG4ogPHBjZkZKIy2cIxItcMCa9TdZYOzUde', 1, 'b429bf81-68aa-4aaf-96fd-61f349ab50b2'),
-(46, 'Herrera Herrara', 'Madrid', '11223', 'calle princesa n 12', 'berta@gmail.com', 0.00, 'PREPARANDO', '2026-09-11 02:57:11.960072', 'PED-2D0E5BAB-729C-43A5-A0ED-CD9C3118C6D5', 65.10, 'Berta', 'España', 'Madrid', 309.98, '111222111', 375.08, 11, 'PAGADO', 'cs_test_b11MuoH3hdwaNjlXh2OpPaTxMqRGLhQd0ITipc45wZz4E0MJvUQcFPitEg', 2, 'd06f5594-b4cc-49a1-b90d-a00fde5e971f'),
-(47, 'García García', 'Madrid', '11111', 'Calle Ave María', 'berta@gmail.com', 0.00, 'PENDIENTE', '2026-09-11 03:01:47.038554', 'PED-06ADC235-8A2F-4854-9603-123913034681', 80.84, 'berta', 'España', 'Madrid', 384.97, '111222111', 465.81, 11, 'PENDIENTE', 'cs_test_b1cqfgl6ZElPSE53qTE7DIQNeRuZ2oG4AkWkrrRePTCAUbCqusZHM1VsBT', 1, '8294b749-be46-4383-ad0f-68d0a248c7eb'),
-(48, 'García García', 'Madrid', '11111', 'Calle el faro, número 13', 'berta@gmail.com', 0.00, 'PENDIENTE', '2026-09-11 03:11:01.420159', 'PED-C8B4C6F3-61ED-4D19-9212-C2E3402D10E7', 61.94, 'Berta', 'España', 'Madrid', 294.97, '111222111', 356.91, 11, 'PENDIENTE', 'cs_test_b1JJ5iffJiBqhH0E5ilYvQtgvQfTK1Mx9TA8MvPRSNeVEx4NaoLvL0E7NL', 1, 'eaa23910-ab23-4056-969c-d158dc9ba8fa'),
-(49, 'García García', 'Madrid', '11111', 'Calle el faro, número 13', 'berta@gmail.com', 0.00, 'PENDIENTE', '2026-09-11 03:17:08.298257', 'PED-6BA6D6BA-64B3-4877-8263-9FC52EA4EAF8', 69.29, 'Berta', 'España', 'Madrid', 329.97, '111222111', 399.26, 11, 'PENDIENTE', 'cs_test_b1dXtBQ85I9cq6zlRUOuPCaOArZwXmbMqqyFC9ZkMKBkiUGL85jh29CFlb', 1, 'a5a99a27-14b8-41a9-b280-8c228c944f6e'),
-(50, 'Herrera Herrara', 'Madrid', '11111', 'calle real número 1', 'manu@gmail.com', 0.00, 'ENVIADO', '2026-09-11 03:23:16.378336', 'PED-6A738811-24D8-497E-86A1-4A5DD85436BB', 65.10, 'Manu', 'España', 'Madrid', 309.98, '111222111', 375.08, 10, 'PAGADO', 'cs_test_b1dr0Z7LEn4kzf9NPBM38fyFLOdjs5LgQ5XCVmxV1GYohjlCAWRc90x1qb', 3, '39cfca82-f5c8-4036-98bd-31e66156b838'),
-(51, 'García García', 'Madrid', '11111', 'Calle la oliva, número 13', 'arturo@gmail.com', 0.00, 'PREPARANDO', '2026-09-11 03:31:02.478490', 'PED-B407298B-2E90-4FDA-8A3F-AD6C79AE0204', 47.25, 'Arturo', 'España', 'Madrid', 224.98, '111222111', 272.23, 9, 'PAGADO', 'cs_test_b1HbCR0a1zROIywbVDGrKlZqUMZ4Cgvi6KgVAYuKuqPR1bCYvo79EftkGx', 2, '8454bc74-aa8b-48d4-9738-2fc0ca37a6da'),
-(52, 'García García', 'Madrid', '22222', 'calle princesa n 12', 'pepito@gmail.com', 0.00, 'PREPARANDO', '2026-09-11 17:19:19.909243', 'PED-73C95867-FC98-46D5-8E8C-AB3FF94A1B1B', 31.50, 'Pepe', 'España', 'Madrid', 149.99, '111222111', 181.49, 5, 'PAGADO', 'cs_test_b18O0wUmKvnZMlRzNS01mPy0UD6BcwokYF17vVBXLkOlK4NRCP8IVwDNdQ', 2, '90a7f225-8fe8-471a-afd0-6e2f344e7e87'),
-(53, 'García García', 'Toledo', '24322', 'Calle Barco, número 2', 'García@gmail.com', 0.00, 'PREPARANDO', '2026-09-11 17:23:00.669993', 'PED-50947133-A73D-478A-B7D8-E09D186C5191', 31.50, 'Luis', 'España', 'Toledo', 149.99, '111222111', 181.49, 5, 'PAGADO', 'cs_test_b1giK1pndRQyruo41pF4XDnstEo0Vdo9lZwVclE6CJcAvZx0muluqEq1SF', 2, '39d3920c-6cbb-44ec-9ba7-5a41a8aa0e59'),
-(54, 'García García', 'Madrid', '11111', 'Calle Barco, número 2', 'arturo@gmail.com', 0.00, 'PREPARANDO', '2026-09-11 17:32:09.326206', 'PED-27A08E73-EF16-4AC8-974A-7AC0386D45B5', 109.19, 'Arturo', 'España', 'Madrid', 519.96, '111222111', 629.15, 9, 'PAGADO', 'cs_test_b1R9GYRfdApSEoTxbNWEpNnnDF2S9cf74gif1oK0Dx0fiSnGhMrzY0CZMI', 2, '595db91d-9a4f-48bd-a98d-7347d50073e2');
+INSERT INTO `pedidos` (`id`, `apellidos`, `ciudad`, `cp`, `direccion`, `email`, `envio`, `estado`, `fecha_pedido`, `id_pedido`, `iva`, `nombre`, `pais`, `provincia`, `subtotal`, `telefono`, `total`, `usuario_id`, `estado_pago`, `stripe_session_id`, `version`, `idempotency_key`, `idempotency_fingerprint`) VALUES
+(40, 'García García', 'Madrid', '22222', 'calle pino número 12', 'luisito@gmail.com', 0.00, 'ENTREGADO', '2026-09-10 05:40:27.902136', 'PED-3C6C2212-1730-4F7A-A475-78569C98446B', 42.00, 'Luis', 'España', 'Madrid', 199.99, '111222111', 241.99, 4, 'PAGADO', 'cs_test_b1lsBPkrN9u3iiKY9BLdYMESeVkOgrXRQjNtNxtajRDHLMvcTrTiN55dii', 4, 'f08e99cb-83c8-44b0-960a-101c9f3439a4', NULL),
+(41, 'Herrera Herrara', 'Madrid', '11111', 'Calle el faro, numero 13', 'pepe@gmail.com', 0.00, 'ENVIADO', '2026-09-10 18:23:53.229474', 'PED-4885F665-AD85-4DC9-A3E0-CAEF524CAA71', 49.35, 'Pepe', 'España', 'Madrid', 234.98, '111222111', 284.33, 5, 'PAGADO', 'cs_test_b1PzSdqnsIq0xKXBcR0TtzzEgjYNZyGZ2wu3JBGgE2DkZggFnuE2yPDrcd', 3, '6e436c90-97c7-49eb-a65d-d92ae8eefcfb', NULL),
+(42, 'García García', 'Madrid', '11111', 'calle princesa n 12', 'arturo@gmail.com', 4.99, 'ENTREGADO', '2026-09-10 18:36:35.781347', 'PED-E8FC2683-0889-4AE6-9F8A-EFEFEF8C4672', 18.90, 'Arturo', 'España', 'Madrid', 89.99, '111222111', 113.88, 9, 'PAGADO', 'cs_test_b1zXVPoVnyuvHmGozl5TGKVX9YxIwGIoZk1ZUfcSVwXFYtQcZiblVcdS7U', 4, '885151ae-5fc4-435a-bc0b-33b9e398015e', NULL),
+(43, 'García García', 'Madrid', '33222', 'Calle viento', 'berta@gmail.com', 0.00, 'ENTREGADO', '2026-09-10 19:28:26.653058', 'PED-19736BDD-6BAB-4A67-BFE7-73564CF65A43', 55.65, 'Berta', 'España', 'Madrid', 264.98, '111222111', 320.63, 11, 'PAGADO', 'cs_test_b1uwTdBP5yEp6adfQMhWpn0bjIpvSyRJFVxvV3IZxHthhCHXVYwX0KyZ5L', 7, '60fb626c-6ab9-413f-9886-067b9246bc4f', NULL),
+(44, 'Monserrrat Caballero', 'Madrid', '44111', 'Calle Ave María', 'manu@gmail.com', 0.00, 'PREPARANDO', '2026-09-10 20:23:12.090172', 'PED-225944FE-B02D-4CF9-8B5D-6E34679FB802', 40.95, 'Manu', 'España', 'Madrid', 194.98, '111222111', 235.93, 10, 'PAGADO', 'cs_test_b1WPUMJpd8YCv4LfMQ6zg3XG7BAkSlAPfLT0I2xICxHj1IXeoRAMVQOiMQ', 2, '0274f778-7572-4f16-980c-314c679d9883', NULL),
+(45, 'Escudero Polo', 'Madrid', '11111', 'calle pino número 12', 'luis@gmail.com', 0.00, 'PENDIENTE', '2026-09-10 20:59:22.716156', 'PED-F9B2284F-B405-40BF-9DF6-412796FC0307', 39.90, 'Luis', 'España', 'Madrid', 189.98, '111222111', 229.88, 4, 'PENDIENTE', 'cs_test_b1Ck9K6g5ao7WI0jr8d6kTGnG4ogPHBjZkZKIy2cIxItcMCa9TdZYOzUde', 1, 'b429bf81-68aa-4aaf-96fd-61f349ab50b2', NULL),
+(46, 'Herrera Herrara', 'Madrid', '11223', 'calle princesa n 12', 'berta@gmail.com', 0.00, 'PREPARANDO', '2026-09-11 02:57:11.960072', 'PED-2D0E5BAB-729C-43A5-A0ED-CD9C3118C6D5', 65.10, 'Berta', 'España', 'Madrid', 309.98, '111222111', 375.08, 11, 'PAGADO', 'cs_test_b11MuoH3hdwaNjlXh2OpPaTxMqRGLhQd0ITipc45wZz4E0MJvUQcFPitEg', 2, 'd06f5594-b4cc-49a1-b90d-a00fde5e971f', NULL),
+(47, 'García García', 'Madrid', '11111', 'Calle Ave María', 'berta@gmail.com', 0.00, 'PENDIENTE', '2026-09-11 03:01:47.038554', 'PED-06ADC235-8A2F-4854-9603-123913034681', 80.84, 'berta', 'España', 'Madrid', 384.97, '111222111', 465.81, 11, 'PENDIENTE', 'cs_test_b1cqfgl6ZElPSE53qTE7DIQNeRuZ2oG4AkWkrrRePTCAUbCqusZHM1VsBT', 1, '8294b749-be46-4383-ad0f-68d0a248c7eb', NULL),
+(48, 'García García', 'Madrid', '11111', 'Calle el faro, número 13', 'berta@gmail.com', 0.00, 'PENDIENTE', '2026-09-11 03:11:01.420159', 'PED-C8B4C6F3-61ED-4D19-9212-C2E3402D10E7', 61.94, 'Berta', 'España', 'Madrid', 294.97, '111222111', 356.91, 11, 'PENDIENTE', 'cs_test_b1JJ5iffJiBqhH0E5ilYvQtgvQfTK1Mx9TA8MvPRSNeVEx4NaoLvL0E7NL', 1, 'eaa23910-ab23-4056-969c-d158dc9ba8fa', NULL),
+(49, 'García García', 'Madrid', '11111', 'Calle el faro, número 13', 'berta@gmail.com', 0.00, 'PENDIENTE', '2026-09-11 03:17:08.298257', 'PED-6BA6D6BA-64B3-4877-8263-9FC52EA4EAF8', 69.29, 'Berta', 'España', 'Madrid', 329.97, '111222111', 399.26, 11, 'PENDIENTE', 'cs_test_b1dXtBQ85I9cq6zlRUOuPCaOArZwXmbMqqyFC9ZkMKBkiUGL85jh29CFlb', 1, 'a5a99a27-14b8-41a9-b280-8c228c944f6e', NULL),
+(50, 'Herrera Herrara', 'Madrid', '11111', 'calle real número 1', 'manu@gmail.com', 0.00, 'ENVIADO', '2026-09-11 03:23:16.378336', 'PED-6A738811-24D8-497E-86A1-4A5DD85436BB', 65.10, 'Manu', 'España', 'Madrid', 309.98, '111222111', 375.08, 10, 'PAGADO', 'cs_test_b1dr0Z7LEn4kzf9NPBM38fyFLOdjs5LgQ5XCVmxV1GYohjlCAWRc90x1qb', 3, '39cfca82-f5c8-4036-98bd-31e66156b838', NULL),
+(51, 'García García', 'Madrid', '11111', 'Calle la oliva, número 13', 'arturo@gmail.com', 0.00, 'PREPARANDO', '2026-09-11 03:31:02.478490', 'PED-B407298B-2E90-4FDA-8A3F-AD6C79AE0204', 47.25, 'Arturo', 'España', 'Madrid', 224.98, '111222111', 272.23, 9, 'PAGADO', 'cs_test_b1HbCR0a1zROIywbVDGrKlZqUMZ4Cgvi6KgVAYuKuqPR1bCYvo79EftkGx', 2, '8454bc74-aa8b-48d4-9738-2fc0ca37a6da', NULL),
+(52, 'García García', 'Madrid', '22222', 'calle princesa n 12', 'pepito@gmail.com', 0.00, 'PREPARANDO', '2026-09-11 17:19:19.909243', 'PED-73C95867-FC98-46D5-8E8C-AB3FF94A1B1B', 31.50, 'Pepe', 'España', 'Madrid', 149.99, '111222111', 181.49, 5, 'PAGADO', 'cs_test_b18O0wUmKvnZMlRzNS01mPy0UD6BcwokYF17vVBXLkOlK4NRCP8IVwDNdQ', 2, '90a7f225-8fe8-471a-afd0-6e2f344e7e87', NULL),
+(53, 'García García', 'Toledo', '24322', 'Calle Barco, número 2', 'García@gmail.com', 0.00, 'PREPARANDO', '2026-09-11 17:23:00.669993', 'PED-50947133-A73D-478A-B7D8-E09D186C5191', 31.50, 'Luis', 'España', 'Toledo', 149.99, '111222111', 181.49, 5, 'PAGADO', 'cs_test_b1giK1pndRQyruo41pF4XDnstEo0Vdo9lZwVclE6CJcAvZx0muluqEq1SF', 2, '39d3920c-6cbb-44ec-9ba7-5a41a8aa0e59', NULL),
+(54, 'García García', 'Madrid', '11111', 'Calle Barco, número 2', 'arturo@gmail.com', 0.00, 'PREPARANDO', '2026-09-11 17:32:09.326206', 'PED-27A08E73-EF16-4AC8-974A-7AC0386D45B5', 109.19, 'Arturo', 'España', 'Madrid', 519.96, '111222111', 629.15, 9, 'PAGADO', 'cs_test_b1R9GYRfdApSEoTxbNWEpNnnDF2S9cf74gif1oK0Dx0fiSnGhMrzY0CZMI', 2, '595db91d-9a4f-48bd-a98d-7347d50073e2', NULL),
+(55, 'García García', 'Madrid', '11111', 'calle real numero 1', 'arturo@gmail.com', 0.00, 'PENDIENTE', '2026-09-11 19:50:44.475773', 'PED-D5736E75-5BC0-4E6A-BEE5-9EDAA5849184', 50.40, 'Arturo', 'España', 'Madrid', 239.98, '111222111', 290.38, 9, 'PENDIENTE', 'cs_test_b1rKEmTavsEEYFaqnhBTBccWN4idUjYbGy3i6BSeNL0moTCOcbYCUFYnli', 1, 'd61ca827-5be2-4f81-b09c-3cddd2226935', '2e26b5347632da431bff8cad6f47aaeb3cd738550c14942474d87361d6c3b7c3'),
+(56, 'adasdf', 'Madrid', '11111', 'calle pepe 1', 'arturo@gmail.com', 0.00, 'PENDIENTE', '2026-09-11 19:59:28.490579', 'PED-6F492A46-9C5D-4AEB-9ECC-1B09399088D3', 42.00, 'adfas', 'España', 'Madrid', 199.99, '111222111', 241.99, 9, 'PENDIENTE', 'cs_test_b18jSFmbvWAuSiY7cXwkePcsxmvaMuDnHh1AWMU91zrVwnpvmDbmcVLYlk', 1, 'dcb7b92a-5f3d-4d62-9b54-e9b69dc5529c', 'a1498397b0266ec51a5c5b76fd7d61ef2d15c7ce291b348020f208da2e4fe3d3'),
+(57, 'adas', 'Madrid', '11111', 'calle real numero 1', 'escuderopolojoseluis@gmail.com', 0.00, 'PENDIENTE', '2026-09-11 20:05:09.842958', 'PED-6E3A1312-6697-49B6-8D54-E18DF0372B5E', 42.00, 'adfas', 'España', 'Madrid', 199.99, '111222111', 241.99, 9, 'PENDIENTE', 'cs_test_b1hgf7VllughegNYXJ328vY1tIxidCbdniOXRHyj1fijayEoHs8698XI8h', 1, 'aa2694fd-f5a4-4a04-b6bc-ec0b4bbf8cb1', '940424a8d7bd82be0c3100737e86f5ebb8c9c9408d787f10429e93a832aea7fe'),
+(58, 'Escudero Polo', 'Toledo', '45800', 'Calle Pio XII', 'escuderopolojoseluis@gmail.com', 0.00, 'PENDIENTE', '2026-09-11 20:12:55.586005', 'PED-D4193FDC-9C75-44CE-B1CF-FDFDC897BE56', 42.00, 'Jose luis', 'España', 'Toledo', 199.99, '654970786', 241.99, 9, 'PENDIENTE', 'cs_test_b1ZNiqT7vRtgVZMaCmh4D4aIO033fhTqWEpUc0oNAsIl4joMTdW1uXlFmD', 1, 'c6a504c2-dca9-414d-abad-8b1645eb7109', '003b9a0b3241c9f139afdd61061db79b252a36dfdcdac1334dc4b4611fc3b662'),
+(59, 'García García', 'Madrid', '11111', 'calle mayor número 14', 'luis@gmail.com', 0.00, 'PENDIENTE', '2026-09-11 20:42:00.191330', 'PED-FCEF30C2-204B-4EC8-B200-C020FC0FA091', 71.39, 'luis', 'España', 'Madrid', 339.97, '111222111', 411.36, 4, 'PENDIENTE', 'cs_test_b11VmCZrY6OTh9E9T5Mm6p8US886iSfbkxR6L2Rx9Ccg3HspqT6KdrosSb', 1, '96d031a1-548c-436b-8715-fd39e4793475', '102357813e2058b8c6eb49e026fa62f97594895fc0d2ae9eaf27cf4e00cc1c3f'),
+(60, 'García García', 'Madrid', '11111', 'calle mayor número 14', 'luis@gmail.com', 0.00, 'PENDIENTE', '2026-09-11 20:45:46.840493', 'PED-0F101296-99A1-4B71-9B86-9CC799BBA227', 71.39, 'luis', 'España', 'Madrid', 339.97, '111222111', 411.36, 4, 'PENDIENTE', NULL, 0, 'c6a504c2-dca9-414d-abad-8b1645eb7109', '102357813e2058b8c6eb49e026fa62f97594895fc0d2ae9eaf27cf4e00cc1c3f'),
+(61, 'García García', 'Madrid', '11111', 'calle mayor número 14', 'luis@gmail.com', 0.00, 'PENDIENTE', '2026-09-11 20:50:25.316288', 'PED-2C2F966C-4696-4D61-ADE1-CE5886AA2E56', 71.39, 'luis', 'España', 'Madrid', 339.97, '111222111', 411.36, 4, 'PENDIENTE', NULL, 0, '041b75e9-f803-4b4f-ad71-3110479e990f', '102357813e2058b8c6eb49e026fa62f97594895fc0d2ae9eaf27cf4e00cc1c3f'),
+(62, 'García García', 'Madrid', '11111', 'Calle Ave María', 'berta@gmail.com', 0.00, 'PREPARANDO', '2026-09-12 01:38:31.059124', 'PED-0B55E167-6EC5-4AA9-B8EC-C80D32A79524', 65.10, 'Berta', 'España', 'Madrid', 309.98, '111222111', 375.08, 11, 'PAGADO', 'cs_test_b1EIExfWxsWf1HqhEZbYtCfNar1dUnlHezQmS7PdfabjCJeZklKSZ8ooh7', 2, '8ce8ea4d-bcf4-4b68-a6bd-b9d3b21789f5', '3a8142eeaf8f8793750c8bc98a5f6a73f3f02dc72493bbd6a64bdf145803f847'),
+(63, 'García García', 'Toledo', '24322', 'Calle Barco, número 2', 'García@gmail.com', 0.00, 'PENDIENTE', '2026-09-12 02:08:37.973944', 'PED-BF522B00-601A-437F-9EAC-DB235619B676', 71.39, 'Luis', 'España', 'Toledo', 339.97, '111222111', 411.36, 4, 'PENDIENTE', NULL, 0, '39d3920c-6cbb-44ec-9ba7-5a41a8aa0e59', 'fdc9b8635e944dcaf4aaf32b148879a4747dd66b368c545660a0138d06f7ecba');
 
 -- --------------------------------------------------------
 
@@ -248,7 +257,22 @@ INSERT INTO `pedido_items` (`id`, `cantidad`, `color`, `nombre_producto`, `preci
 (98, 1, 'Blanco', 'Nike Air 90 Mix', 199.99, 1, 199.99, '38', 54),
 (99, 1, 'Blanco', 'Nike Air Force 1', 109.99, 2, 109.99, '37', 54),
 (100, 1, 'Negro', 'Puma Suede Classic', 89.99, 21, 89.99, '37', 54),
-(101, 1, 'Blanco', 'Puma RS-X', 119.99, 22, 119.99, '38', 54);
+(101, 1, 'Blanco', 'Puma RS-X', 119.99, 22, 119.99, '38', 54),
+(102, 1, 'Blanco', 'Adidas Ultraboost', 139.99, 11, 139.99, '38', 55),
+(103, 1, 'Blanco', 'Adidas Superstar', 99.99, 12, 99.99, '37', 55),
+(104, 1, 'Blanco', 'Nike Air 90 Mix', 199.99, 1, 199.99, '38', 56),
+(105, 1, 'Blanco', 'Nike Air 90 Mix', 199.99, 1, 199.99, '38', 57),
+(106, 1, 'Blanco', 'Nike Air 90 Mix', 199.99, 1, 199.99, '38', 58),
+(107, 1, 'Blanco', 'Adidas Ultraboost', 139.99, 11, 139.99, '38', 59),
+(108, 2, 'Blanco', 'Adidas Superstar', 99.99, 12, 199.98, '37', 59),
+(109, 1, 'Blanco', 'Adidas Ultraboost', 139.99, 11, 139.99, '38', 60),
+(110, 2, 'Blanco', 'Adidas Superstar', 99.99, 12, 199.98, '37', 60),
+(111, 1, 'Blanco', 'Adidas Ultraboost', 139.99, 11, 139.99, '38', 61),
+(112, 2, 'Blanco', 'Adidas Superstar', 99.99, 12, 199.98, '37', 61),
+(113, 1, 'Blanco', 'Nike Air 90 Mix', 199.99, 1, 199.99, '38', 62),
+(114, 1, 'Blanco', 'Nike Air Force 1', 109.99, 2, 109.99, '37', 62),
+(115, 1, 'Blanco', 'Adidas Ultraboost', 139.99, 11, 139.99, '38', 63),
+(116, 2, 'Blanco', 'Adidas Superstar', 99.99, 12, 199.98, '37', 63);
 
 -- --------------------------------------------------------
 
@@ -933,7 +957,7 @@ ALTER TABLE `carrito_items`
 -- AUTO_INCREMENT de la tabla `facturas`
 --
 ALTER TABLE `facturas`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT de la tabla `historial_pedidos`
